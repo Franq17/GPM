@@ -1,0 +1,9 @@
+{% from "macros/_form.html" import render_form %}
+
+{% extends 'settings/layout.html' %}
+{% set page_title = 'Perfil' %}
+
+{% block body %}
+<h2>Perfil Público</h2>
+{{ render_form(url_for('settings.profile'), form) }}
+{% endblock %}

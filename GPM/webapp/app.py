@@ -1,6 +1,6 @@
 
 #   Proyecto GPM: Generic Project Manager
-#   Revisado el 6 Abril de 2013, por Francisco Quiñonez (franqur17@gmail.com)
+#   Revisado el 6 Abril de 2013, por Francisco Quinhonez (franqur17@gmail.com)
 #   Controlado:
 #      - Adolfo Salas
 #      - Pablo Sanchez

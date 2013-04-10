@@ -7,10 +7,10 @@ except ImportError:
     from sqlalchemy.types import MutableType as Mutable
 from werkzeug import generate_password_hash, check_password_hash
 from flask.ext.login import UserMixin
-r"""  ESto es una prueba """
+"""  ESto es una prueba """
 from ..extensions import db
 from ..utils import get_current_time
-from .constants import USER, USER_ROLE, ADMIN, INACTIVE, USER_STATUS, STAFF
+from .constants import USER, USER_ROLE, ADMIN, INACTIVE, USER_STATUS
 
 
 class DenormalizedText(Mutable, types.TypeDecorator):
@@ -53,7 +53,7 @@ class UserDetail(db.Model):
     __tablename__ = 'user_details'
 
     id = Column(db.Integer, primary_key=True)
-
+    
     nameReal = Column(db.String)
     apellido = Column(db.String)
     phone = Column(db.String)
@@ -66,7 +66,7 @@ class UserDetail(db.Model):
 class User(db.Model, UserMixin):
 
     __tablename__ = 'users'
-
+    
     id = Column(db.Integer, primary_key=True)
     name = Column(db.String(32), nullable=False, unique=True)
     email = Column(db.String, nullable=False, unique=True)
@@ -156,7 +156,7 @@ class User(db.Model, UserMixin):
     @classmethod
     def authenticate(cls, login, password):
         user = cls.query.filter(db.or_(User.name == login, User.email == login)).first()
-
+        
         if user:
             authenticated = user.check_password(password)
         else:

@@ -16,7 +16,6 @@ from flask import Flask, request, render_template
 from flaskext.babel import Babel
 from .configs import DevConfig
 from .user import User, user
-from .project import Project, project
 from .settings import settings
 from .frontend import frontend
 from .api import api
@@ -30,7 +29,6 @@ __all__ = ['create_app']
 DEFAULT_BLUEPRINTS = (
     frontend,
     user,
-	project,
     settings,
     api,
     admin,

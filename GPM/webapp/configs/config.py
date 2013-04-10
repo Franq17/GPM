@@ -79,4 +79,4 @@ class TestConfig(BaseConfig):
     CSRF_ENABLED = False
 
     SQLALCHEMY_ECHO = False
-    SQLALCHEMY_DATABASE_URI = 'sqlite://'
+    SQLALCHEMY_DATABASE_URI = 'postgresql://postgres:postgres@127.0.0.1/webapp'

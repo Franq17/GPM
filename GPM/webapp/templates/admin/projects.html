@@ -1,0 +1,34 @@
+{% extends "admin/layout.html" %}
+{% set page_title = 'Proyectos' %}
+
+{% block body %}
+<div class="container">
+    <h2>Proyectos</h2>
+    <a class="btn btn-primary" href="{{ url_for('admin.createProject')}}"><strong>Crear Proyecto</strong></a><br><br>
+	<a class="btn btn-primary" href="{{ url_for('admin.searchProject')}}"><strong>Buscar Proyecto</strong></a><br><br>
+    <table class='table table-bordered table-hover'>
+        <thead>
+            <tr>
+                <th>Nombre de Proyecto</th>
+                <th>Descripcion</th>
+                <th>Complejidad</th>
+                <th>Estado</th>
+                <th>Fases</th>
+                <th>Fecha de Creación</th>
+                <th></th>
+            </tr>
+        </thead>
+        {% for project in projects %}
+        <tr>
+            <td>{{ project.nombre }}</td>
+            <td>{{ project.descripcion }}</td>
+            <td>{{ project.complejidad_total }}</td>
+            <td>{{ project.getStatus() }}</td>
+            <td>{{ project.numero_fases }}</td>
+            <td>{{ project.created_time|format_date }}</td>
+            <td><a href="{{ url_for('admin.project', project_id=project.id_proyecto) }}">Editar</a> | <a href="{{ url_for('admin.deleteProject', project_id=project.id_proyecto) }}">Eliminar</a></td>
+        </tr>
+        {% endfor %}
+    </table>
+</div>
+{% endblock %}

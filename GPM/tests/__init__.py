@@ -35,7 +35,7 @@ class TestCase(Base):
             user_detail=UserDetail(
                 nameReal=u'Francisco',
 				apellido=u'quiñonez',
-                location=u'Hangzhou', 
+                location=u'Hangzhou',
 				document=4575,
                 descripcion=u'usuario is ... hmm ... just a demo guy.'),
                 )

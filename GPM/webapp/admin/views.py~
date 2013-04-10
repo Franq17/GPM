@@ -40,7 +40,7 @@ def createUser():
 
         db.session.add(user)
         db.session.commit()
-        flash('User created.', 'success')
+        flash('Usuario creado.', 'success')
         return redirect(url_for('admin.users'))
 
     return render_template('admin/createUser.html', form=form)
@@ -58,7 +58,7 @@ def user(user_id):
         db.session.add(user)
         db.session.commit()
 
-        flash('User updated.', 'success')
+        flash('Usuario actualizado.', 'success')
         return redirect(url_for('admin.users'))
 
     return render_template('admin/user.html', user=user, form=form)
@@ -76,7 +76,7 @@ def deleteUser(user_id):
         db.session.delete(user)
         db.session.commit()
 
-        flash('User deleted.', 'success')
+        flash('Usuario eliminado.', 'success')
         return redirect(url_for('admin.users'))
 
     return render_template('admin/deleteUser.html', user=user, form=form)

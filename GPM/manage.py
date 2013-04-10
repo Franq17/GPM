@@ -18,6 +18,8 @@ from flask.ext.script import Manager
 from webapp import create_app
 from webapp.extensions import db
 from webapp.user import User, UserDetail, ADMIN, USER, ACTIVE
+from webapp.project import Project, INICIADO 
+
 
 
 app = create_app()
@@ -79,10 +81,20 @@ def initdb():
                 location=u'Hangzhou', 
 				document=4575,
                 descripcion=u'usuario is ... hmm ... just a demo guy.'),
-			)       
+			)
+    ejemplo = Project(
+            nombre=u'ejemplo1',
+            estado_id=INICIADO,
+            numero_fases=3,
+            lider_proyecto="usuario",
+            complejidad_total=20,
+            descripcion=u'proyecto loco probando',
+            )
+                
     db.session.add(admin)
     db.session.add(lider) 
-    db.session.add(usuario)    
+    db.session.add(usuario)
+    db.session.add(ejemplo)    
     db.session.commit()
 
 

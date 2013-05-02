@@ -1,0 +1,41 @@
+{% from "macros/_form.html" import render_form %}
+{% extends "layouts/base.html" %}
+{% set page_title = 'Rol_Usuario' %}
+
+{% block body %}
+<div class="container">
+    <h2>Asignar Roles al Usuario</h2>
+    <h3>{{ user.name }}</h3>
+        {{ render_form(url_for('admin.rolesxusuario', user_id=user.id), form)}}  
+    <h2>Roles asignados</h2>
+    <table class='table table-bordered table-hover table-condensed'>
+        <thead>
+            <tr>
+                <th>Nombre</th>
+                <th></th>
+            </tr>
+        </thead>
+		{% for rol in roles%}
+		<tr>
+            <td>{{ rol.nombre }}</td>
+			<td><a data-toggle="modal" href="#example" class="text">Quitar</a></td>
+        </tr>
+        {% endfor %}
+    </table>
+    <div id="example" class="modal hide fade in" style="display: none;">
+	    <div class="modal-header">
+	        <a data-dismiss="modal" class="close">×</a>
+	        <h4>Desasignar Rol</h4>
+	     </div>
+	     <div class="modal-body">
+	        <p>Favor, confirme su respuesta</p>                
+	    </div>
+	    <div class="modal-footer">
+	        <a href="#" class="btn btn-primary">Quitar</a>
+	        <a href="#" data-dismiss="modal" class="btn">Cerrar</a>
+	    </div>
+	    <script src="jquery.js"></script>
+		<script src="bootstrap-modal.js"></script>
+	</div>
+</div>
+{% endblock %}

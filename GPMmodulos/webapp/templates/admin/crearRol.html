@@ -1,0 +1,11 @@
+{% from "macros/_form.html" import render_form %}
+
+{% extends "layouts/base.html" %}
+{% set page_title = 'Crear Rol' %}
+
+{% block body %}
+<div class="container">
+    <h2>Crear Rol</h2>
+    {{ render_form(url_for('admin.crearRol'), form)}}  
+</div>
+{% endblock %}

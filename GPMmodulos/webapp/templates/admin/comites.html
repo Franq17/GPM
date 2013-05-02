@@ -1,0 +1,35 @@
+{% extends "admin/layout.html" %}
+{% set page_title = 'Comites' %}
+
+{% block body %}
+<div class="container">
+    <h2>Administrador de Comités</h2>
+    <div class="row-fluid">    
+	    <div class="span2">
+	    <a class="btn btn-primary" href="{{ url_for('admin.crearComite')}}"><strong>Crear Comité</strong></a><br><br></div>
+		<form class="navbar-search pull-left" action="{{ url_for('admin.buscarComite') }}">
+			<input type='text' class="search-query" name='keywords' value='{{ keywords|default('') }}' placeholder='Buscar' />
+		</form>
+    </div>
+    <table class='table table-bordered table-hover table-condensed'>
+        <thead>
+            <tr>
+                <th>Nombre de Comité</th>
+                <th>Proyecto</th>
+                <th>Miembros</th>
+                <th>Descripcion</th>
+                <th></th>
+            </tr>
+        </thead>
+        {% for comite in comites %}
+        <tr>
+            <td>{{ comite.nombre }}</td>
+            <td>{{ comite.proyecto_id }}</td>
+            <td><a href="{{ url_for('admin.usuariosxcomite', comite_id=comite.id) }}"><i class="icon-user"></i> Ver Miembros</a></td>
+            <td>{{ comite.descripcion }}</td>
+            <td><a href="{{ url_for('admin.comite', comite_id=comite.id) }}"><i class="icon-pencil"></i>Editar</a> | <a href="{{ url_for('admin.borrarComite', comite_id=comite.id) }}"><i class="icon-remove"></i>Eliminar</a></td>
+        </tr>
+        {% endfor %}
+    </table>
+</div>
+{% endblock %}

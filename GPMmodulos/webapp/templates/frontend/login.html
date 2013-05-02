@@ -1,0 +1,15 @@
+{% from "macros/_form.html" import render_form %}
+
+{% set page_title = "Sign in" %}
+
+{% extends "layouts/base.html" %}
+
+{% block container %}
+<div class="container">
+	<br><br>
+	<center><h2>Iniciar Sesion</h2><br>
+	{{ render_form(url_for('frontend.login'), form)}}
+	</center>
+    
+</div>
+{% endblock %}

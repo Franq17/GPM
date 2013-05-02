@@ -1,0 +1,32 @@
+{% extends "layouts/base.html" %}
+{% set page_title = 'Roles' %}
+
+{% block body %}
+<div class="container">
+    <h2>Roles</h2>
+    <div class="row-fluid"> 
+    	<div class="span2">
+    	<a class="btn btn-primary" href="{{ url_for('admin.crearRol')}}"><strong>Crear Rol</strong></a><br><br></div>
+    	<form class="navbar-search pull-left" action="{{ url_for('admin.searchRol') }}">
+			<input type='text' class="search-query" name='keywords' value='{{ keywords|default('') }}' placeholder='Buscar' />
+		</form>
+    </div>
+    <table class='table table-bordered table-hover table-condensed'>
+        <thead>
+            <tr>
+                <th>Nombre</th>
+                <th>Descripcion</th>
+                <th></th>
+            </tr>
+        </thead>
+        {% for rol in roles %}
+        <tr>
+            <td>{{ rol.nombre }}</td>
+            <td>{{ rol.descripcion }}</td>
+
+            <td><a href="{{ url_for('admin.permisosxrol', rol_id=rol.id) }}"><i class="icon-eye-open"></i>Permisos</a> | <a href="{{ url_for('admin.rol', rol_id=rol.id) }}"><i class="icon-pencil"></i>Editar</a> | <a href="{{ url_for('admin.borrarRol', rol_id=rol.id) }}"><i class="icon-remove"></i>Eliminar</a></td>
+        </tr>
+        {% endfor %}
+    </table>
+</div>
+{% endblock %}

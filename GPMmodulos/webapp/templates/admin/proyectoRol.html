@@ -1,0 +1,31 @@
+{% extends "layouts/base.html" %}
+{% set page_header = _(active|capitalize) %}
+{% set page_title = 'Proyecto_Rol' %}
+
+{% set tabs = [
+    ("Fases",url_for('admin.Miembros')), 
+    ("Roles",url_for('admin.Roles')),
+    ("Tipos de Item",url_for('admin.Miembros')),
+    ("Miembros",url_for('admin.Miembros'))
+]%}
+
+{% block body %}
+     <a class="btn btn-primary" href="{{ url_for('admin.createUser')}}"><strong>Agregar Rol</strong></a><br></br>
+     <table class='table table-bordered table-hover table-condensed'>
+        <thead>
+            <tr>
+                <th>Nombre</th>
+                <th>Descripcion</th>
+                <th></th>
+            </tr>
+        </thead>
+        {% for rol in roles %}
+        <tr>
+            <td>{{ rol.nombre }}</td>
+            <td>{{ rol.descripcion }}</td>
+
+            <td><a href="{{ url_for('admin.permisosxrol', rol_id=rol.id) }}"><i class="icon-eye-open"></i>Permisos</a> | <a href="#"><i class="icon-pencil"></i>Editar</a> | <a href="#"><i class="icon-remove"></i>Eliminar</a></td>
+        </tr>
+        {% endfor %}
+    </table>
+{% endblock %}

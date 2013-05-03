@@ -164,3 +164,8 @@ class RolxUsuarioForm(Form):
     next = HiddenField()
     rolPorUsuario = SelectMultipleField(u'Roles' ,coerce=int)
     submit = SubmitField(u'Guardar')
+    
+class UsuarioxProyecto(Form):
+    next = HiddenField()
+    usuarioPorProyecto = SelectMultipleField(u'Usuarios', coerce=int)
+    submit = SubmitField(u'Guardar')

@@ -489,3 +489,9 @@ def rolesxusuario(user_id):
         return redirect(url_for('admin.users'))
        
     return render_template('admin/rolesxusuario.html', user=user, form=form, roles=rolesAsignados)
+
+#@admin.route('/usuarioxproyecto/<proyecto_id>', methods=['GET', 'POST'])
+#@login_required
+#@admin_required
+#def usuarioxproyecto(proyecto_id):
+#    

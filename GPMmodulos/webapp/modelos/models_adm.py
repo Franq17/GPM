@@ -92,6 +92,22 @@ class Rol(db.Model):
         q = reduce(db.and_, criteria)
         return cls.query.filter(q)
 
+class Fase(db.Model):
+    __tablename__='fase'
+    
+    id = Column(db.Integer, primary_key=True)
+    nombre = Column(db.String(32), nullable=False, unique=True)
+    descripcion = Column(db.String())
+    numero_fase = Column(db.Integer)
+    numero_items = Column(db.Integer)
+    numero_lb = Column(db.Integer)
+    
+    # =========================
+    # One-to-many relationship
+    estado = Column(db.SmallInteger, default=NO_INICIADO)
+    # =========================
+    # One-to-many relationship
+    proyecto_id = Column(db.Integer, db.ForeignKey('proyecto.id'))
     
 class Comite(db.Model):
     
@@ -267,7 +283,12 @@ class Proyecto(db.Model):
     usuarioPorProyecto = db.relationship('User', secondary=usuarioPorProyecto,
                                          backref=db.backref('usuarioPorProyecto', lazy='dynamic'))  
     
+    # One-to-one relationship between comite and proyecto 
     comite = db.relationship('Comite', backref='proyecto', uselist=False)
+    
+    # One-to-many relationship between proyecto and fases
+    fases = db.relationship('Fase', backref='proyecto',lazy='dynamic')
+    
     
     # ================================================================
     # One-to-many relationship between projects and project_statuses.

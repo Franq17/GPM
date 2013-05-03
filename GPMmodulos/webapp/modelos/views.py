@@ -21,8 +21,8 @@ def index():
 
 @user.route('/<name>')
 def pub(name):
-    if current_user.is_authenticated() and current_user.name == name:
-        return redirect(url_for('user.index'))
+#    if current_user.is_authenticated() and current_user.name == name:
+#        return redirect(url_for('user.index'))
 
     user = User.query.filter_by(name=name).first_or_404()
     return render_template('index/showUser.html', user=user)

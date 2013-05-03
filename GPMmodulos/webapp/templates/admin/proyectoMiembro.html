@@ -1,3 +1,4 @@
+{% from "macros/_form.html" import render_form %}
 {% extends "layouts/base.html" %}
 {% set page_header = _(active|capitalize) %}
 {% set page_title = 'Proyecto_Miembro' %}
@@ -10,11 +11,12 @@
 ]%}
 
 {% block body %}
-     <a class="btn btn-primary" href="{{ url_for('admin.createUser')}}"><strong>Agregar Miembro</strong></a><br></br>
-     <table class='table table-bordered table-hover table-condensed'>
-        <thead>
-            <tr>
-                <th>Nombre</th>
+	{{ render_form(url_for('admin.usuarioxproyecto', proyecto_id=proyecto.id), form)}}
+	<h2>Usuarios del Proyecto</h2>
+	<table class='table table-bordered table-hover table-condensed'>
+    	<thead>
+        	<tr>
+            	<th>Nombre</th>
                 <th>Apellido</th>
                 <th>Estado</th>
                 <th>Fecha de Ingreso</th>

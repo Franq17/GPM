@@ -6,13 +6,13 @@ from flask_login import login_required
 from ..extensions import db
 from ..decorators import admin_required
 
-from ..modelos import User, Rol, Permiso, Proyecto, Comite
+from ..modelos import User, Rol, Permiso, Proyecto, Comite, Fase
 from .forms_adm import UserForm, DeleteUserForm, CreateUserForm
 from .forms_adm import ComiteForm, BorrarComiteForm, CrearComiteForm
 from .forms_adm import ProyectoForm, BorrarProyectoForm, CrearProyectoForm
 from .forms_adm import RolForm, CrearRolForm , BorrarRolForm 
-from .forms_adm import PermisoxRolForm, RolxUsuarioForm, UserxComiteForm
-
+from .forms_adm import PermisoxRolForm, RolxUsuarioForm, UserxComiteForm, UsuarioxProyectoForm, RolxProyectoForm
+from .forms_adm import CrearFaseForm
 admin = Blueprint('admin', __name__, url_prefix='/admin')
 
 #LOGIN
@@ -372,22 +372,13 @@ def borrarComite(comite_id):
     return render_template('admin/borrarComite.html', comite=comite, form=form)
 
 
-#PROYECTO Miembro
-@admin.route('/miembrosProyecto')
-@login_required
-@admin_required
-def Miembros():
-    users = User.query.all()
-    return render_template('admin/proyectoMiembro.html', users=users, active='Miembros')
-
-#PROYECTO Roles
-
-@admin.route('/rolesProyecto')
-@login_required
-@admin_required
-def Roles():
-    roles = Rol.query.all()
-    return render_template('admin/proyectoRol.html', roles=roles, active='Roles')
+##PROYECTO Miembro
+#@admin.route('/miembrosProyecto')
+#@login_required
+#@admin_required
+#def Miembros():
+#    users = User.query.all()
+#    return render_template('admin/proyectoMiembro.html', users=users, active='Miembros')
 
 
 # RELACIONES
@@ -490,8 +481,109 @@ def rolesxusuario(user_id):
        
     return render_template('admin/rolesxusuario.html', user=user, form=form, roles=rolesAsignados)
 
-#@admin.route('/usuarioxproyecto/<proyecto_id>', methods=['GET', 'POST'])
-#@login_required
-#@admin_required
-#def usuarioxproyecto(proyecto_id):
-#    
+####################################################################
+#            PROYECTO CONFIGURACION
+
+@admin.route('/usuarioxproyecto/<proyecto_id>', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def usuariosxproyecto(proyecto_id):
+    
+    proyecto = Proyecto.query.filter_by(id=proyecto_id).first_or_404()
+    form = UsuarioxProyectoForm(obj=proyecto, next=request.args.get('next'))
+    usersAsignados = proyecto.usuarioPorProyecto
+    todosUsuarios = User.query.all()
+    UsersAsignar = [item for item in todosUsuarios if item not in usersAsignados]
+    listaUsers=[]
+    for userAsig in usersAsignados:
+        listaUsers.append(userAsig.id)
+       
+    form.usuarioPorProyecto.choices = [(h.id, h.nombre) for h in UsersAsignar ]
+   
+    if form.validate_on_submit():       
+        listaTotal=form.usuarioPorProyecto.data
+        for userAsig in listaUsers:
+            listaTotal.append(userAsig)
+        for userID in listaTotal:
+            user = User.query.filter_by(id=userID).first()
+            proyecto.usuarioPorProyecto = [user]
+        db.session.add(proyecto)
+        db.session.commit()
+       
+        flash('Proyecto modificado.', 'success')
+        return redirect(url_for('admin.proyectos'))
+       
+    return render_template('admin/proyectoMiembro.html', proyecto=proyecto, form=form, users=usersAsignados, active='Miembros')
+
+
+@admin.route('/rolesxproyecto/<proyecto_id>', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def rolesxproyecto(proyecto_id):
+
+    proyecto = Proyecto.query.filter_by(id=proyecto_id).first_or_404()
+    form = RolxProyectoForm(obj=proyecto, next=request.args.get('next'))
+    rolesAsignados = proyecto.roles
+    todosRoles = Rol.query.all()
+    RolesAsignar = [item for item in todosRoles if item not in rolesAsignados]
+    listaRoles=[]
+    for rolAsig in rolesAsignados:
+        listaRoles.append(rolAsig.id)
+       
+    form.roles.choices = [(h.id, h.nombre) for h in RolesAsignar ]
+   
+    if form.validate_on_submit():       
+        listaTotal=form.roles.data
+        for rolAsig in listaRoles:
+            listaTotal.append(rolAsig)
+        for rolID in listaTotal:
+            rol = Rol.query.filter_by(id=rolID).first()
+            proyecto.roles = [rol]
+        db.session.add(proyecto)
+        db.session.commit()
+       
+        flash('Proyecto modificado.', 'success')
+        return redirect(url_for('admin.proyectos'))
+       
+    return render_template('admin/rolesxproyecto.html', proyecto=proyecto, form=form, roles=rolesAsignados, active='Roles')
+
+
+
+
+@admin.route('/fasesxproyecto/<proyecto_id>', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def fasesxproyecto(proyecto_id):
+    proyecto = Proyecto.query.filter_by(id=proyecto_id).first_or_404()
+    fasesExistentes = proyecto.fases
+#   fases = Fase.query.filter_by(proyecto_id=proyecto.id).first_or_404
+    return render_template('admin/fasesxproyecto.html', proyecto=proyecto, fases=fasesExistentes, active='Fases')
+
+
+@admin.route('/crearFase/<proyecto_id>', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def crearFase(proyecto_id):
+    proyecto = Proyecto.query.filter_by(id=proyecto_id).first_or_404()
+    form = CrearFaseForm(next=request.args.get('next'))
+    lis = {}
+    x = 0
+    while x < proyecto.numero_fases:
+        x = x + 1
+        lis = {x:str(x)}
+        print lis
+    form.numero_fase.choices = [item for item in lis.items()]
+    if form.validate_on_submit():
+        fase = Fase()
+        fase.nombre = form.nombre.data
+        fase.numero_fase = form.numero_fase.data
+        fase.proyecto_id = proyecto
+        fase.descripcion = form.descripcion.data
+
+        db.session.add(fase)
+        db.session.commit()
+        
+        flash('Fase creada.', 'success')
+        return redirect(url_for('admin.proyectos'))
+        
+    return render_template('admin/crearFase.html', proyecto=proyecto, form=form)

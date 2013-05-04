@@ -25,7 +25,7 @@
         </thead>
         {% for proyecto in proyectos %}
         <tr>
-            <td><a href="{{ url_for('admin.Miembros')}}">{{ proyecto.nombre }}</td>
+            <td><a href="{{ url_for('admin.usuariosxproyecto', proyecto_id=proyecto.id)}}">{{ proyecto.nombre }}</td>
             <td>{{ proyecto.complejidad_total }}</td>
             <td>{{ proyecto.getStatus() }}</td>
             <td>{{ proyecto.numero_fases }}</td>

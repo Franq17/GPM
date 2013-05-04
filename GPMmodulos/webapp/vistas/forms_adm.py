@@ -6,7 +6,7 @@ from flask_wtf import AnyOf
 
 from ..modelos import USER_ROLE, USER_STATUS, PROYECTO_ESTADOS, COMITE_ESTADOS
 
-from flask_wtf.html5 import EmailField, SearchField
+from flask_wtf.html5 import EmailField
 from flask_wtf import Required, Optional, Length, EqualTo, Email
 from flask_wtf import (HiddenField, BooleanField, TextField, TextAreaField,
                        PasswordField, IntegerField, SelectField, SelectMultipleField, SubmitField)
@@ -48,11 +48,6 @@ class CreateUserForm(Form):
         if User.query.filter_by(email=field.data).first() is not None:
             raise ValidationError(u'Email en uso')
 
-class SearchUserForm(Form):
-    next = HiddenField()
-    name = SearchField(u'Nombre de Usuario')
-    submit = SubmitField(u'Buscar')
-
 #PROYECTO
 class ProyectoForm(Form):
     next = HiddenField()
@@ -84,12 +79,7 @@ class CrearProyectoForm(Form):
     def validate_name(self, field):
         if Proyecto.query.filter_by(nombre=field.data).first() is not None:
             raise ValidationError(u'El nombre del Proyecto ya existe')
-
-class BuscarProyectoForm(Form):
-    next = HiddenField()
-    nombre = SearchField(u'Nombre del Proyecto', [Required()])
-    submit = SubmitField(u'Buscar')
-    
+          
 #COMITE
 class ComiteForm(Form):
     next = HiddenField()
@@ -113,10 +103,6 @@ class BorrarComiteForm(Form):
     # A demo of datepicker.
     submit = SubmitField(u'Eliminar')
     
-class BuscarComiteForm(Form):
-    next = HiddenField()
-    nombre = SearchField(u'Nombre de Comité', [Required()])
-    submit = SubmitField(u'Buscar')
 
 #ROL
 class CrearRolForm(Form):
@@ -142,13 +128,15 @@ class RolForm(Form):
     descripcion = TextAreaField(u'Descripción', [Optional(), Length(max=1024)])
     submit = SubmitField(u'Editar')
 
-
-class BuscarRolForm(Form):
+#FASE
+class CrearFaseForm(Form):
     next = HiddenField()
-    nombre = SearchField(u'Nombre del Rol')
-    
-#RELACIONES
+    nombre = nombre = TextField(u'Nombre de Fase', [Required(), Length(REALNAME_LEN_MIN, REALNAME_LEN_MAX)])
+    descripcion = TextAreaField(u'Descripción', [Optional(), Length(max=1024)])
+    numero_fase =  SelectField(u'Numero de Fase', [Required()], coerce=int)
+    submit = SubmitField(u'Crear')
 
+#RELACIONES
 class UserxComiteForm(Form):
     next = HiddenField()
     # A demo of datepicker.
@@ -165,7 +153,19 @@ class RolxUsuarioForm(Form):
     rolPorUsuario = SelectMultipleField(u'Roles' ,coerce=int)
     submit = SubmitField(u'Guardar')
     
-class UsuarioxProyecto(Form):
+class UsuarioxProyectoForm(Form):
     next = HiddenField()
     usuarioPorProyecto = SelectMultipleField(u'Usuarios', coerce=int)
-    submit = SubmitField(u'Guardar')
+    submit = SubmitField(u'Agregar')
+    
+class RolxProyectoForm(Form):
+    next = HiddenField()
+    roles = SelectMultipleField(u'Roles', coerce=int)
+    submit = SubmitField(u'Agregar')
+
+class FasexProyectoForm(Form):
+    next = HiddenField()
+    nombre = nombre = TextField(u'Nombre de Fase', [Required(), Length(REALNAME_LEN_MIN, REALNAME_LEN_MAX)])
+    descripcion = TextAreaField(u'Descripción', [Optional(), Length(max=1024)])
+    numero_fase =  SelectField(u'Numero de Fase', coerce=int)
+    submit = SubmitField(u'Agregar')

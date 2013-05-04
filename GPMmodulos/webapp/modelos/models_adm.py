@@ -18,8 +18,8 @@ class DenormalizedText(Mutable, types.TypeDecorator):
     Stores denormalized primary keys that can be
     accessed as a set.
 
-    :param coerce: coercion function that ensures correct
-                   type is returned
+    :param coerce: coercion function that ensures correct 
+    type is returned
 
     :param separator: separator character
     """
@@ -77,6 +77,10 @@ class Rol(db.Model):
     descripcion = Column(db.String)
     permisoPorRol = db.relationship('Permiso', secondary=permisoPorRol,
         backref=db.backref('permisoPorRol', lazy='dynamic'))
+    
+    # =========================
+    # One-to-many relationship
+    proyecto_id = Column(db.Integer, db.ForeignKey('proyecto.id'))
 
     # ================================================================
     # Class methods
@@ -86,9 +90,9 @@ class Rol(db.Model):
         criteria = []
         for keyword in keywords.split():
             keyword = '%' + keyword + '%'
-            criteria.append(db.or_(
-                Rol.nombre.ilike(keyword)
-            ))
+            criteria.append(db.or_
+            (Rol.nombre.ilike(keyword))
+        )
         q = reduce(db.and_, criteria)
         return cls.query.filter(q)
 
@@ -104,7 +108,7 @@ class Fase(db.Model):
     
     # =========================
     # One-to-many relationship
-    estado = Column(db.SmallInteger, default=NO_INICIADO)
+    estado = Column(db.SmallInteger)
     # =========================
     # One-to-many relationship
     proyecto_id = Column(db.Integer, db.ForeignKey('proyecto.id'))
@@ -288,6 +292,9 @@ class Proyecto(db.Model):
     
     # One-to-many relationship between proyecto and fases
     fases = db.relationship('Fase', backref='proyecto',lazy='dynamic')
+    
+    # One-to-many relationship between proyecto and roles
+    roles = db.relationship('Rol', backref='proyecto',lazy='dynamic')
     
     
     # ================================================================

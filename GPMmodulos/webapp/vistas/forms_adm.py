@@ -21,7 +21,7 @@ class UserForm(Form):
     status_id = RadioField(u"Estados", [AnyOf([str(val) for val in USER_STATUS.keys()])],
             choices=[(str(val), label) for val, label in USER_STATUS.items()])
     # A demo of datepicker.
-    created_time = DateField(u'Fecha de Creación')
+    created_time = DateField(u'Fecha de Creacion')
     submit = SubmitField(u'Guardar')
 
 class DeleteUserForm(Form):
@@ -29,13 +29,13 @@ class DeleteUserForm(Form):
     status_id = RadioField(u"Estados", [AnyOf([str(val) for val in USER_STATUS.keys()])],
             choices=[(str(val), label) for val, label in USER_STATUS.items()])
     # A demo of datepicker.
-    created_time = DateField(u'Fecha de Creación')
+    created_time = DateField(u'Fecha de Creacion')
     submit = SubmitField(u'Eliminar')
 
 class CreateUserForm(Form):
     next = HiddenField()
     email = EmailField(u'Email', [Email()])
-    password = PasswordField(u'Contraseña', [Required(), Length(PASSWORD_LEN_MIN, PASSWORD_LEN_MAX)])
+    password = PasswordField(u'Contrasena', [Required(), Length(PASSWORD_LEN_MIN, PASSWORD_LEN_MAX)])
     name = TextField(u'Nombre de Usuario', [Required(), Length(USERNAME_LEN_MIN, USERNAME_LEN_MAX)])
     rolPorUsuario = SelectMultipleField(u'Roles', [Required()], coerce=int)
     submit = SubmitField('Crear')
@@ -59,7 +59,7 @@ class ProyectoForm(Form):
     
     estado_id = RadioField(u"Estados", [AnyOf([str(val) for val in PROYECTO_ESTADOS.keys()])],
             choices=[(str(val), label) for val, label in PROYECTO_ESTADOS.items()])
-    descripcion = TextAreaField(u'Descripción', [Optional(), Length(max=1024)])
+    descripcion = TextAreaField(u'Descripcion', [Optional(), Length(max=1024)])
     
     submit = SubmitField(u'Guardar')
 
@@ -68,7 +68,7 @@ class BorrarProyectoForm(Form):
     estado_id = RadioField(u"Estados", [AnyOf([str(val) for val in PROYECTO_ESTADOS.keys()])],
             choices=[(str(val), label) for val, label in PROYECTO_ESTADOS.items()])
     # A demo of datepicker.
-    created_time = DateField(u'Fecha de Creación')
+    created_time = DateField(u'Fecha de Creacion')
     
     submit = SubmitField(u'Eliminar')
 
@@ -76,9 +76,9 @@ class CrearProyectoForm(Form):
     next = HiddenField()
 
     nombre = TextField(u'Nombre del Proyecto', [Required(), Length(REALNAME_LEN_MIN, REALNAME_LEN_MAX)])
-    numero_fases = IntegerField(u'Número de fases',[Required()])
-    lider_proyecto = SelectField(u'Líder de Proyecto',coerce=int,)
-    descripcion = TextAreaField(u'Descripción', [Optional(), Length(max=1024)])
+    numero_fases = IntegerField(u'Numero de fases',[Required()])
+    lider_proyecto = SelectField(u'Lider de Proyecto',coerce=int,)
+    descripcion = TextAreaField(u'Descripcion', [Optional(), Length(max=1024)])
     submit = SubmitField(u'Crear')
 
     def validate_name(self, field):
@@ -93,36 +93,36 @@ class BuscarProyectoForm(Form):
 #COMITE
 class ComiteForm(Form):
     next = HiddenField()
-    descripcion = TextAreaField(u'Descripción', [Optional(),Length(max=1024)])
+    descripcion = TextAreaField(u'Descripcion', [Optional(),Length(max=1024)])
     submit = SubmitField(u'Guardar')
     
 class CrearComiteForm(Form):
     next = HiddenField()
-    nombre = TextField(u'Nombre de Comité', [Required(), Length(REALNAME_LEN_MIN, REALNAME_LEN_MAX)])
+    nombre = TextField(u'Nombre de Comite', [Required(), Length(REALNAME_LEN_MIN, REALNAME_LEN_MAX)])
     proyecto_id = SelectField(u'ProyectoID', coerce=int,)
-    descripcion = TextAreaField(u'Descripción', [Optional(), Length(max=1024)])
+    descripcion = TextAreaField(u'Descripcion', [Optional(), Length(max=1024)])
     submit = SubmitField(u'Crear')
     
     def validate_name(self, field):
         if Comite.query.filter_by(nombre=field.data).first() is not None:
-            raise ValidationError(u'El nombre del Comité ya existe')
+            raise ValidationError(u'El nombre del Comite ya existe')
     
 class BorrarComiteForm(Form):
     next = HiddenField()
-    descripcion = TextAreaField(u'Descripción', [Optional(), Length(max=1024)])
+    descripcion = TextAreaField(u'Descripcion', [Optional(), Length(max=1024)])
     # A demo of datepicker.
     submit = SubmitField(u'Eliminar')
     
 class BuscarComiteForm(Form):
     next = HiddenField()
-    nombre = SearchField(u'Nombre de Comité', [Required()])
+    nombre = SearchField(u'Nombre de Comite', [Required()])
     submit = SubmitField(u'Buscar')
 
 #ROL
 class CrearRolForm(Form):
     next = HiddenField()
     nombre = TextField(u'Nombre del Rol', [Required(), Length(REALNAME_LEN_MIN, REALNAME_LEN_MAX)])
-    descripcion = TextAreaField(u'Descripción', [Optional(), Length(max=1024)])
+    descripcion = TextAreaField(u'Descripcion', [Optional(), Length(max=1024)])
     permisoPorRol = SelectMultipleField(u'Permisos', [Required()], coerce=int)
     submit = SubmitField(u'Crear')
     
@@ -133,13 +133,13 @@ class CrearRolForm(Form):
 class BorrarRolForm(Form):
     next = HiddenField()
     nombre = TextField(u'Nombre del Rol', [Required(), Length(REALNAME_LEN_MIN, REALNAME_LEN_MAX)])
-    descripcion = TextAreaField(u'Descripción', [Optional(), Length(max=1024)])
+    descripcion = TextAreaField(u'Descripcion', [Optional(), Length(max=1024)])
     submit = SubmitField(u'Eliminar')
 
 class RolForm(Form):
     next = HiddenField()
     nombre = TextField(u'Nombre del Rol', [Required(), Length(REALNAME_LEN_MIN, REALNAME_LEN_MAX)])
-    descripcion = TextAreaField(u'Descripción', [Optional(), Length(max=1024)])
+    descripcion = TextAreaField(u'Descripcion', [Optional(), Length(max=1024)])
     submit = SubmitField(u'Editar')
 
 

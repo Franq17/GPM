@@ -450,6 +450,8 @@ def permisosxrol(rol_id):
         for permisoID in listaTotal:
             permiso = Permiso.query.filter_by(id=permisoID).first()
             rol.permisoPorRol = [permiso]
+            print permiso.nombre
+            print "Permisoooooooo"
         db.session.add(rol)
         db.session.commit()
        

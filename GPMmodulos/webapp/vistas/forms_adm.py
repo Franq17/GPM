@@ -133,8 +133,8 @@ class CrearFaseForm(Form):
     next = HiddenField()
     nombre = nombre = TextField(u'Nombre de Fase', [Required(), Length(REALNAME_LEN_MIN, REALNAME_LEN_MAX)])
     descripcion = TextAreaField(u'Descripción', [Optional(), Length(max=1024)])
-    numero_fase =  SelectField(u'Numero de Fase', [Required()], coerce=int)
     submit = SubmitField(u'Crear')
+   
 
 #RELACIONES
 class UserxComiteForm(Form):

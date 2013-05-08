@@ -92,7 +92,7 @@ class Rol(db.Model):
             keyword = '%' + keyword + '%'
             criteria.append(db.or_
             (Rol.nombre.ilike(keyword))
-        )
+            )
         q = reduce(db.and_, criteria)
         return cls.query.filter(q)
 
@@ -101,14 +101,14 @@ class Fase(db.Model):
     
     id = Column(db.Integer, primary_key=True)
     nombre = Column(db.String(32), nullable=False, unique=True)
-    descripcion = Column(db.String())
-    numero_fase = Column(db.Integer)
-    numero_items = Column(db.Integer)
-    numero_lb = Column(db.Integer)
+    descripcion = Column(db.String(),nullable=True)
+    numero_fase = Column(db.Integer,nullable=True)
+    numero_items = Column(db.Integer,nullable=True)
+    numero_lb = Column(db.Integer,nullable=True)
     
     # =========================
     # One-to-many relationship
-    estado = Column(db.SmallInteger)
+    estado = Column(db.SmallInteger,default=NO_INICIADO)
     # =========================
     # One-to-many relationship
     proyecto_id = Column(db.Integer, db.ForeignKey('proyecto.id'))

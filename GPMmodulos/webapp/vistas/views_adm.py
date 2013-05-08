@@ -13,9 +13,10 @@ from .forms_adm import ProyectoForm, BorrarProyectoForm, CrearProyectoForm
 from .forms_adm import RolForm, CrearRolForm , BorrarRolForm 
 from .forms_adm import PermisoxRolForm, RolxUsuarioForm, UserxComiteForm, UsuarioxProyectoForm, RolxProyectoForm
 from .forms_adm import CrearFaseForm
+
 admin = Blueprint('admin', __name__, url_prefix='/admin')
 
-#LOGIN
+#USER
 
 @admin.route('/')
 @login_required
@@ -24,12 +25,11 @@ def index():
     users = User.query.all()
     return render_template('admin/index.html', users=users, active='index')
     
-#USER
-
 @admin.route('/users')
 @login_required
 @admin_required
 def users():
+    """Funcion que lista los usuarios del sistema"""
     users = User.query.all()
     return render_template('admin/users.html', users=users, active='users')
 
@@ -37,6 +37,7 @@ def users():
 @login_required
 @admin_required
 def createUser():
+    """Funcion encargada de crear Usuario asignando un rol o mas."""
     roles = Rol.query.all()
     RolesAsignar = [item for item in roles]
     form = CreateUserForm(next=request.args.get('next'))
@@ -47,7 +48,7 @@ def createUser():
         user.email = form.email.data
         user.password = form.password.data
         
-        listaTotal=form.rolPorUsuario.data
+        listaTotal = form.rolPorUsuario.data
         for rolID in listaTotal:
             rol = Rol.query.filter_by(id=rolID).first()
             user.rolPorUsuario = [rol]
@@ -63,6 +64,7 @@ def createUser():
 @login_required
 @admin_required
 def user(user_id):
+    """Funcion encargada de Editar un usuario"""
     user = User.query.filter_by(id=user_id).first_or_404()
     form = UserForm(obj=user, next=request.args.get('next'))
 
@@ -81,6 +83,7 @@ def user(user_id):
 @login_required
 @admin_required
 def deleteUser(user_id):
+    """Funcion encargada de eliminar un usuario del sistema"""
     user = User.query.filter_by(id=user_id).first_or_404()
     form = DeleteUserForm(obj=user, next=request.args.get('next'))
 
@@ -97,6 +100,7 @@ def deleteUser(user_id):
 
 @admin.route('/searchUser')
 def searchUser():
+    """Funcion encargada de la busqueda de un usuario por nombre o email"""
     keywords = request.args.get('keywords', '').strip()
     pagination=None   
        
@@ -107,20 +111,23 @@ def searchUser():
         flash('Por favor, ingrese dato a buscar','error')
     return render_template('index/searchUser.html', pagination=pagination , keywords=keywords)
 
-@admin.route('/')
 #PERMISO
+
 @admin.route('/permisos')
 @login_required
 @admin_required
 def permisos():
+    """Funcion que lista los permisos del sistema"""
     permisos = Permiso.query.all()
     return render_template('admin/permisos.html', permisos=permisos)
-   
+
 #ROL
+
 @admin.route('/roles')
 @login_required
 @admin_required
 def roles():
+    """Funcion que lista los roles del sistema"""
     roles = Rol.query.all()
     return render_template('admin/roles.html', roles=roles)
 
@@ -128,6 +135,7 @@ def roles():
 @login_required
 @admin_required
 def crearRol():
+    """Funcion que permite crear un rol en el sistema asignando uno o mas permisos"""
     permisos = Permiso.query.all()
     PermisosAsignar = [item for item in permisos]
     form = CrearRolForm(next=request.args.get('next')) 
@@ -155,6 +163,7 @@ def crearRol():
 @login_required
 @admin_required
 def rol(rol_id):
+    """Funcion que permite editar un rol"""
     rol = Rol.query.filter_by(id=rol_id).first_or_404()
     form = RolForm(obj=rol, next = request.args.get('next'))
     roles = Rol.query.all()
@@ -172,11 +181,11 @@ def rol(rol_id):
         return redirect(url_for('admin.roles'))
     return render_template('admin/rol.html', rol=rol, form=form)
 
-
 @admin.route('/borrarRol/<rol_id>', methods=['GET', 'POST'])
 @login_required
 @admin_required
 def borrarRol(rol_id):
+    """Funcion que permite eliminar un rol"""
     rol = Rol.query.filter_by(id=rol_id).first_or_404()
     form = BorrarRolForm(obj=rol, next=request.args.get('next'))
     users = rol.users.all()
@@ -197,6 +206,7 @@ def borrarRol(rol_id):
 
 @admin.route('/searchRol')
 def searchRol():
+    """Funcion que realiza una busqueda de roles por nombre"""
     keywords = request.args.get('keywords', '').strip()
     pagination=None   
        
@@ -208,10 +218,12 @@ def searchRol():
     return render_template('index/searchRol.html', pagination=pagination , keywords=keywords)
 
 #PROYECTO
+
 @admin.route('/proyectos')
 @login_required
 @admin_required
 def proyectos():
+    """Funcion que lista los proyectos del sistema"""
     proyectos = Proyecto.query.all()
     return render_template('admin/proyectos.html', proyectos=proyectos, active='proyectos')
 
@@ -219,6 +231,7 @@ def proyectos():
 @login_required
 @admin_required
 def crearProyecto():
+    """Funcion que permite la creacion de un Proyecto"""
     form = CrearProyectoForm(next=request.args.get('next'))
     form.lider_proyecto.choices=[(g.id, g.nombre) for g in User.query.all()]
     
@@ -238,6 +251,7 @@ def crearProyecto():
 @login_required
 @admin_required
 def buscarProyecto():
+    """Funcion que filtra los proyectos por nombre"""
     keywords = request.args.get('keywords', '').strip()
     pagination=None   
        
@@ -248,11 +262,11 @@ def buscarProyecto():
         flash('Por favor, ingrese dato a buscar','error')
     return render_template('index/buscarProyecto.html', pagination=pagination , keywords=keywords)
 
-
 @admin.route('/proyecto/<proyecto_id>', methods=['GET', 'POST'])
 @login_required
 @admin_required
 def proyecto(proyecto_id):
+    """Funcion que permite editar un Proyecto"""
     proyecto = Proyecto.query.filter_by(id=proyecto_id).first_or_404()
     form = ProyectoForm(obj=proyecto, next=request.args.get('next'))
 
@@ -271,6 +285,7 @@ def proyecto(proyecto_id):
 @login_required
 @admin_required
 def borrarProyecto(proyecto_id):
+    """Funcion que permite eliminar un Proyecto del sistema"""
     proyecto = Proyecto.query.filter_by(id=proyecto_id).first_or_404()
     form = BorrarProyectoForm(obj=proyecto, next=request.args.get('next'))
     
@@ -291,10 +306,12 @@ def borrarProyecto(proyecto_id):
         return render_template('admin/borrarProyecto.html', proyecto=proyecto, form=form)
 
 #COMITE
+
 @admin.route('/comites')
 @login_required
 @admin_required
 def comites():
+    """Funcion que lista los comites existentes en el sistema"""
     comites = Comite.query.all()
     return render_template('admin/comites.html', comites=comites, active='comites')
 
@@ -302,6 +319,7 @@ def comites():
 @login_required
 @admin_required
 def crearComite():
+    """Funcion que permite la creacion de un comite"""
     proyectos = Proyecto.query.filter_by(comite=None)
     form = CrearComiteForm(next=request.args.get('next'))
     form.proyecto_id.choices = [(h.id, h.nombre) for h in proyectos ]
@@ -322,6 +340,7 @@ def crearComite():
 @login_required
 @admin_required
 def buscarComite():
+    """FUncion que busca un comite por nombre"""
     keywords = request.args.get('keywords', '').strip()
     pagination=None   
        
@@ -332,12 +351,11 @@ def buscarComite():
         flash('Por favor, ingrese dato a buscar','error')
     return render_template('index/buscarComite.html', pagination=pagination , keywords=keywords)
 
-
-
 @admin.route('/comite/<comite_id>', methods=['GET', 'POST'])
 @login_required
 @admin_required
 def comite(comite_id):
+    """Funcion que permite editar un comite"""
     comite = Comite.query.filter_by(id=comite_id).first_or_404()
     form = ComiteForm(obj=comite, next=request.args.get('next'))
 
@@ -352,11 +370,11 @@ def comite(comite_id):
 
     return render_template('admin/comite.html', comite=comite, form=form)
 
-
 @admin.route('/borrarComite/<comite_id>', methods=['GET', 'POST'])
 @login_required
 @admin_required
 def borrarComite(comite_id):
+    """Funcion que permite la eliminacion de un comite"""
     comite = Comite.query.filter_by(id=comite_id).first_or_404()
     form = BorrarComiteForm(obj=comite, next=request.args.get('next'))
 
@@ -371,25 +389,13 @@ def borrarComite(comite_id):
 
     return render_template('admin/borrarComite.html', comite=comite, form=form)
 
-
-##PROYECTO Miembro
-#@admin.route('/miembrosProyecto')
-#@login_required
-#@admin_required
-#def Miembros():
-#    users = User.query.all()
-#    return render_template('admin/proyectoMiembro.html', users=users, active='Miembros')
-
-
 # RELACIONES
-
-#Debe ser parecido a Roles en Admin Users
 
 @admin.route('/usuariosxcomite/<comite_id>', methods=['GET', 'POST'])
 @login_required
 @admin_required
 def usuariosxcomite(comite_id):
-    
+    """Funcion que asigna los usuarios de un proyecto a un comite"""
     comite = Comite.query.filter_by(id=comite_id).first_or_404()
     form = UserxComiteForm(obj=comite, next=request.args.get('next'))
     usuariosAsignados = comite.usuarioPorComite
@@ -417,12 +423,11 @@ def usuariosxcomite(comite_id):
     
     return render_template('admin/usuariosxcomite.html', comite=comite, form=form, users=usuariosAsignados)  
 
-    
 @admin.route('/permisosxrol/<rol_id>', methods=['GET', 'POST'])
 @login_required
 @admin_required
 def permisosxrol(rol_id):
-
+    """Funcion que asigna los permisos a un rol"""
     rol = Rol.query.filter_by(id=rol_id).first_or_404()
     form = PermisoxRolForm(obj=rol, next=request.args.get('next'))
     permisosAsignados=rol.permisoPorRol
@@ -449,12 +454,11 @@ def permisosxrol(rol_id):
        
     return render_template('admin/permisosxrol.html', rol=rol, form=form, permisos=permisosAsignados)
 
-
 @admin.route('/rolesxusuario/<user_id>', methods=['GET', 'POST'])
 @login_required
 @admin_required
 def rolesxusuario(user_id):
-
+    """Funcion que asigna los roles a un usuario"""
     user = User.query.filter_by(id=user_id).first_or_404()
     form = RolxUsuarioForm(obj=user, next=request.args.get('next'))
     rolesAsignados = user.rolPorUsuario
@@ -488,7 +492,7 @@ def rolesxusuario(user_id):
 @login_required
 @admin_required
 def usuariosxproyecto(proyecto_id):
-    
+    """Funcion que asigna los usuarios de un proyecto"""
     proyecto = Proyecto.query.filter_by(id=proyecto_id).first_or_404()
     form = UsuarioxProyectoForm(obj=proyecto, next=request.args.get('next'))
     usersAsignados = proyecto.usuarioPorProyecto
@@ -515,12 +519,11 @@ def usuariosxproyecto(proyecto_id):
        
     return render_template('admin/proyectoMiembro.html', proyecto=proyecto, form=form, users=usersAsignados, active='Miembros')
 
-
 @admin.route('/rolesxproyecto/<proyecto_id>', methods=['GET', 'POST'])
 @login_required
 @admin_required
 def rolesxproyecto(proyecto_id):
-
+    """Funcion que asigna los roles de un proyecto"""
     proyecto = Proyecto.query.filter_by(id=proyecto_id).first_or_404()
     form = RolxProyectoForm(obj=proyecto, next=request.args.get('next'))
     rolesAsignados = proyecto.roles
@@ -547,43 +550,33 @@ def rolesxproyecto(proyecto_id):
        
     return render_template('admin/rolesxproyecto.html', proyecto=proyecto, form=form, roles=rolesAsignados, active='Roles')
 
-
-
-
 @admin.route('/fasesxproyecto/<proyecto_id>', methods=['GET', 'POST'])
 @login_required
 @admin_required
 def fasesxproyecto(proyecto_id):
+    """Funcion que lista las fases de un Proyecto"""
     proyecto = Proyecto.query.filter_by(id=proyecto_id).first_or_404()
     fasesExistentes = proyecto.fases
 #   fases = Fase.query.filter_by(proyecto_id=proyecto.id).first_or_404
     return render_template('admin/fasesxproyecto.html', proyecto=proyecto, fases=fasesExistentes, active='Fases')
 
-
 @admin.route('/crearFase/<proyecto_id>', methods=['GET', 'POST'])
 @login_required
 @admin_required
 def crearFase(proyecto_id):
+    """Funcion que permite instanciar una Fase de un Proyecto"""
     proyecto = Proyecto.query.filter_by(id=proyecto_id).first_or_404()
     form = CrearFaseForm(next=request.args.get('next'))
-    lis = {}
-    x = 0
-    while x < proyecto.numero_fases:
-        x = x + 1
-        lis = {x:str(x)}
-        print lis
-    form.numero_fase.choices = [item for item in lis.items()]
     if form.validate_on_submit():
         fase = Fase()
         fase.nombre = form.nombre.data
-        fase.numero_fase = form.numero_fase.data
-        fase.proyecto_id = proyecto
         fase.descripcion = form.descripcion.data
-
+        fase.proyecto_id = proyecto.id
+        
         db.session.add(fase)
         db.session.commit()
         
         flash('Fase creada.', 'success')
-        return redirect(url_for('admin.proyectos'))
+        return redirect(url_for('admin.fasesxproyecto',proyecto_id=proyecto.id))
         
     return render_template('admin/crearFase.html', proyecto=proyecto, form=form)

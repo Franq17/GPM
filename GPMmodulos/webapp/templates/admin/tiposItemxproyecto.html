@@ -6,7 +6,7 @@
 {% set tabs = [
     ("Fases",url_for('admin.fasesxproyecto', proyecto_id=proyecto.id)), 
     ("Roles",url_for('admin.rolesxproyecto', proyecto_id=proyecto.id)),
-    ("Tipos de Item",url_for('admin.usuariosxproyecto', proyecto_id=proyecto.id)),
+    ("Tipos de Item",url_for('admin.tiposItemxproyecto', proyecto_id=proyecto.id)),
     ("Miembros",url_for('admin.usuariosxproyecto', proyecto_id=proyecto.id))
 ]%}
 
@@ -16,7 +16,6 @@
 	    <div class="span2">
 	    <a class="btn btn-primary" href="{{ url_for('admin.crearTipoItem', proyecto_id=proyecto.id)}}"><strong>Crear Tipo de Item</strong></a><br><br></div>
     </div>
-
 	<table class='table table-bordered table-hover table-condensed'>
         <thead>
             <tr>

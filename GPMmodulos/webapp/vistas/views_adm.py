@@ -6,11 +6,12 @@ from flask_login import login_required
 from ..extensions import db
 from ..decorators import admin_required
 
-from ..modelos import User, Rol, Permiso, Proyecto, Comite, Fase
+from ..modelos import User, Rol, Permiso, Proyecto, Comite, Fase, TipoItem
 from .forms_adm import UserForm, DeleteUserForm, CreateUserForm
 from .forms_adm import ComiteForm, BorrarComiteForm, CrearComiteForm
 from .forms_adm import ProyectoForm, BorrarProyectoForm, CrearProyectoForm
-from .forms_adm import RolForm, CrearRolForm , BorrarRolForm 
+from .forms_adm import RolForm, CrearRolForm , BorrarRolForm
+from .forms_adm import CrearTipoItemForm 
 from .forms_adm import PermisoxRolForm, RolxUsuarioForm, UserxComiteForm, UsuarioxProyectoForm, RolxProyectoForm
 from .forms_adm import CrearFaseForm
 
@@ -401,9 +402,59 @@ def borrarComite(comite_id):
 
     return render_template('admin/borrarComite.html', comite=comite, form=form)
 
+
+#FASES
+
+@admin.route('/crearFase/<proyecto_id>', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def crearFase(proyecto_id):
+    """Funcion que permite instanciar una Fase de un Proyecto"""
+    proyecto = Proyecto.query.filter_by(id=proyecto_id).first_or_404()
+    if proyecto.fases.count() < proyecto.numero_fases:
+        form = CrearFaseForm(next=request.args.get('next'))
+        if form.validate_on_submit():
+            fase = Fase()
+            fase.nombre = form.nombre.data
+            fase.descripcion = form.descripcion.data
+            fase.proyecto_id = proyecto.id
+            
+            db.session.add(fase)
+            db.session.commit()
+            
+            flash('Fase creada.', 'success')
+            return redirect(url_for('admin.fasesxproyecto',proyecto_id=proyecto.id))
+            
+        return render_template('admin/crearFase.html', proyecto=proyecto, form=form)
+    
+    else:
+        flash('Numero de fases del proyecto alcanzado', 'error')
+        return redirect(url_for('admin.fasesxproyecto',proyecto_id=proyecto.id))
+
 # TIPO DE ITEM
 
+@admin.route('/crearTipoItem/<proyecto_id>', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def crearTipoItem(proyecto_id):
+    """Funcion que permite instanciar una Fase de un Proyecto"""
+    proyecto = Proyecto.query.filter_by(id=proyecto_id).first_or_404()
+    form = CrearTipoItemForm(next=request.args.get('next'))
+    if form.validate_on_submit():
+        tipoItem = TipoItem()
+        tipoItem.nombre = form.nombre.data
+        tipoItem.descripcion = form.descripcion.data
+        tipoItem.proyecto_id = proyecto.id
+            
+        db.session.add(tipoItem)
+        db.session.commit()
+            
+        flash('Tipo de Item creado.', 'success')
+        return redirect(url_for('admin.tiposItemxproyecto',proyecto_id=proyecto.id))
+            
+    return render_template('admin/crearTipoItem.html', proyecto=proyecto, form=form)
 
+##########################################################################        
 # RELACIONES
 
 @admin.route('/usuariosxcomite/<comite_id>', methods=['GET', 'POST'])
@@ -550,7 +601,7 @@ def rolesxproyecto(proyecto_id):
     for rolAsig in rolesAsignados:
         listaRoles.append(rolAsig.id)
        
-    form.roles.choices = [(h.id, h.nombre) for h in RolesAsignar ]
+    form.roles.choices = [(m.id, m.nombre) for m in RolesAsignar ]
    
     if form.validate_on_submit():       
         listaTotal=form.roles.data
@@ -577,28 +628,12 @@ def fasesxproyecto(proyecto_id):
 #   fases = Fase.query.filter_by(proyecto_id=proyecto.id).first_or_404
     return render_template('admin/fasesxproyecto.html', proyecto=proyecto, fases=fasesExistentes, active='Fases')
 
-@admin.route('/crearFase/<proyecto_id>', methods=['GET', 'POST'])
+
+@admin.route('/tiposItemxproyecto/<proyecto_id>', methods=['GET', 'POST'])
 @login_required
 @admin_required
-def crearFase(proyecto_id):
-    """Funcion que permite instanciar una Fase de un Proyecto"""
+def tiposItemxproyecto(proyecto_id):
+    """Funcion que lista los tipos de Item de un Proyecto"""
     proyecto = Proyecto.query.filter_by(id=proyecto_id).first_or_404()
-    if proyecto.fases.count() < proyecto.numero_fases:
-        form = CrearFaseForm(next=request.args.get('next'))
-        if form.validate_on_submit():
-            fase = Fase()
-            fase.nombre = form.nombre.data
-            fase.descripcion = form.descripcion.data
-            fase.proyecto_id = proyecto.id
-            
-            db.session.add(fase)
-            db.session.commit()
-            
-            flash('Fase creada.', 'success')
-            return redirect(url_for('admin.fasesxproyecto',proyecto_id=proyecto.id))
-            
-        return render_template('admin/crearFase.html', proyecto=proyecto, form=form)
-    
-    else:
-        flash('Fase no creada. Numero de fases del proyecto alcanzado', 'error')
-        return redirect(url_for('admin.fasesxproyecto',proyecto_id=proyecto.id))
+    tiposItemExistentes = proyecto.tiposItem
+    return render_template('admin/tiposItemxproyecto.html', proyecto=proyecto, tiposItem=tiposItemExistentes, active='Tipos de Item')

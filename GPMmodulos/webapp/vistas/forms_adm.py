@@ -169,10 +169,4 @@ class RolxProyectoForm(Form):
     next = HiddenField()
     roles = SelectMultipleField(u'Roles', coerce=int)
     submit = SubmitField(u'Agregar')
-
-class FasexProyectoForm(Form):
-    next = HiddenField()
-    nombre = nombre = TextField(u'Nombre de Fase', [Required(), Length(REALNAME_LEN_MIN, REALNAME_LEN_MAX)])
-    descripcion = TextAreaField(u'Descripción', [Optional(), Length(max=1024)])
-    numero_fase =  SelectField(u'Numero de Fase', coerce=int)
-    submit = SubmitField(u'Agregar')
+       

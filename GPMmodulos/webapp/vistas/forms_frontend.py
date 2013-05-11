@@ -23,9 +23,9 @@ class LoginForm(Form):
 class SignupForm(Form):
     next = HiddenField()
     email = EmailField(u'Email', [Required(), Email()],
-            description=u"Cual es tu direccion de correo?")
+            description=u"Cuál es tu dirección de correo?")
     password = PasswordField(u'Contraseña', [Required(), Length(PASSWORD_LEN_MIN, PASSWORD_LEN_MAX)],
-            description=u'%s caracteres o mas!' % PASSWORD_LEN_MIN)
+            description=u'%s caracteres o más!' % PASSWORD_LEN_MIN)
     name = TextField(u'Nombre de usuario', [Required(), Length(USERNAME_LEN_MIN, USERNAME_LEN_MAX)])
     agree = BooleanField(u'Agree to the ' + 
         Markup('<a target="blank" href="/terms">Terms of Servic</a>'), [Required()])
@@ -37,7 +37,7 @@ class SignupForm(Form):
 
     def validate_email(self, field):
         if User.query.filter_by(email=field.data).first() is not None:
-            raise ValidationError(u'Email ya esta en uso')
+            raise ValidationError(u'Email ya está en uso')
 
 
 class RecoverPasswordForm(Form):
@@ -48,11 +48,11 @@ class RecoverPasswordForm(Form):
 class ChangePasswordForm(Form):
     activation_key = HiddenField()
     password = PasswordField(u'Contraseña', [Required()])
-    password_again = PasswordField(u'Contrasena nuevamente', [EqualTo('password', message="Contraseñas no coinciden")]) 
+    password_again = PasswordField(u'Contraseña nuevamente', [EqualTo('password', message="Contraseñas no coinciden")]) 
     submit = SubmitField('Guardar')
 
 
 class ReauthForm(Form):
     next = HiddenField()
-    password = PasswordField(u'Contrasena', [Required(), Length(PASSWORD_LEN_MIN, PASSWORD_LEN_MAX)])
+    password = PasswordField(u'Contraseña', [Required(), Length(PASSWORD_LEN_MIN, PASSWORD_LEN_MAX)])
     submit = SubmitField('Reautenticar')

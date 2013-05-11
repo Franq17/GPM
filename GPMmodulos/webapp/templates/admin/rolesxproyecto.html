@@ -11,25 +11,22 @@
 ]%}
 
 {% block body %}
-	<h2>Usuarios del Proyecto {{ proyecto.nombre }}</h2>
-	{{ render_form(url_for('admin.usuariosxproyecto', proyecto_id=proyecto.id), form)}}
+	<h2>Roles del Proyecto {{ proyecto.nombre }}</h2>
+	{{ render_form(url_for('admin.rolesxproyecto', proyecto_id=proyecto.id), form)}}
 	<table class='table table-bordered table-hover table-condensed'>
-    	<thead>
-        	<tr>
-            	<th>Nombre</th>
-                <th>Apellido</th>
-                <th>Estado</th>
-                <th>Fecha de Ingreso</th>
+        <thead>
+            <tr>
+                <th>Nombre</th>
+                <th>Descripcion</th>
                 <th></th>
             </tr>
         </thead>
-        {% for user in users %}
+        {% for rol in roles %}
         <tr>
-            <td>{{ user.nombre }}</td>
-            <td>{{ user.apellido }}</td>
-            <td>{{ user.getStatus() }}</td>
-            <td>{{ user.created_time|format_date }}</td>
-            <td><a><i class="icon-eye-open"></i>Roles</a> | <a><i class="icon-remove"></i>Eliminar</a></td>
+            <td>{{ rol.nombre }}</td>
+            <td>{{ rol.descripcion }}</td>
+
+            <td><a href="{{ url_for('admin.permisosxrol', rol_id=rol.id) }}"><i class="icon-eye-open"></i>Permisos</a> | <a href="{{ url_for('admin.rol', rol_id=rol.id) }}"><i class="icon-pencil"></i>Editar</a> | <a href="{{ url_for('admin.borrarRol', rol_id=rol.id) }}"><i class="icon-remove"></i>Eliminar</a></td>
         </tr>
         {% endfor %}
     </table>

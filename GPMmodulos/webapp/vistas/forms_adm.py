@@ -129,12 +129,20 @@ class RolForm(Form):
     submit = SubmitField(u'Editar')
 
 #FASE
+
 class CrearFaseForm(Form):
     next = HiddenField()
     nombre = nombre = TextField(u'Nombre de Fase', [Required(), Length(REALNAME_LEN_MIN, REALNAME_LEN_MAX)])
     descripcion = TextAreaField(u'Descripción', [Optional(), Length(max=1024)])
     submit = SubmitField(u'Crear')
    
+
+#TIPO DE ITEM
+class CrearTipoItemForm(Form):
+    next = HiddenField()
+    nombre = nombre = TextField(u'Nombre de Tipo de Item', [Required(), Length(REALNAME_LEN_MIN, REALNAME_LEN_MAX)])
+    descripcion = TextAreaField(u'Descripción', [Optional(), Length(max=1024)])
+    submit = SubmitField(u'Crear')
 
 #RELACIONES
 class UserxComiteForm(Form):

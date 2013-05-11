@@ -23,5 +23,6 @@ encoding//webapp/vistas/views_api.py=utf-8
 encoding//webapp/vistas/views_frontend.py=utf-8
 encoding//webapp/vistas/views_settings.py=utf-8
 encoding/<project>=UTF-8
+encoding/fabfile.py=utf-8
 encoding/manage.py=utf-8
 encoding/setup.py=utf-8

@@ -18,4 +18,4 @@ Twitter: http://twitter.com/glyphicons
 
 If you want to use the icons without restrictions, please buy any version on www.glyphicons.com, thank you.
 
-Jan Kovařík
+Jan Kovarik

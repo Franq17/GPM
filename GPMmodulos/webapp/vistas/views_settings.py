@@ -75,7 +75,7 @@ def contrasena():
         db.session.add(user)
         db.session.commit()
 
-        flash('Contraseña modificada', 'success')
+        flash('Contrasena modificada', 'success')
 
     return render_template('settings/password.html', user=user,
             active="contrasena", form=form)

@@ -237,7 +237,13 @@ def crearProyecto():
     
     if form.validate_on_submit():
         proyecto = Proyecto()
-        form.populate_obj(proyecto)
+        user = User.query.filter_by(id=form.lider_proyecto.data).first_or_404()
+        proyecto.usuarioPorProyecto = [user]
+        proyecto.nombre = form.nombre.data
+        proyecto.numero_fases = form.numero_fases.data
+        proyecto.lider_proyecto = form.lider_proyecto.data
+        proyecto.descripcion = form.descripcion.data
+#        form.populate_obj(proyecto)
 
         db.session.add(proyecto)
         db.session.commit()
@@ -326,7 +332,13 @@ def crearComite():
        
     if form.validate_on_submit():      
         comite = Comite()
-        form.populate_obj(comite)
+        proyecto = Proyecto.query.filter_by(id=form.proyecto_id.data).first_or_404()
+        lider = proyecto.lider_proyecto
+        user = User.query.filter_by(id=lider).first_or_404()
+        comite.proyecto_id = proyecto.id
+        comite.usuarioPorComite = [user]
+        comite.nombre = form.nombre.data
+        comite.descripcion = form.descripcion.data
 
         db.session.add(comite)
         db.session.commit()
@@ -389,6 +401,9 @@ def borrarComite(comite_id):
 
     return render_template('admin/borrarComite.html', comite=comite, form=form)
 
+# TIPO DE ITEM
+
+
 # RELACIONES
 
 @admin.route('/usuariosxcomite/<comite_id>', methods=['GET', 'POST'])
@@ -397,15 +412,17 @@ def borrarComite(comite_id):
 def usuariosxcomite(comite_id):
     """Funcion que asigna los usuarios de un proyecto a un comite"""
     comite = Comite.query.filter_by(id=comite_id).first_or_404()
+    proyecto = Proyecto.query.filter_by(id=comite.proyecto_id).first_or_404()
     form = UserxComiteForm(obj=comite, next=request.args.get('next'))
     usuariosAsignados = comite.usuarioPorComite
-    todosUsuarios = User.query.all()
+    todosUsuarios = proyecto.usuarioPorProyecto
+#    todosUsuarios = User.query.all()
     UsuariosAsignar = [item for item in todosUsuarios if item not in usuariosAsignados]
     listaUsers = []
     for userAsig in usuariosAsignados:
         listaUsers.append(userAsig.id)
     
-    form.usuarioPorComite.choices = [(h.id, h.name) for h in UsuariosAsignar ]
+    form.usuarioPorComite.choices = [(h.id, h.nombre) for h in UsuariosAsignar ]
     
     if form.validate_on_submit():       
         listaTotal = form.usuarioPorComite.data
@@ -566,17 +583,22 @@ def fasesxproyecto(proyecto_id):
 def crearFase(proyecto_id):
     """Funcion que permite instanciar una Fase de un Proyecto"""
     proyecto = Proyecto.query.filter_by(id=proyecto_id).first_or_404()
-    form = CrearFaseForm(next=request.args.get('next'))
-    if form.validate_on_submit():
-        fase = Fase()
-        fase.nombre = form.nombre.data
-        fase.descripcion = form.descripcion.data
-        fase.proyecto_id = proyecto.id
-        
-        db.session.add(fase)
-        db.session.commit()
-        
-        flash('Fase creada.', 'success')
+    if proyecto.fases.count() < proyecto.numero_fases:
+        form = CrearFaseForm(next=request.args.get('next'))
+        if form.validate_on_submit():
+            fase = Fase()
+            fase.nombre = form.nombre.data
+            fase.descripcion = form.descripcion.data
+            fase.proyecto_id = proyecto.id
+            
+            db.session.add(fase)
+            db.session.commit()
+            
+            flash('Fase creada.', 'success')
+            return redirect(url_for('admin.fasesxproyecto',proyecto_id=proyecto.id))
+            
+        return render_template('admin/crearFase.html', proyecto=proyecto, form=form)
+    
+    else:
+        flash('Fase no creada. Numero de fases del proyecto alcanzado', 'error')
         return redirect(url_for('admin.fasesxproyecto',proyecto_id=proyecto.id))
-        
-    return render_template('admin/crearFase.html', proyecto=proyecto, form=form)

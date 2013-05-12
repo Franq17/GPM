@@ -15,6 +15,9 @@
 	<div class="row-fluid">    
 	    <div class="span2">
 	    <a class="btn btn-primary" href="{{ url_for('admin.crearTipoItem', proyecto_id=proyecto.id)}}"><strong>Crear Tipo de Item</strong></a><br><br></div>
+    	<form class="navbar-search pull-left" action="{{ url_for('admin.buscarTipoItem') }}">
+			<input type='text' class="search-query" name='keywords' value='{{ keywords|default('') }}' placeholder='Buscar' />
+		</form>
     </div>
 	<table class='table table-bordered table-hover table-condensed'>
         <thead>

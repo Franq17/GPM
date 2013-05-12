@@ -1,0 +1,296 @@
+# -*- coding: utf-8 -*-
+
+from flask import Blueprint, render_template, request, flash, url_for, redirect
+from flask_login import login_required
+
+from ..extensions import db
+from ..decorators import admin_required
+
+from ..modelos import User, Rol, Permiso, Proyecto, Comite
+from .forms_adm import UserForm, DeleteUserForm, CreateUserForm, SearchUserForm
+from .forms_adm import ComiteForm, BorrarComiteForm, CrearComiteForm, BuscarComiteForm
+from .forms_adm import ProyectoForm, BorrarProyectoForm, CrearProyectoForm, BuscarProyectoForm
+
+
+admin = Blueprint('admin', __name__, url_prefix='/admin')
+
+#LOGIN
+
+@admin.route('/')
+@login_required
+@admin_required
+def index():
+    users = User.query.all()
+    return render_template('admin/index.html', users=users, active='index')
+    
+#USER
+
+@admin.route('/users')
+@login_required
+@admin_required
+def users():
+    users = User.query.all()
+    return render_template('admin/users.html', users=users, active='users')
+
+@admin.route('/createUser', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def createUser():
+    form = CreateUserForm(next=request.args.get('next'))
+    if form.validate_on_submit():
+        user = User()
+        #user.user_detail = UserDetail()
+        form.populate_obj(user)
+
+        db.session.add(user)
+        db.session.commit()
+        flash('User created.', 'success')
+        return redirect(url_for('admin.users'))
+
+    return render_template('admin/createUser.html', form=form)
+
+@admin.route('/user/<user_id>', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def user(user_id):
+    user = User.query.filter_by(id=user_id).first_or_404()
+    form = UserForm(obj=user, next=request.args.get('next'))
+
+    if form.validate_on_submit():
+        form.populate_obj(user)
+
+        db.session.add(user)
+        db.session.commit()
+
+        flash('User updated.', 'success')
+        return redirect(url_for('admin.users'))
+
+    return render_template('admin/user.html', user=user, form=form)
+
+@admin.route('/deleteUser/<user_id>', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def deleteUser(user_id):
+    user = User.query.filter_by(id=user_id).first_or_404()
+    form = DeleteUserForm(obj=user, next=request.args.get('next'))
+
+    if form.validate_on_submit():
+        form.populate_obj(user)
+
+        db.session.delete(user)
+        db.session.commit()
+
+        flash('User deleted.', 'success')
+        return redirect(url_for('admin.users'))
+
+    return render_template('admin/deleteUser.html', user=user, form=form)
+
+@admin.route('/searchUser')
+@login_required
+@admin_required
+def searchUser():
+    form = SearchUserForm(request.form)
+    nombreFilter = form.name.data
+    
+    if (nombreFilter == None):
+        nombreFilter=''
+    user = User.query.filter(User.name.like('%'+nombreFilter+'%'))
+
+    return render_template('admin/searchUser.html', user=user, form=form)
+
+
+#PERMISO
+@admin.route('/permisos')
+@login_required
+@admin_required
+def permisos():
+    permisos = Permiso.query.all()
+    return render_template('admin/permisos.html', permisos=permisos)
+
+# RELACIONES
+
+@admin.route('/usuariosxcomite/<comite_id>')
+@login_required
+@admin_required
+def usuariosxcomite(comite_id):
+    comite = Comite.query.filter_by(id=comite_id).first_or_404()
+    users = comite.usuarioPorComite
+    return render_template('admin/usuariosxcomite.html', comite=comite, users=users)  
+    
+@admin.route('/permisosxrol/<rol_id>')
+@login_required
+@admin_required
+def permisosxrol(rol_id):
+    rol = Rol.query.filter_by(id=rol_id).first_or_404()
+    permisos = rol.permisoPorRol
+    return render_template('admin/permisosxrol.html', nombre_rol=rol.nombre, permisos=permisos)  
+
+@admin.route('/proyectoxcomite/<comite_id>', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def proyectoxcomite(comite_id):
+    comite = Comite.query.filter_by(id=comite_id).first_or_404()
+    proyecto = comite.proyecto_id
+    proyectos = Proyecto.query.all()
+    
+    if form.validate_on_submit():
+        form.populate_obj(user)
+
+        db.session.delete(user)
+        db.session.commit()
+    return render_template('admin/proyectoxcomite.html', comite=comite, proyecto=proyecto, proyectos=proyectos)
+
+   
+#ROL
+@admin.route('/roles')
+@login_required
+@admin_required
+def roles():
+    roles = Rol.query.all()
+    return render_template('admin/roles.html', roles=roles)   
+
+#PROYECTO
+@admin.route('/proyectos')
+@login_required
+@admin_required
+def proyectos():
+    proyectos = Proyecto.query.all()
+    return render_template('admin/proyectos.html', proyectos=proyectos, active='proyectos')
+
+@admin.route('/crearProyecto', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def crearProyecto():
+    form = CrearProyectoForm(next=request.args.get('next'))
+    if form.validate_on_submit():
+        proyecto = Proyecto()
+        form.populate_obj(proyecto)
+
+        db.session.add(proyecto)
+        db.session.commit()
+        flash('Proyecto creado.', 'success')
+        return redirect(url_for('admin.proyectos'))
+
+    return render_template('admin/crearProyecto.html', form=form)
+
+@admin.route('/buscarProyecto', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def buscarProyecto():
+    form = BuscarProyectoForm(next=request.args.get('next'))
+    nombreFilter = form.nombre.data    
+    if(nombreFilter == None):
+        nombreFilter = ''
+    proyecto = Proyecto.query.filter(Proyecto.nombre.like( '%'+nombreFilter+'%' ))
+    
+    return render_template('admin/buscarProyecto.html', form=form, proyecto=proyecto)
+
+@admin.route('/proyecto/<proyecto_id>', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def proyecto(proyecto_id):
+    proyecto = Proyecto.query.filter_by(id=proyecto_id).first_or_404()
+    form = ProyectoForm(obj=proyecto, next=request.args.get('next'))
+
+    if form.validate_on_submit():
+        form.populate_obj(proyecto)
+
+        db.session.add(proyecto)
+        db.session.commit()
+
+        flash('Proyecto actualizado.', 'success')
+        return redirect(url_for('admin.proyectos'))
+
+    return render_template('admin/proyecto.html', proyecto=proyecto, form=form)
+
+@admin.route('/borrarProyecto/<proyecto_id>', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def borrarProyecto(proyecto_id):
+    proyecto = Proyecto.query.filter_by(id=proyecto_id).first_or_404()
+    form = BorrarProyectoForm(obj=proyecto, next=request.args.get('next'))
+
+    if form.validate_on_submit():
+        form.populate_obj(proyecto)
+
+        db.session.delete(proyecto)
+        db.session.commit()
+
+        flash('Proyecto eliminado.', 'success')
+        return redirect(url_for('admin.proyectos'))
+
+    return render_template('admin/borrarProyecto.html', proyecto=proyecto, form=form)
+
+
+#COMITE
+@admin.route('/comites')
+@login_required
+@admin_required
+def comites():
+    comites = Comite.query.all()
+    return render_template('admin/comites.html', comites=comites, active='comites')
+
+@admin.route('/crearComite', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def crearComite():
+    form = CrearComiteForm(next=request.args.get('next'))
+    if form.validate_on_submit():
+        comite = Comite()
+        form.populate_obj(comite)
+
+        db.session.add(comite)
+        db.session.commit()
+        flash('Comité creado.', 'success')
+        return redirect(url_for('admin.comites'))
+
+    return render_template('admin/crearComite.html', form=form)
+
+@admin.route('/buscarComite', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def buscarComite():
+    form = BuscarComiteForm(next=request.args.get('next'))
+    nombreFilter = form.nombre.data    
+    if(nombreFilter == None):
+        nombreFilter = ''
+    comite = Comite.query.filter(Comite.nombre.like( '%'+nombreFilter+'%' ))
+    
+    return render_template('admin/buscarComite.html', form=form, comite=comite)
+
+@admin.route('/comite/<comite_id>', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def comite(comite_id):
+    comite = Comite.query.filter_by(id=comite_id).first_or_404()
+    form = ComiteForm(obj=comite, next=request.args.get('next'))
+
+    if form.validate_on_submit():
+        form.populate_obj(comite)
+
+        db.session.add(comite)
+        db.session.commit()
+
+        flash('Comite actualizado.', 'success')
+        return redirect(url_for('admin.comites'))
+
+    return render_template('admin/comite.html', comite=comite, form=form)
+
+
+@admin.route('/borrarComite/<comite_id>', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def borrarComite(comite_id):
+    comite = Comite.query.filter_by(id=comite_id).first_or_404()
+    form = BorrarComiteForm(obj=comite, next=request.args.get('next'))
+
+    if form.validate_on_submit():
+        form.populate_obj(comite)
+
+        db.session.delete(comite)
+        db.session.commit()
+
+        flash('Comite eliminado.', 'success')
+        return redirect(url_for('admin.comites'))
+
+    return render_template('admin/borrarComite.html', comite=comite, form=form)

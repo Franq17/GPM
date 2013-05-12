@@ -363,6 +363,20 @@ class TipoItem(db.Model):
     descripcion= Column(db.String(200), nullable=True)
     proyecto_id = Column(db.Integer, db.ForeignKey('proyecto.id'))
 #    atributos= db.relationship('Atributo', backref='tipoItem')
+
+    # ================================================================
+    # Class methods
+
+    @classmethod
+    def search(cls, keywords):
+        criteria = []
+        for keyword in keywords.split():
+            keyword = '%' + keyword + '%'
+            criteria.append(db.or_
+            (TipoItem.nombre.ilike(keyword))
+            )
+        q = reduce(db.and_, criteria)
+        return cls.query.filter(q)
     
 #class Atributo(db.Model):
 #    

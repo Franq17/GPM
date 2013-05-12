@@ -13,7 +13,7 @@ from .forms_adm import ProyectoForm, BorrarProyectoForm, CrearProyectoForm
 from .forms_adm import RolForm, CrearRolForm , BorrarRolForm
 from .forms_adm import CrearTipoItemForm 
 from .forms_adm import PermisoxRolForm, RolxUsuarioForm, UserxComiteForm, UsuarioxProyectoForm, RolxProyectoForm
-from .forms_adm import CrearFaseForm
+from .forms_adm import CrearFaseForm, FaseForm
 
 admin = Blueprint('admin', __name__, url_prefix='/admin')
 
@@ -52,7 +52,7 @@ def createUser():
         listaTotal = form.rolPorUsuario.data
         for rolID in listaTotal:
             rol = Rol.query.filter_by(id=rolID).first()
-            user.rolPorUsuario = [rol]
+            user.rolPorUsuario.append(rol)
 
         db.session.add(user)
         db.session.commit()
@@ -150,7 +150,7 @@ def crearRol():
         listaTotal=form.permisoPorRol.data
         for permisoID in listaTotal:
             permiso = Permiso.query.filter_by(id=permisoID).first()
-            rol.permisoPorRol = [permiso]
+            rol.permisoPorRol.append(permiso)
             
         db.session.add(rol)
         db.session.commit()
@@ -431,6 +431,25 @@ def crearFase(proyecto_id):
         flash('Numero de fases del proyecto alcanzado', 'error')
         return redirect(url_for('admin.fasesxproyecto',proyecto_id=proyecto.id))
 
+@admin.route('/Fase/<proyecto_id>', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def Fase(proyecto_id):
+    """Funcion que permite editar un comite"""
+#    proyecto = Proyecto.query.filter_by(id=proyecto_id).first_or_404()
+#    form = FaseForm(obj=, next=request.args.get('next'))
+
+    if form.validate_on_submit():
+        form.populate_obj(comite)
+
+        db.session.add(comite)
+        db.session.commit()
+
+        flash('Comite actualizado.', 'success')
+        return redirect(url_for('admin.comites'))
+
+    return render_template('admin/comite.html', comite=comite, form=form)
+
 # TIPO DE ITEM
 
 @admin.route('/crearTipoItem/<proyecto_id>', methods=['GET', 'POST'])
@@ -453,6 +472,22 @@ def crearTipoItem(proyecto_id):
         return redirect(url_for('admin.tiposItemxproyecto',proyecto_id=proyecto.id))
             
     return render_template('admin/crearTipoItem.html', proyecto=proyecto, form=form)
+
+
+@admin.route('/buscarTipoItem')
+@login_required
+@admin_required
+def buscarTipoItem():
+    """FUncion que busca un Tipo de Item por nombre"""
+    keywords = request.args.get('keywords', '').strip()
+    pagination=None   
+       
+    if keywords:
+        page = int(request.args.get('page', 1))
+        pagination= TipoItem.search(keywords).paginate(page,1)
+    else:
+        flash('Por favor, ingrese dato a buscar','error')
+    return render_template('index/buscarTipoItem.html', pagination=pagination , keywords=keywords)
 
 ##########################################################################        
 # RELACIONES
@@ -481,7 +516,7 @@ def usuariosxcomite(comite_id):
             listaTotal.append(userAsig)
         for userID in listaTotal:
             user = User.query.filter_by(id=userID).first()
-            comite.usuarioPorComite = [user]            
+            comite.usuarioPorComite.append(user)            
             
         db.session.add(comite)
         db.session.commit()
@@ -513,7 +548,7 @@ def permisosxrol(rol_id):
             listaTotal.append(permisoAsig)
         for permisoID in listaTotal:
             permiso = Permiso.query.filter_by(id=permisoID).first()
-            rol.permisoPorRol = [permiso]
+            rol.permisoPorRol.append(permiso)
         db.session.add(rol)
         db.session.commit()
        
@@ -544,7 +579,7 @@ def rolesxusuario(user_id):
             listaTotal.append(rolAsig)
         for rolID in listaTotal:
             rol = Rol.query.filter_by(id=rolID).first()
-            user.rolPorUsuario = [rol]
+            user.rolPorUsuario.append(rol)
         db.session.add(user)
         db.session.commit()
        
@@ -578,7 +613,7 @@ def usuariosxproyecto(proyecto_id):
             listaTotal.append(userAsig)
         for userID in listaTotal:
             user = User.query.filter_by(id=userID).first()
-            proyecto.usuarioPorProyecto = [user]
+            proyecto.usuarioPorProyecto.append(user)
         db.session.add(proyecto)
         db.session.commit()
        
@@ -609,7 +644,7 @@ def rolesxproyecto(proyecto_id):
             listaTotal.append(rolAsig)
         for rolID in listaTotal:
             rol = Rol.query.filter_by(id=rolID).first()
-            proyecto.roles = [rol]
+            proyecto.roles.append(rol)
         db.session.add(proyecto)
         db.session.commit()
        

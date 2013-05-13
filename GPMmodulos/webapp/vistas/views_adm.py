@@ -51,10 +51,11 @@ def createUser():
         listaTotal = form.rolPorUsuario.data
         for rolID in listaTotal:
             rol = Rol.query.filter_by(id=rolID).first()
-            user.rolPorUsuario = [rol]
-
+            #user.rolPorUsuario = [rol]
+            user.rolPorUsuario.append(rol)
         db.session.add(user)
         db.session.commit()
+        
         flash('Usuario creado.', 'success')
         return redirect(url_for('admin.users'))
 
@@ -149,7 +150,8 @@ def crearRol():
         listaTotal=form.permisoPorRol.data
         for permisoID in listaTotal:
             permiso = Permiso.query.filter_by(id=permisoID).first()
-            rol.permisoPorRol = [permiso]
+            #rol.permisoPorRol = [permiso]
+            rol.permisoPorRol.append(permiso)
             
         db.session.add(rol)
         db.session.commit()
@@ -462,7 +464,8 @@ def permisosxrol(rol_id):
             listaTotal.append(permisoAsig)
         for permisoID in listaTotal:
             permiso = Permiso.query.filter_by(id=permisoID).first()
-            rol.permisoPorRol = [permiso]
+            #rol.permisoPorRol = [permiso]
+            rol.permisoPorRol.append(permiso)
         db.session.add(rol)
         db.session.commit()
        
@@ -478,29 +481,64 @@ def rolesxusuario(user_id):
     """Funcion que asigna los roles a un usuario"""
     user = User.query.filter_by(id=user_id).first_or_404()
     form = RolxUsuarioForm(obj=user, next=request.args.get('next'))
-    rolesAsignados = user.rolPorUsuario
+    rolesActuales = user.rolPorUsuario
     todosRoles = Rol.query.all()
-    RolesAsignar = [item for item in todosRoles if item not in rolesAsignados]
-    listaRoles=[]
-    for rolAsig in rolesAsignados:
-        listaRoles.append(rolAsig.id)
+    #RolesAsignar = [item for item in todosRoles if item not in rolesAsignados]
+    
+    rolesDisponibles=[]
+    for item in todosRoles:
+        if item not in rolesActuales:
+            rolesDisponibles.append(item)
+            print item.nombre
+            print "*************Roles disponibles"
+    
+    
+    listaRolesActuales=[]
+    for rol in rolesActuales:
+        print rol.nombre
+        print "##################Roles actuales"
+        #listaRolesActuales.append(rol.id) #carga en una listaroles el id de los roles actuales
+        listaRolesActuales.append(rol)
        
-    form.rolPorUsuario.choices = [(h.id, h.nombre) for h in RolesAsignar ]
-   
+    #form.rolPorUsuario.choices = [(h.id, h.nombre) for h in RolesAsignar ]
+    #for h in rolesDisponibles:
+        #form.rolPorUsuario.choices=(h.id)
+    form.rolPorUsuario.choices = [(h.id, h.nombre) for h in rolesDisponibles ]
+    
     if form.validate_on_submit():       
-        listaTotal=form.rolPorUsuario.data
-        for rolAsig in listaRoles:
-            listaTotal.append(rolAsig)
-        for rolID in listaTotal:
-            rol = Rol.query.filter_by(id=rolID).first()
-            user.rolPorUsuario = [rol]
+        listaRolesSeleccionados=form.rolPorUsuario.data  # trae el id de los roles que seleccion
+        
+        print listaRolesSeleccionados
+        print "++++++++ roles seleccionados para agregar"
+                    
+        for rolAsig in listaRolesActuales:    # a la lista de roles que ya tiene, le agrega lo que selecciono
+            listaRolesSeleccionados.append(rolAsig.id)
+        
+        print listaRolesSeleccionados
+        print "++++++++ la lista una vez que vez que le agrego"
+                     
+        for rolID in listaRolesSeleccionados:
+            role=Rol.query.filter_by(id=rolID).first_or_404()
+            user.rolPorUsuario.append(role)
+            
+        #variable de prueba para imprimir nomas
+        nuevosRoles = user.rolPorUsuario
+        
+        for nuevoRol in nuevosRoles:
+            print nuevoRol.nombre
+            print "####### Los nuevos roles y se commitea"    
+        
+       # for rolID in listaRolesSeleccionados:
+       #     role = Rol.query.filter_by(id=rolID.id).first_or_404()
+        #    user.rolPorUsuario = [role]
+        
         db.session.add(user)
         db.session.commit()
        
         flash('Usuario modificado.', 'success')
         return redirect(url_for('admin.users'))
        
-    return render_template('admin/rolesxusuario.html', user=user, form=form, roles=rolesAsignados)
+    return render_template('admin/rolesxusuario.html', user=user, form=form, roles=listaRolesActuales)
 
 ####################################################################
 #            PROYECTO CONFIGURACION
@@ -512,29 +550,57 @@ def usuariosxproyecto(proyecto_id):
     """Funcion que asigna los usuarios de un proyecto"""
     proyecto = Proyecto.query.filter_by(id=proyecto_id).first_or_404()
     form = UsuarioxProyectoForm(obj=proyecto, next=request.args.get('next'))
-    usersAsignados = proyecto.usuarioPorProyecto
+    usuariosActuales = proyecto.usuarioPorProyecto
     todosUsuarios = User.query.all()
-    UsersAsignar = [item for item in todosUsuarios if item not in usersAsignados]
-    listaUsers=[]
-    for userAsig in usersAsignados:
-        listaUsers.append(userAsig.id)
+    
+    #UsersAsignar = [item for item in todosUsuarios if item not in usersAsignados]
+    
+    usuariosDisponibles=[]
+    for item in todosUsuarios:
+        if item not in usuariosActuales:
+            usuariosDisponibles.append(item)
+            print item.nombre
+            print "*************Usuarios disponibles"
+    
+    listaUsuariosActuales=[]
+    for usuario in usuariosActuales:
+        print usuario.nombre
+        print "##################Usuarios actuales del proyect"
+        listaUsuariosActuales.append(usuario)
        
-    form.usuarioPorProyecto.choices = [(h.id, h.nombre) for h in UsersAsignar ]
-   
+    form.usuarioPorProyecto.choices = [(h.id, h.nombre) for h in usuariosDisponibles ]
+    
     if form.validate_on_submit():       
-        listaTotal=form.usuarioPorProyecto.data
-        for userAsig in listaUsers:
-            listaTotal.append(userAsig)
-        for userID in listaTotal:
-            user = User.query.filter_by(id=userID).first()
-            proyecto.usuarioPorProyecto = [user]
+        listaUsuariosSeleccionados=form.usuarioPorProyecto.data
+        
+        print listaUsuariosSeleccionados
+        print "++++++++ usuarios seleccionados para agregar"
+                    
+        for userAsig in listaUsuariosActuales:    # a la lista de usuarios que ya tiene, le agrega lo que selecciono
+            listaUsuariosSeleccionados.append(userAsig.id)
+        
+        print listaUsuariosSeleccionados
+        print "++++++++ la lista una vez que vez que le agrego"
+                     
+        for userID in listaUsuariosSeleccionados:
+            usere=User.query.filter_by(id=userID).first_or_404()
+            proyecto.usuarioPorProyecto.append(usere)
+            
+        #variable de prueba para imprimir nomas
+        nuevosUsuarios = proyecto.usuarioPorProyecto
+        
+        for nuevoUser in nuevosUsuarios:
+            print nuevoUser.nombre
+            print "####### Los nuevos Usuarios y se commitea"    
+            
+        
         db.session.add(proyecto)
         db.session.commit()
        
         flash('Proyecto modificado.', 'success')
         return redirect(url_for('admin.proyectos'))
        
-    return render_template('admin/proyectoMiembro.html', proyecto=proyecto, form=form, users=usersAsignados, active='Miembros')
+    return render_template('admin/proyectoMiembro.html', proyecto=proyecto, form=form, users=listaUsuariosActuales, active='Miembros')
 
 @admin.route('/rolesxproyecto/<proyecto_id>', methods=['GET', 'POST'])
 @login_required
@@ -583,17 +649,22 @@ def fasesxproyecto(proyecto_id):
 def crearFase(proyecto_id):
     """Funcion que permite instanciar una Fase de un Proyecto"""
     proyecto = Proyecto.query.filter_by(id=proyecto_id).first_or_404()
-    form = CrearFaseForm(next=request.args.get('next'))
-    if form.validate_on_submit():
-        fase = Fase()
-        fase.nombre = form.nombre.data
-        fase.descripcion = form.descripcion.data
-        fase.proyecto_id = proyecto.id
-        
-        db.session.add(fase)
-        db.session.commit()
-        
-        flash('Fase creada.', 'success')
+    if proyecto.fases.count() < proyecto.numero_fases:
+        form = CrearFaseForm(next=request.args.get('next'))
+        if form.validate_on_submit():
+            fase = Fase()
+            fase.nombre = form.nombre.data
+            fase.descripcion = form.descripcion.data
+            fase.proyecto_id = proyecto.id
+            
+            db.session.add(fase)
+            db.session.commit()
+            
+            flash('Fase creada.', 'success')
+            return redirect(url_for('admin.fasesxproyecto',proyecto_id=proyecto.id))
+            
+        return render_template('admin/crearFase.html', proyecto=proyecto, form=form)
+    
+    else:
+        flash('Fase no creada. Numero de fases del proyecto alcanzado', 'error')
         return redirect(url_for('admin.fasesxproyecto',proyecto_id=proyecto.id))
-        
-    return render_template('admin/crearFase.html', proyecto=proyecto, form=form)

@@ -12,7 +12,7 @@ ALLOWED_AVATAR_EXTENSIONS = set(['png', 'jpg', 'jpeg', 'gif'])
 
 # Form validation
 
-USERNAME_LEN_MIN = 4
+USERNAME_LEN_MIN = 2
 USERNAME_LEN_MAX = 25
 
 REALNAME_LEN_MIN = 4

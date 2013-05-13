@@ -37,7 +37,7 @@
             <td>{{ user.getStatus() }}</td>
             <td>{{ user.getRole() }}</td>
             <td>{{ user.created_time|format_date }}</td>
-            <td><a href="{{ url_for('admin.rolesxusuario', user_id=user.id) }}"><i class="icon-eye-open"></i>Roles</a> | <a href="{{ url_for('admin.user', user_id=user.id) }}"><i class="icon-pencil"></i>Editar</a> | <a href="{{ url_for('admin.deleteUser', user_id=user.id) }}"><i class="icon-remove"></i>Eliminar</a></td>
+            <td><a href="{{ url_for('admin.rolesxusuario', user_id=user.id) }}"  onclick="alert('No cuenta con permisos para ver Roles.')"><i class="icon-eye-open"></i>Roles</a> | <a href="{{ url_for('admin.user', user_id=user.id) }}" onclick="return confirm('Quieres continuar?')"><i class="icon-pencil"></i>Editar</a> | <a href="{{ url_for('admin.deleteUser', user_id=user.id) }}" ><i class="icon-remove"></i>Eliminar</a></td>
         </tr>
         {% endfor %}
     </table>

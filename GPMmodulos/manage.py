@@ -63,6 +63,7 @@ def initdb():
     permiso2 = Permiso(nombre=u'modificarUsuarios',descripcion=u'permite modificar usuarios')
     permiso3 = Permiso(nombre=u'eliminarUsuarios',descripcion=u'permite eliminar usuarios')
     permiso4 = Permiso(nombre=u'crearRoles',descripcion=u'permite crear roles')
+    
     rol_admin = Rol(nombre=u'admin',descripcion=u'rol del administrador', permisoPorRol=[permiso1,permiso2,permiso3,permiso4])
     rol_lider = Rol(nombre=u'lider',descripcion=u'rol del lider')
     rol_usuario = Rol(nombre=u'usuario',descripcion=u'rol del usuario')

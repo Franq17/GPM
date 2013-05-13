@@ -50,8 +50,10 @@
                                 <a href="#" class="dropdown-toggle" data-toggle="dropdown">Administracion <b class="caret"></b></a>
                                 <ul class="dropdown-menu">
                                     <li><a href="{{ url_for('admin.users') }}">Usuarios</a></li>
+                                    {% if current_user.comprobarPermiso('crearRoles')  %}
                                     <li class="divider"></li>
                                     <li><a href="{{ url_for('admin.roles') }}">Roles</a></li>
+                                    {% endif %}
                                     <li class="divider"></li>
                                     <li><a href="{{ url_for('admin.permisos') }}">Permisos</a></li>
                                     <li class="divider"></li>

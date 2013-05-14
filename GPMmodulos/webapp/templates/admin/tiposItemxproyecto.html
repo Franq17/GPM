@@ -11,7 +11,7 @@
 ]%}
 
 {% block body %}
-	<h2>Tipos de Item del Proyecto {{ proyecto.nombre }}</h2>
+	<h2>Tipos de Item del Proyecto: {{ proyecto.nombre }}</h2>
 	<div class="row-fluid">    
 	    <div class="span2">
 	    <a class="btn btn-primary" href="{{ url_for('admin.crearTipoItem', proyecto_id=proyecto.id)}}"><strong>Crear Tipo de Item</strong></a><br><br></div>
@@ -31,7 +31,7 @@
         <tr>
             <td>{{ tipoItem.nombre }}</td>
             <td>{{ tipoItem.descripcion }}</td>
-            <td><a href="#" }}"><i class="icon-pencil"></i>Editar</a> | <a href="#"><i class="icon-remove"></i>Eliminar</a></td>
+            <td><a href="{{ url_for('admin.tipoItem', tipoItem_id=tipoItem.id, proyecto_id=proyecto.id) }}"><i class="icon-pencil"></i>Editar</a> | <a href="#"><i class="icon-remove"></i>Eliminar</a></td>
         </tr>
         {% endfor %}
     </table>

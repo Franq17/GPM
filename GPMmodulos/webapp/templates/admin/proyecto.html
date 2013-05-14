@@ -5,7 +5,7 @@
 
 {% block body %}
 <div class="container">
-    <h2>Editar Proyecto</h2>
+    <h2>Editar Proyecto: {{proyecto.nombre}}</h2>
     {{ render_form(url_for('admin.proyecto', proyecto_id=proyecto.id), form) }}
 </div>
 {% endblock %}

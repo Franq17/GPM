@@ -11,7 +11,7 @@
 ]%}
 
 {% block body %}
-	<h2>Roles del Proyecto {{ proyecto.nombre }}</h2>
+	<h2>Roles del Proyecto: {{ proyecto.nombre }}</h2>
 	{{ render_form(url_for('admin.rolesxproyecto', proyecto_id=proyecto.id), form)}}
 	<table class='table table-bordered table-hover table-condensed'>
         <thead>

@@ -4,8 +4,7 @@
 
 {% block body %}
 <div class="container">
-    <h2>Asignar Permisos al Rol</h2>
-    <h3>{{ rol.nombre }}</h3>
+    <h2>Asignar Permisos al Rol: {{ rol.nombre }}</h2>
         {{ render_form(url_for('admin.permisosxrol', rol_id=rol.id), form)}}
     <h2>Permisos asignados</h2>
     <table class='table table-bordered table-hover table-condensed'>

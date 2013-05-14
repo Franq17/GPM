@@ -11,7 +11,7 @@ from .forms_adm import UserForm, DeleteUserForm, CreateUserForm
 from .forms_adm import ComiteForm, BorrarComiteForm, CrearComiteForm
 from .forms_adm import ProyectoForm, BorrarProyectoForm, CrearProyectoForm
 from .forms_adm import RolForm, CrearRolForm , BorrarRolForm
-from .forms_adm import CrearTipoItemForm 
+from .forms_adm import CrearTipoItemForm, TipoItemForm
 from .forms_adm import PermisoxRolForm, RolxUsuarioForm, UserxComiteForm, UsuarioxProyectoForm, RolxProyectoForm
 from .forms_adm import CrearFaseForm, FaseForm
 
@@ -151,7 +151,7 @@ def crearRol():
         for permisoID in listaTotal:
             permiso = Permiso.query.filter_by(id=permisoID).first()
             rol.permisoPorRol.append(permiso)
-            
+    
         db.session.add(rol)
         db.session.commit()
        
@@ -402,7 +402,6 @@ def borrarComite(comite_id):
 
     return render_template('admin/borrarComite.html', comite=comite, form=form)
 
-
 #FASES
 
 @admin.route('/crearFase/<proyecto_id>', methods=['GET', 'POST'])
@@ -426,29 +425,28 @@ def crearFase(proyecto_id):
             return redirect(url_for('admin.fasesxproyecto',proyecto_id=proyecto.id))
             
         return render_template('admin/crearFase.html', proyecto=proyecto, form=form)
-    
     else:
         flash('Numero de fases del proyecto alcanzado', 'error')
         return redirect(url_for('admin.fasesxproyecto',proyecto_id=proyecto.id))
 
-@admin.route('/Fase/<proyecto_id>', methods=['GET', 'POST'])
+@admin.route('/IdF<fase_id>/<proyecto_id>', methods=['GET', 'POST'])
 @login_required
 @admin_required
-def Fase(proyecto_id):
+def fase(proyecto_id, fase_id):
     """Funcion que permite editar un comite"""
-#    proyecto = Proyecto.query.filter_by(id=proyecto_id).first_or_404()
-#    form = FaseForm(obj=, next=request.args.get('next'))
-
+    fase = Fase.query.filter_by(id=fase_id).first_or_404()
+    proyecto = Proyecto.query.filter_by(id=proyecto_id).first_or_404()
+    form = FaseForm(obj=fase, next=request.args.get('next'))
     if form.validate_on_submit():
-        form.populate_obj(comite)
+        form.populate_obj(fase)
 
-        db.session.add(comite)
+        db.session.add(fase)
         db.session.commit()
 
-        flash('Comite actualizado.', 'success')
-        return redirect(url_for('admin.comites'))
+        flash('Fase actualizada.', 'success')
+        return redirect(url_for('admin.fasesxproyecto',proyecto_id=proyecto.id))
 
-    return render_template('admin/comite.html', comite=comite, form=form)
+    return render_template('admin/fase.html', fase=fase, proyecto=proyecto, form=form)
 
 # TIPO DE ITEM
 
@@ -472,6 +470,25 @@ def crearTipoItem(proyecto_id):
         return redirect(url_for('admin.tiposItemxproyecto',proyecto_id=proyecto.id))
             
     return render_template('admin/crearTipoItem.html', proyecto=proyecto, form=form)
+
+@admin.route('/TI<tipoItem_id>/<proyecto_id>', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def tipoItem(proyecto_id, tipoItem_id):
+    """Funcion que permite editar un comite"""
+    tipoItem = TipoItem.query.filter_by(id=tipoItem_id).first_or_404()
+    proyecto = Proyecto.query.filter_by(id=proyecto_id).first_or_404()
+    form = TipoItemForm(obj=tipoItem, next=request.args.get('next'))
+    if form.validate_on_submit():
+        form.populate_obj(tipoItem)
+
+        db.session.add(tipoItem)
+        db.session.commit()
+
+        flash('Tipo de Item actualizada.', 'success')
+        return redirect(url_for('admin.tiposItemxproyecto',proyecto_id=proyecto.id))
+
+    return render_template('admin/tipoItem.html', tipoItem=tipoItem, proyecto=proyecto, form=form)
 
 
 @admin.route('/buscarTipoItem')

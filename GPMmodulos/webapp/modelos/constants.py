@@ -32,13 +32,23 @@ PROYECTO_ESTADOS = {
 }
 
 # Comite_estados
-NO_INICIADO = 0
-INICIADO = 1
 
 COMITE_ESTADOS = {
     NO_INICIADO: 'no iniciado',
     INICIADO: 'iniciado',
 }
 
+# Fase_estados
+INICIAL=0
+DESARROLLO=1
+COMPLETA=2
+COMPROMETIDA=3
+
+FASE_ESTADOS = {
+    INICIAL: "inicial",
+    DESARROLLO: "desarrollo",
+    COMPLETA: "completa",
+    COMPROMETIDA: "comprometida",
+}
 
 DEFAULT_USER_AVATAR = 'default.png'

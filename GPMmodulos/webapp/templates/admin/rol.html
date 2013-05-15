@@ -4,7 +4,7 @@
 
 {% block body %}
 <div class="container">
-    <h2>Editar Rol</h2>
+    <h2>Editar Rol: {{rol.nombre}}</h2>
     {{ render_form(url_for('admin.rol', rol_id=rol.id), form)}}  
 </div>
 {% endblock %}

@@ -4,7 +4,7 @@
 
 {% block body %}
 <div class="container">
-    <h2>Miembros del Comité {{ comite.nombre }}</h2>
+    <h2>Miembros del Comité: {{ comite.nombre }}</h2>
     {{ render_form(url_for('admin.usuariosxcomite', comite_id=comite.id), form)}}  
     <h2>Usuarios asignados</h2>
     <table class='table table-bordered table-hover table-condensed'>

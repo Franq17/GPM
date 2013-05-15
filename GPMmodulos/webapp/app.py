@@ -6,7 +6,7 @@ from flask import Flask, request, render_template
 from flaskext.babel import Babel
 
 from .configs import DevConfig
-from .modelos import User, user, rol, proyecto, comite
+from .modelos import User, user, rol, proyecto, comite, tipoItem
 from .vistas import admin, settings, frontend, api
 from .extensions import db, mail, cache, login_manager
 
@@ -22,7 +22,8 @@ DEFAULT_BLUEPRINTS = (
     admin,
     rol,
     proyecto,
-    comite
+    comite,
+    tipoItem
 )
 
 

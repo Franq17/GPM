@@ -76,6 +76,25 @@
 </table>
 {% endmacro %}
 
+{% macro render_tipoItem_table(tiposItem, class='') %}
+<table class='{{ class }}'>
+    <thead>
+        <tr>
+            <td>#</td>
+            <td>Nombre</td>
+        </tr>
+    </thead>
+    <tbody>
+        {% for tipoItem in tiposItem %}
+        <tr>
+            <td>{{ loop.index }}</td>
+            <td><a href="{{ url_for('tipoItem.pubTipoItem', nombre=tipoItem.nombre) }}">{{ tipoItem.nombre }}</a></td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endmacro %}
+
 {% macro render_pagination(pagination, endpoint) %}
     {% if pagination.pages > 1 %}
         <div class='pagination'>

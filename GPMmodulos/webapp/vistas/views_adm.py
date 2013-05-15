@@ -481,6 +481,7 @@ def permisosxrol(rol_id):
 
 @admin.route('/rolesxusuario/<user_id>', methods=['GET', 'POST'])
 @login_required
+@verUsuarios_required
 @verRoles_required
 def rolesxusuario(user_id):
     """Funcion que asigna los roles a un usuario"""

@@ -33,8 +33,8 @@ def initdb():
     
     lider = User(
             name=u'lider',
-            nombre=u'Luis',
-            apellido=u'Baez',
+            nombre=u'Francisco',
+            apellido=u'Quiñonez',
             email=u'lider@example.com', 
             password=u'123456', 
             role_id=USER,
@@ -43,8 +43,8 @@ def initdb():
             
     usuario = User(
             name=u'usuario',
-            nombre=u'Marta',
-            apellido=u'Candia', 
+            nombre=u'Pablo',
+            apellido=u'Sanchez', 
             email=u'usuario@example.com', 
             password=u'123456', 
             role_id=USER,
@@ -84,7 +84,7 @@ def initdb():
     permiso21 = Permiso(nombre=u'eliminarItems',descripcion=u'permite eliminar Items')
     permiso22 = Permiso(nombre=u'verItems',descripcion=u'permite ver Items existentes')
     
-    #*******************Permisos de Items*****************************
+    #*******************Permisos de Fases*****************************
     permiso23 = Permiso(nombre=u'crearFases',descripcion=u'permite crear Fases')
     permiso24 = Permiso(nombre=u'modificarFases',descripcion=u'permite crear Fases')
     permiso25 = Permiso(nombre=u'eliminarFases',descripcion=u'permite crear Fases')
@@ -98,6 +98,15 @@ def initdb():
                                    permiso16,permiso17,permiso18,permiso19,permiso20,
                                    permiso21,permiso22,permiso23,permiso24,permiso25,
                                    permiso26])
+    
+    rol_admin_Usuarios = Rol(nombre=u'administrador Usuarios',
+                    descripcion=u'rol que solo administra usuarios', 
+                    permisoPorRol=[permiso1,permiso2,permiso3,permiso4])
+    
+    rol_admin_Comites = Rol(nombre=u'administrador Comites',
+                    descripcion=u'rol que solo administra comites', 
+                    permisoPorRol=[permiso14,permiso15,permiso16,permiso17])
+    
     
     rol_lider = Rol(nombre=u'lider',descripcion=u'rol del lider')
     rol_usuario = Rol(nombre=u'usuario',descripcion=u'rol del usuario')
@@ -125,6 +134,8 @@ def initdb():
     db.session.add(rol_admin)
     db.session.add(rol_lider)
     db.session.add(rol_usuario)
+    db.session.add(rol_admin_Usuarios)
+    db.session.add(rol_admin_Comites)
     db.session.add(comite_usuario)
     db.session.add(permiso6)
 

@@ -129,6 +129,7 @@ def initdb():
     db.session.add(rol_admin)
     db.session.add(rol_lider)
     db.session.add(rol_usuario)
+
     db.session.add(rol_admin_usuarios)
     db.session.add(rol_admin_comites)
     

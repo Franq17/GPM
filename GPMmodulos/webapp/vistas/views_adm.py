@@ -413,7 +413,6 @@ def borrarComite(comite_id):
 
 @admin.route('/crearFase/<proyecto_id>', methods=['GET', 'POST'])
 @login_required
-@admin_required
 def crearFase(proyecto_id):
     """Funcion que permite instanciar una Fase de un Proyecto"""
     proyecto = Proyecto.query.filter_by(id=proyecto_id).first_or_404()
@@ -438,7 +437,6 @@ def crearFase(proyecto_id):
 
 @admin.route('/IdF<fase_id>/<proyecto_id>', methods=['GET', 'POST'])
 @login_required
-@admin_required
 def fase(proyecto_id, fase_id):
     """Funcion que permite editar un comite"""
     fase = Fase.query.filter_by(id=fase_id).first_or_404()
@@ -459,9 +457,8 @@ def fase(proyecto_id, fase_id):
 
 @admin.route('/crearTipoItem/<proyecto_id>', methods=['GET', 'POST'])
 @login_required
-@admin_required
 def crearTipoItem(proyecto_id):
-    """Funcion que permite instanciar una Fase de un Proyecto"""
+    """Funcion que permite crear un Tipo de Item en un Proyecto"""
     proyecto = Proyecto.query.filter_by(id=proyecto_id).first_or_404()
     form = CrearTipoItemForm(next=request.args.get('next'))
     if form.validate_on_submit():
@@ -480,7 +477,6 @@ def crearTipoItem(proyecto_id):
 
 @admin.route('/TI<tipoItem_id>/<proyecto_id>', methods=['GET', 'POST'])
 @login_required
-@admin_required
 def tipoItem(proyecto_id, tipoItem_id):
     """Funcion que permite editar un comite"""
     tipoItem = TipoItem.query.filter_by(id=tipoItem_id).first_or_404()
@@ -584,7 +580,6 @@ def permisosxrol(rol_id):
 @admin.route('/rolesxusuario/<user_id>', methods=['GET', 'POST'])
 @login_required
 @verUsuarios_required
-@verRoles_required
 def rolesxusuario(user_id):
     """Funcion que asigna los roles a un usuario"""
     user = User.query.filter_by(id=user_id).first_or_404()
@@ -747,18 +742,14 @@ def fasesxproyecto(proyecto_id):
 #   fases = Fase.query.filter_by(proyecto_id=proyecto.id).first_or_404
     return render_template('admin/fasesxproyecto.html', proyecto=proyecto, fases=fasesExistentes, active='Fases')
 
-
 @admin.route('/tiposItemxproyecto/<proyecto_id>', methods=['GET', 'POST'])
 @login_required
-
-@crearFases_required
-def crearFase(proyecto_id):
-    """Funcion que permite instanciar una Fase de un Proyecto"""
-
-@admin_required
 def tiposItemxproyecto(proyecto_id):
     """Funcion que lista los tipos de Item de un Proyecto"""
-
     proyecto = Proyecto.query.filter_by(id=proyecto_id).first_or_404()
     tiposItemExistentes = proyecto.tiposItem
     return render_template('admin/tiposItemxproyecto.html', proyecto=proyecto, tiposItem=tiposItemExistentes, active='Tipos de Item')
+
+
+
+

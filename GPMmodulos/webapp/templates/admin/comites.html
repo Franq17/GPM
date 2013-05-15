@@ -3,10 +3,14 @@
 
 {% block body %}
 <div class="container">
+
+    <h2>Administrador de Comites</h2>
+
     <h2>Comités</h2>
+
     <div class="row-fluid">    
 	    <div class="span2">
-	    <a class="btn btn-primary" href="{{ url_for('admin.crearComite')}}"><strong>Crear Comité</strong></a><br><br></div>
+	    <a class="btn btn-primary" href="{{ url_for('admin.crearComite')}}"><strong>Crear Comite</strong></a><br><br></div>
 		<form class="navbar-search pull-left" action="{{ url_for('admin.buscarComite') }}">
 			<input type='text' class="search-query" name='keywords' value='{{ keywords|default('') }}' placeholder='Buscar' />
 		</form>
@@ -14,7 +18,7 @@
     <table class='table table-bordered table-hover table-condensed'>
         <thead>
             <tr>
-                <th>Nombre de Comité</th>
+                <th>Nombre de Comite</th>
                 <th>Proyecto</th>
                 <th>Miembros</th>
                 <th>Descripcion</th>
@@ -25,7 +29,7 @@
         <tr>
             <td>{{ comite.nombre }}</td>
             <td>{{ comite.proyecto_id }}</td>
-            <td><a href="{{ url_for('admin.usuariosxcomite', comite_id=comite.id) }}"><i class="icon-user"></i> Ver Miembros</a></td>
+            <td><a href="{{ url_for('admin.usuariosxcomite', comite_id=comite.id) }}" ><i class="icon-user"></i> Ver Miembros</a></td>
             <td>{{ comite.descripcion }}</td>
             <td><a href="{{ url_for('admin.comite', comite_id=comite.id) }}"><i class="icon-pencil"></i>Editar</a> | <a href="{{ url_for('admin.borrarComite', comite_id=comite.id) }}"><i class="icon-remove"></i>Eliminar</a></td>
         </tr>

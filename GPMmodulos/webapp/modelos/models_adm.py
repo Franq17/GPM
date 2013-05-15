@@ -191,11 +191,24 @@ class User(db.Model, UserMixin):
 
     # ================================================================
     # Many-to-many relationship between users and roles.
+    
     rolPorUsuario = db.relationship('Rol', secondary=rolPorUsuario,
-        backref=db.backref('users', lazy='dynamic'))
+       backref=db.backref('users', lazy='dinamic'))
+    
     
     role_id = Column(db.SmallInteger, default=USER)
 
+    def comprobarPermiso (self, key):
+        roles = self.rolPorUsuario
+        for item in roles: 
+            rol=Rol.query.filter_by(id=item.id).first_or_404()
+            permisos=rol.permisoPorRol
+            for permiso in permisos:
+                if permiso.nombre==key:
+                    return True          
+                
+        return False
+    
     def getRole(self):
         return USER_ROLE[self.role_id]
 

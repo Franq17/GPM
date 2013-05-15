@@ -10,7 +10,7 @@ from flask_wtf.html5 import EmailField
 from flask_wtf import Required, Optional, Length, EqualTo, Email
 from flask_wtf import (HiddenField, BooleanField, TextField, TextAreaField,
                        PasswordField, IntegerField, SelectField, SelectMultipleField, SubmitField)
-from ..modelos import User, Proyecto, Comite, TipoItem, Fase
+from ..modelos import User, Proyecto, Comite, TipoItem, Fase, Rol
 from ..utils import (PASSWORD_LEN_MIN, PASSWORD_LEN_MAX, 
         USERNAME_LEN_MIN, USERNAME_LEN_MAX, REALNAME_LEN_MIN, REALNAME_LEN_MAX)      
 
@@ -172,7 +172,7 @@ class UserxComiteForm(Form):
     
 class PermisoxRolForm(Form):
     next = HiddenField()
-    permisoPorRol = SelectMultipleField(u'Permisos' ,coerce=int)
+    permisoPorRol = SelectMultipleField(u'Permisos' ,coerce=int, option_widget=None)
     submit = SubmitField(u'Guardar')
     
 class RolxUsuarioForm(Form):

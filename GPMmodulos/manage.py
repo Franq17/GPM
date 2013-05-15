@@ -137,8 +137,7 @@ def initdb():
     db.session.add(rol_admin_Usuarios)
     db.session.add(rol_admin_Comites)
     db.session.add(comite_usuario)
-    db.session.add(permiso6)
-
+   
     db.session.commit()
 
 

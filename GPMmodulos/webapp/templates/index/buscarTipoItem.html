@@ -1,0 +1,26 @@
+{% from 'macros/_misc.html' import render_pagination, render_tipoItem_table %}
+
+{% extends 'layouts/base.html' %}
+
+{% if keywords %}
+    {% set page_title = _('Search results for "%(keywords)s"', keywords=keywords) %}
+{% else %}
+    {% set page_title = _('Keywords needed!') %}
+{% endif %}
+
+{% block body %}
+    {% if pagination and pagination.pages > 0 %}
+        <p>{% trans total=pagination.total, keywords=keywords %}<strong>{{ total }}</strong> found for your search "<strong>{{ keywords }}</strong>".{% endtrans %}</p>
+        {{ render_tipoItem_table(pagination.items, 'zebra-striped') }}
+        {{ render_pagination(pagination, 'admin.buscarTipoItem') }}
+    {% else %}
+        <p>{% trans keywords=keywords %}Lo siento, no se encontraron resultados con: "<strong>{{ keywords }}</strong>".{% endtrans %}</p>
+    {% trans %}
+    <p>Sugerencias:</p>
+    <ul>
+       <li>Verifique que haya escrito correctamente.</li>
+       <li>Intente con otras palabras.</li>
+    </ul>
+    {% endtrans %}
+    {% endif %}
+{% endblock %}

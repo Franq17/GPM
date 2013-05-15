@@ -29,27 +29,6 @@ def initdb():
     # Init/reset data.
 
     
-    
-    
-    lider = User(
-            name=u'lider',
-            nombre=u'Francisco',
-            apellido=u'Quiñonez',
-            email=u'lider@example.com', 
-            password=u'123456', 
-            role_id=USER,
-            status_id=ACTIVE
-            )
-            
-    usuario = User(
-            name=u'usuario',
-            nombre=u'Pablo',
-            apellido=u'Sanchez', 
-            email=u'usuario@example.com', 
-            password=u'123456', 
-            role_id=USER,
-            status_id=ACTIVE
-            )
     #*******************Permisos de Usuarios*****************************         
     permiso1 = Permiso(nombre=u'crearUsuarios',descripcion=u'permite crear usuarios')
     permiso2 = Permiso(nombre=u'modificarUsuarios',descripcion=u'permite modificar usuarios')
@@ -99,13 +78,13 @@ def initdb():
                                    permiso21,permiso22,permiso23,permiso24,permiso25,
                                    permiso26])
     
-    rol_admin_Usuarios = Rol(nombre=u'administrador Usuarios',
+    rol_admin_usuarios = Rol(nombre=u'administrador Usuarios',
                     descripcion=u'rol que solo administra usuarios', 
                     permisoPorRol=[permiso1,permiso2,permiso3,permiso4])
     
-    rol_admin_Comites = Rol(nombre=u'administrador Comites',
+    rol_admin_comites = Rol(nombre=u'administrador Comites',
                     descripcion=u'rol que solo administra comites', 
-                    permisoPorRol=[permiso14,permiso15,permiso16,permiso17])
+                    permisoPorRol=[permiso14,permiso15,permiso16,permiso17,permiso18])
     
     
     rol_lider = Rol(nombre=u'lider',descripcion=u'rol del lider')
@@ -122,22 +101,40 @@ def initdb():
             status_id=ACTIVE
             )
     
+    lider = User(
+            name=u'lider',
+            nombre=u'Francisco',
+            apellido=u'Quiñonez',
+            email=u'lider@example.com', 
+            password=u'123456',
+            rolPorUsuario=[rol_admin_usuarios], 
+            role_id=USER,
+            status_id=ACTIVE
+            )
+            
+    usuario = User(
+            name=u'usuario',
+            nombre=u'Pablo',
+            apellido=u'Sanchez', 
+            email=u'usuario@example.com', 
+            password=u'123456',
+            rolPorUsuario=[rol_admin_comites], 
+            role_id=USER,
+            status_id=ACTIVE
+            )
     
-    comite_usuario = Comite(nombre=u'Grupo7', 
-                            descripcion=u'Comite del proyecto1', 
-                            usuarioPorComite=[usuario,lider])
-    
-
     db.session.add(admin)
     db.session.add(lider) 
     db.session.add(usuario)
     db.session.add(rol_admin)
     db.session.add(rol_lider)
     db.session.add(rol_usuario)
-    db.session.add(rol_admin_Usuarios)
-    db.session.add(rol_admin_Comites)
-    db.session.add(comite_usuario)
-   
+
+    db.session.add(rol_admin_usuarios)
+    db.session.add(rol_admin_comites)
+    
+    
+
     db.session.commit()
 
 

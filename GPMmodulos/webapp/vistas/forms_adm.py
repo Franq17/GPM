@@ -10,7 +10,7 @@ from flask_wtf.html5 import EmailField
 from flask_wtf import Required, Optional, Length, EqualTo, Email
 from flask_wtf import (HiddenField, BooleanField, TextField, TextAreaField,
                        PasswordField, IntegerField, SelectField, SelectMultipleField, SubmitField)
-from ..modelos import User, Proyecto, Comite, TipoItem
+from ..modelos import User, Proyecto, Comite, TipoItem, Fase
 from ..utils import (PASSWORD_LEN_MIN, PASSWORD_LEN_MAX, 
         USERNAME_LEN_MIN, USERNAME_LEN_MAX, REALNAME_LEN_MIN, REALNAME_LEN_MAX)      
 
@@ -51,12 +51,11 @@ class CreateUserForm(Form):
 #PROYECTO
 class ProyectoForm(Form):
     next = HiddenField()
-    
     estado_id = RadioField(u"Estados", [AnyOf([str(val) for val in PROYECTO_ESTADOS.keys()])],
             choices=[(str(val), label) for val, label in PROYECTO_ESTADOS.items()])
     descripcion = TextAreaField(u'Descripción', [Optional(), Length(max=1024)])
-    
     submit = SubmitField(u'Guardar')
+    
 
 class BorrarProyectoForm(Form):
     next = HiddenField()
@@ -64,21 +63,23 @@ class BorrarProyectoForm(Form):
             choices=[(str(val), label) for val, label in PROYECTO_ESTADOS.items()])
     # A demo of datepicker.
     created_time = DateField(u'Fecha de Creación')
-    
     submit = SubmitField(u'Eliminar')
 
 class CrearProyectoForm(Form):
     next = HiddenField()
-
     nombre = TextField(u'Nombre del Proyecto', [Required(), Length(REALNAME_LEN_MIN, REALNAME_LEN_MAX)])
     numero_fases = IntegerField(u'Número de fases',[Required()])
     lider_proyecto = SelectField(u'Líder de Proyecto',coerce=int,)
     descripcion = TextAreaField(u'Descripción', [Optional(), Length(max=1024)])
     submit = SubmitField(u'Crear')
 
-    def validate_name(self, field):
+    def validate_nombre(self, field):
         if Proyecto.query.filter_by(nombre=field.data).first() is not None:
             raise ValidationError(u'El nombre del Proyecto ya existe')
+    
+    def validate_numero_fases(self,field):
+        if field.data < 0 or field.data > 3:
+            raise ValidationError(u'Numero de fases de un proyecto no valido')
           
 #COMITE
 class ComiteForm(Form):
@@ -93,7 +94,7 @@ class CrearComiteForm(Form):
     descripcion = TextAreaField(u'Descripción', [Optional(), Length(max=1024)])
     submit = SubmitField(u'Crear')
     
-    def validate_name(self, field):
+    def validate_nombre(self, field):
         if Comite.query.filter_by(nombre=field.data).first() is not None:
             raise ValidationError(u'El nombre del Comité ya existe')
     
@@ -103,8 +104,8 @@ class BorrarComiteForm(Form):
     # A demo of datepicker.
     submit = SubmitField(u'Eliminar')
     
-
 #ROL
+
 class CrearRolForm(Form):
     next = HiddenField()
     nombre = TextField(u'Nombre del Rol', [Required(), Length(REALNAME_LEN_MIN, REALNAME_LEN_MAX)])
@@ -112,7 +113,7 @@ class CrearRolForm(Form):
     permisoPorRol = SelectMultipleField(u'Permisos', [Required()], coerce=int)
     submit = SubmitField(u'Crear')
     
-    def validate_name(self, field):
+    def validate_nombre(self, field):
         if Rol.query.filter_by(nombre=field.data).first() is not None:
             raise ValidationError(u'El nombre del Rol ya existe')
 
@@ -136,14 +137,33 @@ class CrearFaseForm(Form):
     descripcion = TextAreaField(u'Descripción', [Optional(), Length(max=1024)])
     submit = SubmitField(u'Crear')
     
+    def validate_nombre(self, field):
+        if Fase.query.filter_by(nombre=field.data).first() is not None:
+            raise ValidationError(u'El nombre de la Fase ya existe')
+    
+class FaseForm(Form):
+    next = HiddenField()
+    descripcion = TextAreaField(u'Descripción', [Optional(), Length(max=1024)])
+    submit = SubmitField(u'Editar')
+     
 #TIPO DE ITEM
 class CrearTipoItemForm(Form):
     next = HiddenField()
     nombre = nombre = TextField(u'Nombre de Tipo de Item', [Required(), Length(REALNAME_LEN_MIN, REALNAME_LEN_MAX)])
     descripcion = TextAreaField(u'Descripción', [Optional(), Length(max=1024)])
     submit = SubmitField(u'Crear')
+    
+    def validate_nombre(self, field):
+        if TipoItem.query.filter_by(nombre=field.data).first() is not None:
+            raise ValidationError(u'El nombre del tipo de Item ya existe')
 
+class TipoItemForm(Form):
+    next = HiddenField()
+    descripcion = TextAreaField(u'Descripción', [Optional(), Length(max=1024)])
+    submit = SubmitField(u'Editar')
+####################################################################################    
 #RELACIONES
+
 class UserxComiteForm(Form):
     next = HiddenField()
     # A demo of datepicker.
@@ -169,10 +189,4 @@ class RolxProyectoForm(Form):
     next = HiddenField()
     roles = SelectMultipleField(u'Roles', coerce=int)
     submit = SubmitField(u'Agregar')
-
-class FasexProyectoForm(Form):
-    next = HiddenField()
-    nombre = nombre = TextField(u'Nombre de Fase', [Required(), Length(REALNAME_LEN_MIN, REALNAME_LEN_MAX)])
-    descripcion = TextAreaField(u'Descripción', [Optional(), Length(max=1024)])
-    numero_fase =  SelectField(u'Numero de Fase', coerce=int)
-    submit = SubmitField(u'Agregar')
+       

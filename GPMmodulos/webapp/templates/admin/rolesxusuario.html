@@ -4,8 +4,7 @@
 
 {% block body %}
 <div class="container">
-    <h2>Asignar Roles al Usuario</h2>
-    <h3>{{ user.name }}</h3>
+    <h2>Asignar Roles al Usuario: {{ user.name }}</h2>
         {{ render_form(url_for('admin.rolesxusuario', user_id=user.id), form)}}  
     <h2>Roles asignados</h2>
     <table class='table table-bordered table-hover table-condensed'>
@@ -22,6 +21,6 @@
         </tr>
         {% endfor %}
     </table>
-    
+
 </div>
 {% endblock %}

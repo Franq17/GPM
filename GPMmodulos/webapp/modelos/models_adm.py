@@ -11,7 +11,7 @@ from flask_login import UserMixin
 from ..extensions import db
 from ..utils import get_current_time
 from .constants import USER, USER_ROLE, ADMIN, INACTIVE, USER_STATUS,NO_INICIADO, PROYECTO_ESTADOS
-
+from .constants import INICIAL
 
 class DenormalizedText(Mutable, types.TypeDecorator):
     """
@@ -103,12 +103,12 @@ class Fase(db.Model):
     nombre = Column(db.String(32), nullable=False, unique=True)
     descripcion = Column(db.String(),nullable=True)
     numero_fase = Column(db.Integer,nullable=True)
-    numero_items = Column(db.Integer,nullable=True)
-    numero_lb = Column(db.Integer,nullable=True)
+    numero_items = Column(db.Integer,default=0)
+    numero_lb = Column(db.Integer,default=0)
     
     # =========================
     # One-to-many relationship
-    estado = Column(db.SmallInteger,default=NO_INICIADO)
+    estado = Column(db.SmallInteger,default=INICIAL)
     # =========================
     # One-to-many relationship
     proyecto_id = Column(db.Integer, db.ForeignKey('proyecto.id'))
@@ -376,6 +376,20 @@ class TipoItem(db.Model):
     descripcion= Column(db.String(200), nullable=True)
     proyecto_id = Column(db.Integer, db.ForeignKey('proyecto.id'))
 #    atributos= db.relationship('Atributo', backref='tipoItem')
+
+    # ================================================================
+    # Class methods
+
+    @classmethod
+    def search(cls, keywords):
+        criteria = []
+        for keyword in keywords.split():
+            keyword = '%' + keyword + '%'
+            criteria.append(db.or_
+            (TipoItem.nombre.ilike(keyword))
+            )
+        q = reduce(db.and_, criteria)
+        return cls.query.filter(q)
     
 #class Atributo(db.Model):
 #    

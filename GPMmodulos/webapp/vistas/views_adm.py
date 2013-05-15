@@ -6,6 +6,7 @@ from flask_login import login_required
 from ..extensions import db
 from ..decorators import *
 
+
 #from ..modelos import User, Rol, Permiso, Proyecto, Comite, Fase
 from ..modelos import *
 from .forms_adm import *
@@ -52,7 +53,6 @@ def createUser():
         listaTotal = form.rolPorUsuario.data
         for rolID in listaTotal:
             rol = Rol.query.filter_by(id=rolID).first()
-            #user.rolPorUsuario = [rol]
             user.rolPorUsuario.append(rol)
         db.session.add(user)
         db.session.commit()
@@ -154,6 +154,7 @@ def crearRol():
         listaTotal=form.permisoPorRol.data
         for permisoID in listaTotal:
             permiso = Permiso.query.filter_by(id=permisoID).first()
+
             #rol.permisoPorRol = [permiso]
             rol.permisoPorRol.append(permiso)
             
@@ -408,9 +409,107 @@ def borrarComite(comite_id):
 
     return render_template('admin/borrarComite.html', comite=comite, form=form)
 
+#FASES
+
+@admin.route('/crearFase/<proyecto_id>', methods=['GET', 'POST'])
+@login_required
+def crearFase(proyecto_id):
+    """Funcion que permite instanciar una Fase de un Proyecto"""
+    proyecto = Proyecto.query.filter_by(id=proyecto_id).first_or_404()
+    if proyecto.fases.count() < proyecto.numero_fases:
+        form = CrearFaseForm(next=request.args.get('next'))
+        if form.validate_on_submit():
+            fase = Fase()
+            fase.nombre = form.nombre.data
+            fase.descripcion = form.descripcion.data
+            fase.proyecto_id = proyecto.id
+            
+            db.session.add(fase)
+            db.session.commit()
+            
+            flash('Fase creada.', 'success')
+            return redirect(url_for('admin.fasesxproyecto',proyecto_id=proyecto.id))
+            
+        return render_template('admin/crearFase.html', proyecto=proyecto, form=form)
+    else:
+        flash('Numero de fases del proyecto alcanzado', 'error')
+        return redirect(url_for('admin.fasesxproyecto',proyecto_id=proyecto.id))
+
+@admin.route('/IdF<fase_id>/<proyecto_id>', methods=['GET', 'POST'])
+@login_required
+def fase(proyecto_id, fase_id):
+    """Funcion que permite editar un comite"""
+    fase = Fase.query.filter_by(id=fase_id).first_or_404()
+    proyecto = Proyecto.query.filter_by(id=proyecto_id).first_or_404()
+    form = FaseForm(obj=fase, next=request.args.get('next'))
+    if form.validate_on_submit():
+        form.populate_obj(fase)
+
+        db.session.add(fase)
+        db.session.commit()
+
+        flash('Fase actualizada.', 'success')
+        return redirect(url_for('admin.fasesxproyecto',proyecto_id=proyecto.id))
+
+    return render_template('admin/fase.html', fase=fase, proyecto=proyecto, form=form)
+
 # TIPO DE ITEM
 
+@admin.route('/crearTipoItem/<proyecto_id>', methods=['GET', 'POST'])
+@login_required
+def crearTipoItem(proyecto_id):
+    """Funcion que permite crear un Tipo de Item en un Proyecto"""
+    proyecto = Proyecto.query.filter_by(id=proyecto_id).first_or_404()
+    form = CrearTipoItemForm(next=request.args.get('next'))
+    if form.validate_on_submit():
+        tipoItem = TipoItem()
+        tipoItem.nombre = form.nombre.data
+        tipoItem.descripcion = form.descripcion.data
+        tipoItem.proyecto_id = proyecto.id
+            
+        db.session.add(tipoItem)
+        db.session.commit()
+            
+        flash('Tipo de Item creado.', 'success')
+        return redirect(url_for('admin.tiposItemxproyecto',proyecto_id=proyecto.id))
+            
+    return render_template('admin/crearTipoItem.html', proyecto=proyecto, form=form)
 
+@admin.route('/TI<tipoItem_id>/<proyecto_id>', methods=['GET', 'POST'])
+@login_required
+def tipoItem(proyecto_id, tipoItem_id):
+    """Funcion que permite editar un comite"""
+    tipoItem = TipoItem.query.filter_by(id=tipoItem_id).first_or_404()
+    proyecto = Proyecto.query.filter_by(id=proyecto_id).first_or_404()
+    form = TipoItemForm(obj=tipoItem, next=request.args.get('next'))
+    if form.validate_on_submit():
+        form.populate_obj(tipoItem)
+
+        db.session.add(tipoItem)
+        db.session.commit()
+
+        flash('Tipo de Item actualizada.', 'success')
+        return redirect(url_for('admin.tiposItemxproyecto',proyecto_id=proyecto.id))
+
+    return render_template('admin/tipoItem.html', tipoItem=tipoItem, proyecto=proyecto, form=form)
+
+
+@admin.route('/buscarTipoItem')
+@login_required
+@admin_required
+def buscarTipoItem():
+    """FUncion que busca un Tipo de Item por nombre"""
+    keywords = request.args.get('keywords', '').strip()
+    pagination=None   
+       
+    if keywords:
+        page = int(request.args.get('page', 1))
+        pagination= TipoItem.search(keywords).paginate(page,1)
+    else:
+        flash('Por favor, ingrese dato a buscar','error')
+    return render_template('index/buscarTipoItem.html', pagination=pagination , keywords=keywords)
+
+##########################################################################        
 # RELACIONES
 
 @admin.route('/usuariosxcomite/<comite_id>', methods=['GET', 'POST'])
@@ -437,7 +536,7 @@ def usuariosxcomite(comite_id):
             listaTotal.append(userAsig)
         for userID in listaTotal:
             user = User.query.filter_by(id=userID).first()
-            comite.usuarioPorComite = [user]            
+            comite.usuarioPorComite.append(user)            
             
         db.session.add(comite)
         db.session.commit()
@@ -469,7 +568,6 @@ def permisosxrol(rol_id):
             listaTotal.append(permisoAsig)
         for permisoID in listaTotal:
             permiso = Permiso.query.filter_by(id=permisoID).first()
-            #rol.permisoPorRol = [permiso]
             rol.permisoPorRol.append(permiso)
         db.session.add(rol)
         db.session.commit()
@@ -482,7 +580,6 @@ def permisosxrol(rol_id):
 @admin.route('/rolesxusuario/<user_id>', methods=['GET', 'POST'])
 @login_required
 @verUsuarios_required
-@verRoles_required
 def rolesxusuario(user_id):
     """Funcion que asigna los roles a un usuario"""
     user = User.query.filter_by(id=user_id).first_or_404()
@@ -512,6 +609,7 @@ def rolesxusuario(user_id):
     form.rolPorUsuario.choices = [(h.id, h.nombre) for h in rolesDisponibles ]
     
     if form.validate_on_submit():       
+
         listaRolesSeleccionados=form.rolPorUsuario.data  # trae el id de los roles que seleccion
         
         print listaRolesSeleccionados
@@ -534,6 +632,7 @@ def rolesxusuario(user_id):
             print nuevoRol.nombre
             print "####### Los nuevos roles y se commitea"    
         
+
         db.session.add(user)
         db.session.commit()
        
@@ -572,6 +671,7 @@ def usuariosxproyecto(proyecto_id):
     form.usuarioPorProyecto.choices = [(h.id, h.nombre) for h in usuariosDisponibles ]
     
     if form.validate_on_submit():       
+
         listaUsuariosSeleccionados=form.usuarioPorProyecto.data
         
         print listaUsuariosSeleccionados
@@ -594,7 +694,6 @@ def usuariosxproyecto(proyecto_id):
             print nuevoUser.nombre
             print "####### Los nuevos Usuarios y se commitea"    
             
-        
         db.session.add(proyecto)
         db.session.commit()
        
@@ -616,7 +715,7 @@ def rolesxproyecto(proyecto_id):
     for rolAsig in rolesAsignados:
         listaRoles.append(rolAsig.id)
        
-    form.roles.choices = [(h.id, h.nombre) for h in RolesAsignar ]
+    form.roles.choices = [(m.id, m.nombre) for m in RolesAsignar ]
    
     if form.validate_on_submit():       
         listaTotal=form.roles.data
@@ -624,7 +723,7 @@ def rolesxproyecto(proyecto_id):
             listaTotal.append(rolAsig)
         for rolID in listaTotal:
             rol = Rol.query.filter_by(id=rolID).first()
-            proyecto.roles = [rol]
+            proyecto.roles.append(rol)
         db.session.add(proyecto)
         db.session.commit()
        
@@ -643,28 +742,14 @@ def fasesxproyecto(proyecto_id):
 #   fases = Fase.query.filter_by(proyecto_id=proyecto.id).first_or_404
     return render_template('admin/fasesxproyecto.html', proyecto=proyecto, fases=fasesExistentes, active='Fases')
 
-@admin.route('/crearFase/<proyecto_id>', methods=['GET', 'POST'])
+@admin.route('/tiposItemxproyecto/<proyecto_id>', methods=['GET', 'POST'])
 @login_required
-@crearFases_required
-def crearFase(proyecto_id):
-    """Funcion que permite instanciar una Fase de un Proyecto"""
+def tiposItemxproyecto(proyecto_id):
+    """Funcion que lista los tipos de Item de un Proyecto"""
     proyecto = Proyecto.query.filter_by(id=proyecto_id).first_or_404()
-    if proyecto.fases.count() < proyecto.numero_fases:
-        form = CrearFaseForm(next=request.args.get('next'))
-        if form.validate_on_submit():
-            fase = Fase()
-            fase.nombre = form.nombre.data
-            fase.descripcion = form.descripcion.data
-            fase.proyecto_id = proyecto.id
-            
-            db.session.add(fase)
-            db.session.commit()
-            
-            flash('Fase creada.', 'success')
-            return redirect(url_for('admin.fasesxproyecto',proyecto_id=proyecto.id))
-            
-        return render_template('admin/crearFase.html', proyecto=proyecto, form=form)
-    
-    else:
-        flash('Fase no creada. Numero de fases del proyecto alcanzado', 'error')
-        return redirect(url_for('admin.fasesxproyecto',proyecto_id=proyecto.id))
+    tiposItemExistentes = proyecto.tiposItem
+    return render_template('admin/tiposItemxproyecto.html', proyecto=proyecto, tiposItem=tiposItemExistentes, active='Tipos de Item')
+
+
+
+

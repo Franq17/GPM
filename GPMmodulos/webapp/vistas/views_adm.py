@@ -4,15 +4,17 @@ from flask import Blueprint, render_template, request, flash, url_for, redirect
 from flask_login import login_required
 
 from ..extensions import db
-from ..decorators import admin_required
+from ..decorators import *
 
-from ..modelos import User, Rol, Permiso, Proyecto, Comite, Fase
-from .forms_adm import UserForm, DeleteUserForm, CreateUserForm
-from .forms_adm import ComiteForm, BorrarComiteForm, CrearComiteForm
-from .forms_adm import ProyectoForm, BorrarProyectoForm, CrearProyectoForm
-from .forms_adm import RolForm, CrearRolForm , BorrarRolForm 
-from .forms_adm import PermisoxRolForm, RolxUsuarioForm, UserxComiteForm, UsuarioxProyectoForm, RolxProyectoForm
-from .forms_adm import CrearFaseForm
+#from ..modelos import User, Rol, Permiso, Proyecto, Comite, Fase
+from ..modelos import *
+from .forms_adm import *
+#from .forms_adm import UserForm, DeleteUserForm, CreateUserForm
+#from .forms_adm import ComiteForm, BorrarComiteForm, CrearComiteForm
+#from .forms_adm import ProyectoForm, BorrarProyectoForm, CrearProyectoForm
+#from .forms_adm import RolForm, CrearRolForm , BorrarRolForm 
+#from .forms_adm import PermisoxRolForm, RolxUsuarioForm, UserxComiteForm, UsuarioxProyectoForm, RolxProyectoForm
+#from .forms_adm import CrearFaseForm
 
 admin = Blueprint('admin', __name__, url_prefix='/admin')
 
@@ -20,14 +22,13 @@ admin = Blueprint('admin', __name__, url_prefix='/admin')
 
 @admin.route('/')
 @login_required
-@admin_required
 def index():
     users = User.query.all()
     return render_template('admin/index.html', users=users, active='index')
     
 @admin.route('/users')
 @login_required
-@admin_required
+@verUsuarios_required
 def users():
     """Funcion que lista los usuarios del sistema"""
     users = User.query.all()
@@ -35,7 +36,7 @@ def users():
 
 @admin.route('/createUser', methods=['GET', 'POST'])
 @login_required
-@admin_required
+@crearUsuarios_required
 def createUser():
     """Funcion encargada de crear Usuario asignando un rol o mas."""
     roles = Rol.query.all()
@@ -63,7 +64,8 @@ def createUser():
 
 @admin.route('/user/<user_id>', methods=['GET', 'POST'])
 @login_required
-@admin_required
+@login_required
+@modificarUsuarios_required
 def user(user_id):
     """Funcion encargada de Editar un usuario"""
     user = User.query.filter_by(id=user_id).first_or_404()
@@ -82,7 +84,7 @@ def user(user_id):
 
 @admin.route('/deleteUser/<user_id>', methods=['GET', 'POST'])
 @login_required
-@admin_required
+@eliminarUsuarios_required
 def deleteUser(user_id):
     """Funcion encargada de eliminar un usuario del sistema"""
     user = User.query.filter_by(id=user_id).first_or_404()
@@ -100,6 +102,8 @@ def deleteUser(user_id):
     return render_template('admin/deleteUser.html', user=user, form=form)
 
 @admin.route('/searchUser')
+@login_required
+@verUsuarios_required
 def searchUser():
     """Funcion encargada de la busqueda de un usuario por nombre o email"""
     keywords = request.args.get('keywords', '').strip()
@@ -116,7 +120,7 @@ def searchUser():
 
 @admin.route('/permisos')
 @login_required
-@admin_required
+@verPermisos_required
 def permisos():
     """Funcion que lista los permisos del sistema"""
     permisos = Permiso.query.all()
@@ -126,7 +130,7 @@ def permisos():
 
 @admin.route('/roles')
 @login_required
-@admin_required
+@verRoles_required
 def roles():
     """Funcion que lista los roles del sistema"""
     roles = Rol.query.all()
@@ -134,7 +138,7 @@ def roles():
 
 @admin.route('/crearRol', methods=['GET', 'POST'])
 @login_required
-@admin_required
+@crearRoles_required
 def crearRol():
     """Funcion que permite crear un rol en el sistema asignando uno o mas permisos"""
     permisos = Permiso.query.all()
@@ -163,7 +167,7 @@ def crearRol():
 
 @admin.route('/rol/<rol_id>', methods=['GET', 'POST'])
 @login_required
-@admin_required
+@modificarRoles_required
 def rol(rol_id):
     """Funcion que permite editar un rol"""
     rol = Rol.query.filter_by(id=rol_id).first_or_404()
@@ -185,7 +189,7 @@ def rol(rol_id):
 
 @admin.route('/borrarRol/<rol_id>', methods=['GET', 'POST'])
 @login_required
-@admin_required
+@eliminarRoles_required
 def borrarRol(rol_id):
     """Funcion que permite eliminar un rol"""
     rol = Rol.query.filter_by(id=rol_id).first_or_404()
@@ -207,6 +211,7 @@ def borrarRol(rol_id):
     return render_template('admin/borrarRol.html', rol=rol, form=form)
 
 @admin.route('/searchRol')
+@verRoles_required
 def searchRol():
     """Funcion que realiza una busqueda de roles por nombre"""
     keywords = request.args.get('keywords', '').strip()
@@ -223,7 +228,7 @@ def searchRol():
 
 @admin.route('/proyectos')
 @login_required
-@admin_required
+@verProyectos_required
 def proyectos():
     """Funcion que lista los proyectos del sistema"""
     proyectos = Proyecto.query.all()
@@ -231,7 +236,7 @@ def proyectos():
 
 @admin.route('/crearProyecto', methods=['GET', 'POST'])
 @login_required
-@admin_required
+@crearProyectos_required
 def crearProyecto():
     """Funcion que permite la creacion de un Proyecto"""
     form = CrearProyectoForm(next=request.args.get('next'))
@@ -257,7 +262,7 @@ def crearProyecto():
 
 @admin.route('/buscarProyecto')
 @login_required
-@admin_required
+@eliminarProyectos_required
 def buscarProyecto():
     """Funcion que filtra los proyectos por nombre"""
     keywords = request.args.get('keywords', '').strip()
@@ -272,7 +277,7 @@ def buscarProyecto():
 
 @admin.route('/proyecto/<proyecto_id>', methods=['GET', 'POST'])
 @login_required
-@admin_required
+@modificarProyectos_required
 def proyecto(proyecto_id):
     """Funcion que permite editar un Proyecto"""
     proyecto = Proyecto.query.filter_by(id=proyecto_id).first_or_404()
@@ -291,7 +296,7 @@ def proyecto(proyecto_id):
 
 @admin.route('/borrarProyecto/<proyecto_id>', methods=['GET', 'POST'])
 @login_required
-@admin_required
+@eliminarProyectos_required
 def borrarProyecto(proyecto_id):
     """Funcion que permite eliminar un Proyecto del sistema"""
     proyecto = Proyecto.query.filter_by(id=proyecto_id).first_or_404()
@@ -317,7 +322,7 @@ def borrarProyecto(proyecto_id):
 
 @admin.route('/comites')
 @login_required
-@admin_required
+@verComites_required
 def comites():
     """Funcion que lista los comites existentes en el sistema"""
     comites = Comite.query.all()
@@ -325,7 +330,7 @@ def comites():
 
 @admin.route('/crearComite', methods=['GET', 'POST'])
 @login_required
-@admin_required
+@crearComites_required
 def crearComite():
     """Funcion que permite la creacion de un comite"""
     proyectos = Proyecto.query.filter_by(comite=None)
@@ -352,7 +357,7 @@ def crearComite():
 
 @admin.route('/buscarComite')
 @login_required
-@admin_required
+@verComites_required
 def buscarComite():
     """FUncion que busca un comite por nombre"""
     keywords = request.args.get('keywords', '').strip()
@@ -367,7 +372,7 @@ def buscarComite():
 
 @admin.route('/comite/<comite_id>', methods=['GET', 'POST'])
 @login_required
-@admin_required
+@modificarComites_required
 def comite(comite_id):
     """Funcion que permite editar un comite"""
     comite = Comite.query.filter_by(id=comite_id).first_or_404()
@@ -386,7 +391,7 @@ def comite(comite_id):
 
 @admin.route('/borrarComite/<comite_id>', methods=['GET', 'POST'])
 @login_required
-@admin_required
+@eliminarComites_required
 def borrarComite(comite_id):
     """Funcion que permite la eliminacion de un comite"""
     comite = Comite.query.filter_by(id=comite_id).first_or_404()
@@ -410,7 +415,7 @@ def borrarComite(comite_id):
 
 @admin.route('/usuariosxcomite/<comite_id>', methods=['GET', 'POST'])
 @login_required
-@admin_required
+@verMiembrosComites_required
 def usuariosxcomite(comite_id):
     """Funcion que asigna los usuarios de un proyecto a un comite"""
     comite = Comite.query.filter_by(id=comite_id).first_or_404()
@@ -444,7 +449,7 @@ def usuariosxcomite(comite_id):
 
 @admin.route('/permisosxrol/<rol_id>', methods=['GET', 'POST'])
 @login_required
-@admin_required
+@eliminarUsuarios_required
 def permisosxrol(rol_id):
     """Funcion que asigna los permisos a un rol"""
     rol = Rol.query.filter_by(id=rol_id).first_or_404()
@@ -476,7 +481,7 @@ def permisosxrol(rol_id):
 
 @admin.route('/rolesxusuario/<user_id>', methods=['GET', 'POST'])
 @login_required
-@admin_required
+@verRoles_required
 def rolesxusuario(user_id):
     """Funcion que asigna los roles a un usuario"""
     user = User.query.filter_by(id=user_id).first_or_404()
@@ -528,10 +533,6 @@ def rolesxusuario(user_id):
             print nuevoRol.nombre
             print "####### Los nuevos roles y se commitea"    
         
-       # for rolID in listaRolesSeleccionados:
-       #     role = Rol.query.filter_by(id=rolID.id).first_or_404()
-        #    user.rolPorUsuario = [role]
-        
         db.session.add(user)
         db.session.commit()
        
@@ -545,7 +546,6 @@ def rolesxusuario(user_id):
 
 @admin.route('/usuarioxproyecto/<proyecto_id>', methods=['GET', 'POST'])
 @login_required
-@admin_required
 def usuariosxproyecto(proyecto_id):
     """Funcion que asigna los usuarios de un proyecto"""
     proyecto = Proyecto.query.filter_by(id=proyecto_id).first_or_404()
@@ -604,7 +604,6 @@ def usuariosxproyecto(proyecto_id):
 
 @admin.route('/rolesxproyecto/<proyecto_id>', methods=['GET', 'POST'])
 @login_required
-@admin_required
 def rolesxproyecto(proyecto_id):
     """Funcion que asigna los roles de un proyecto"""
     proyecto = Proyecto.query.filter_by(id=proyecto_id).first_or_404()
@@ -635,7 +634,7 @@ def rolesxproyecto(proyecto_id):
 
 @admin.route('/fasesxproyecto/<proyecto_id>', methods=['GET', 'POST'])
 @login_required
-@admin_required
+
 def fasesxproyecto(proyecto_id):
     """Funcion que lista las fases de un Proyecto"""
     proyecto = Proyecto.query.filter_by(id=proyecto_id).first_or_404()
@@ -645,7 +644,7 @@ def fasesxproyecto(proyecto_id):
 
 @admin.route('/crearFase/<proyecto_id>', methods=['GET', 'POST'])
 @login_required
-@admin_required
+@crearFases_required
 def crearFase(proyecto_id):
     """Funcion que permite instanciar una Fase de un Proyecto"""
     proyecto = Proyecto.query.filter_by(id=proyecto_id).first_or_404()

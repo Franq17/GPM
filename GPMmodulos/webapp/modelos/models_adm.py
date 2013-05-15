@@ -201,13 +201,12 @@ class User(db.Model, UserMixin):
     def comprobarPermiso (self, key):
         roles = self.rolPorUsuario
         for item in roles: 
-        #return User.query.filter(User.id.in_(self.following or set()))
             rol=Rol.query.filter_by(id=item.id).first_or_404()
             permisos=rol.permisoPorRol
             for permiso in permisos:
                 if permiso.nombre==key:
                     return True          
-                print "1111111111111111111111imprimi un permiso"
+                
         return False
     
     def getRole(self):

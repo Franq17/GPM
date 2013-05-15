@@ -5,9 +5,7 @@
 
 {% block body %}
 <div class="container">
-
-    <h2>Editar Comite: {{comite.nombre}}</h2>
-
+    <h2>Editar Comité: {{comite.nombre}}</h2>
     {{ render_form(url_for('admin.comite',comite_id=comite.id), form) }}
 </div>
 {% endblock %}

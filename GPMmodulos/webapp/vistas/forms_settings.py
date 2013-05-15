@@ -37,12 +37,12 @@ class ProfileForm(Form):
 
 class PasswordForm(Form):
     next = HiddenField()
-    password = PasswordField('Contrasena', [Required()])
-    new_password = PasswordField('Nueva Contrasena', [Required(), Length(PASSWORD_LEN_MIN, PASSWORD_LEN_MAX)])
-    password_again = PasswordField('Contrasena de nuevo', [Required(), Length(PASSWORD_LEN_MIN, PASSWORD_LEN_MAX), EqualTo('new_password')])
+    password = PasswordField('Contraseña', [Required()])
+    new_password = PasswordField('Nueva Contraseña', [Required(), Length(PASSWORD_LEN_MIN, PASSWORD_LEN_MAX)])
+    password_again = PasswordField('Contraseña de nuevo', [Required(), Length(PASSWORD_LEN_MIN, PASSWORD_LEN_MAX), EqualTo('new_password')])
     submit = SubmitField(u'Guardar')
 
     def validate_password(form, field):
         user = User.query.filter_by(name=current_user.name).first()
         if not user.check_password(field.data):
-            raise ValidationError("Contrasena incorrecta.")
+            raise ValidationError("Contraseña incorrecta.")

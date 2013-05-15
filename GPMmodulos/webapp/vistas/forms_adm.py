@@ -172,7 +172,7 @@ class UserxComiteForm(Form):
     
 class PermisoxRolForm(Form):
     next = HiddenField()
-    permisoPorRol = SelectMultipleField(u'Permisos' ,coerce=int, option_widget=None)
+    permisoPorRol = SelectMultipleField(u'Permisos' ,coerce=int)
     submit = SubmitField(u'Guardar')
     
 class RolxUsuarioForm(Form):

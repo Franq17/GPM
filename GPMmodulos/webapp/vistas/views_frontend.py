@@ -63,7 +63,7 @@ def reauth():
             flash(_('Reatenticado.'), 'success')
             return redirect('/change_password')
 
-        flash(_('Contrasena incorrecta.'), 'error')
+        flash(_('Contraseña incorrecta.'), 'error')
     return render_template('frontend/reauth.html', form=form)
 
 
@@ -120,7 +120,7 @@ def change_password():
         db.session.add(user)
         db.session.commit()
 
-        flash(_("Su contrasena ha sido cambiada, favor vuelva a loguearse"),
+        flash(_("Su contraseña ha sido cambiada, favor vuelva a loguearse"),
               "success")
         return redirect(url_for("frontend.login"))
 

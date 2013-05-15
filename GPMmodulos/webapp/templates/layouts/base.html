@@ -46,44 +46,22 @@
                 <div class="nav-collapse collapse pull-left">
 						<ul class="nav">
 							<li class="dropdown">
-							    <a href="#" class="dropdown-toggle" data-toggle="dropdown">Administracion <b class="caret"></b></a>
+							{% if current_user.is_admin() %}
+                                <a href="#" class="dropdown-toggle" data-toggle="dropdown">Administracion <b class="caret"></b></a>
                                 <ul class="dropdown-menu">
-                                	{% if current_user.comprobarPermiso('verUsuarios')  %}
                                     <li><a href="{{ url_for('admin.users') }}">Usuarios</a></li>
-                                    {% else %}
-                                    <li><a href="#" onClick="alert('No cuenta con permisos para administar Usuarios.')">Usuarios</a></li>
-                                    {% endif %}
-                                    
                                     <li class="divider"></li>
-                                    {% if current_user.comprobarPermiso('verRoles')  %}
-                                   	<li><a href="{{ url_for('admin.roles') }}">Roles</a></li>
-                                    {% else %}
-                                    <li><a href="#" onClick="alert('No cuenta con permisos para administrar Roles.')">Roles</a></li>
-                                    {% endif %}
-                                    
+                                    <li><a href="{{ url_for('admin.roles') }}">Roles</a></li>
                                     <li class="divider"></li>
-                                    {% if current_user.comprobarPermiso('verPermisos')  %}
                                     <li><a href="{{ url_for('admin.permisos') }}">Permisos</a></li>
-                                    {% else %}
-                                    <li><a href="#" onClick="alert('No cuenta con permisos para administar Permisos.')">Permisos</a></li>
-                                    {% endif %}
-                                    
                                     <li class="divider"></li>
-                                    {% if current_user.comprobarPermiso('verProyectos')  %}
                                     <li><a href="{{ url_for('admin.proyectos') }}">Proyectos</a></li>
-                                    {% else %}
-                                    <li><a href="#" onClick="alert('No cuenta con permisos para administar Proyectos.')">Proyectos</a></li>
-                                    {% endif %}
                                     <li class="divider"></li>
-                                    
-                                    {% if current_user.comprobarPermiso('verComites')  %}                                    
-                                    <li><a href="{{ url_for('admin.comites') }}">Comites</a></li>
-                                    {% else %}
-                                    <li><a href="#" onClick="alert('No cuenta con permisos para administar Comites.')">Comites</a></li>
-                                    {% endif %}                                         
+                                    <li><a href="{{ url_for('admin.comites') }}">Comités</a></li>                                         
                                 </ul>
                             </li>
-                            <li><a href="#">Mis Proyectos</a></li>
+                            {% endif %}
+                            <li><a href="#">Proyectos</a></li>
                             <li><a href='{{ url_for('frontend.about') }}'>About</a></li>                            
                             
                         </ul>

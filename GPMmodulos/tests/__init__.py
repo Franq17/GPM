@@ -7,13 +7,13 @@
     Ref: http://packages.python.org/Flask-Testing/
 """
 
-from flask.ext.testing import TestCase as Base, Twill
+from flask_testing import TestCase as Base, Twill
 
 from webapp import create_app
-from webapp.modelos import User, ADMIN, USER, ACTIVE
+from webapp.modelos.models_adm import User, ADMIN, USER
+from webapp.modelos.constants import ACTIVE
 from webapp.configs import TestConfig
 from webapp.extensions import db
-
 
 class TestCase(Base):
     """Base TestClass for your application."""
@@ -28,31 +28,30 @@ class TestCase(Base):
     def init_data(self):
 
         demo = User(name=u'demo', 
-                email=u'demo@example.com', 
-                password=u'123456', 
-                role_id=USER,
-                status_id=ACTIVE,
-#                user_detail=UserDetail(
-#                    age=10,
-#                    url=u'http://demo.example.com', 
-#                    deposit=100.00,
-#                    location=u'Hangzhou', 
-#                    bio=u'Demo Guy is ... hmm ... just a demo guy.',
-#                    ),
-                )
+            email=u'usuario@example.com', 
+            password=u'123456', 
+            role_id=USER,
+            status_id=ACTIVE)
+#             user_detail=UserDetail(
+#                 nameReal=u'Francisco',
+# 				apellido=u'quiñonez',
+#                 location=u'Hangzhou', 
+# 				document=4575,
+#                 descripcion=u'usuario is ... hmm ... just a demo guy.'),
+#                 )
         admin = User(name=u'admin', 
                 email=u'admin@example.com', 
                 password=u'123456', 
                 role_id=ADMIN,
-                status_id=ACTIVE,
-#                user_detail=UserDetail(
-#                    age=10,
-#                    url=u'http://admin.example.com', 
-#                    deposit=100.00,
-#                    location=u'Hangzhou', 
-#                    bio=u'admin Guy is ... hmm ... just a admin guy.',
-#                    ),
-                )
+                status_id=ACTIVE)
+#                 user_detail=UserDetail(
+#                     nameReal=u'lorena',
+# 					apellido=u'zalazar',
+#                 	location=u'Hangzhou', 
+# 					document=4575,
+#                 	descripcion=u'usuario is ... hmm ... just a demo guy.'),
+#                 )
+
         db.session.add(demo)
         db.session.add(admin)
         db.session.commit()

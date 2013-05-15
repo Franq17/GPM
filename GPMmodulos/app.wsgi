@@ -19,7 +19,7 @@ os.environ['HOME'] = pwd.getpwuid(os.getuid()).pw_dir
 BASE_DIR = os.path.join(os.path.dirname(__file__))
 # activate virtualenv
 #activate_this = os.path.join(BASE_DIR, "env/bin/activate_this.py")
-activate_this = os.path.join(BASE_DIR, "/home/adolfo/pruebas-flask/bin/activate_this.py")
+activate_this = os.path.join(BASE_DIR, "/home/franq/pruebas-flask/bin/activate_this.py")
 
 execfile(activate_this, dict(__file__=activate_this))
 

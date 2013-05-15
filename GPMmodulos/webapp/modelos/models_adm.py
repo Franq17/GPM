@@ -18,8 +18,8 @@ class DenormalizedText(Mutable, types.TypeDecorator):
     Stores denormalized primary keys that can be
     accessed as a set.
 
-    :param coerce: coercion function that ensures correct
-                   type is returned
+    :param coerce: coercion function that ensures correct 
+    type is returned
 
     :param separator: separator character
     """
@@ -77,6 +77,10 @@ class Rol(db.Model):
     descripcion = Column(db.String)
     permisoPorRol = db.relationship('Permiso', secondary=permisoPorRol,
         backref=db.backref('permisoPorRol', lazy='dynamic'))
+    
+    # =========================
+    # One-to-many relationship
+    proyecto_id = Column(db.Integer, db.ForeignKey('proyecto.id'))
 
     # ================================================================
     # Class methods
@@ -86,12 +90,28 @@ class Rol(db.Model):
         criteria = []
         for keyword in keywords.split():
             keyword = '%' + keyword + '%'
-            criteria.append(db.or_(
-                Rol.nombre.ilike(keyword)
-            ))
+            criteria.append(db.or_
+            (Rol.nombre.ilike(keyword))
+            )
         q = reduce(db.and_, criteria)
         return cls.query.filter(q)
 
+class Fase(db.Model):
+    __tablename__='fase'
+    
+    id = Column(db.Integer, primary_key=True)
+    nombre = Column(db.String(32), nullable=False, unique=True)
+    descripcion = Column(db.String(),nullable=True)
+    numero_fase = Column(db.Integer,nullable=True)
+    numero_items = Column(db.Integer,nullable=True)
+    numero_lb = Column(db.Integer,nullable=True)
+    
+    # =========================
+    # One-to-many relationship
+    estado = Column(db.SmallInteger,default=NO_INICIADO)
+    # =========================
+    # One-to-many relationship
+    proyecto_id = Column(db.Integer, db.ForeignKey('proyecto.id'))
     
 class Comite(db.Model):
     
@@ -167,14 +187,28 @@ class User(db.Model, UserMixin):
         if self.password is None:
             return False
         return check_password_hash(self.password, password)
+        
 
     # ================================================================
     # Many-to-many relationship between users and roles.
+    
     rolPorUsuario = db.relationship('Rol', secondary=rolPorUsuario,
-        backref=db.backref('users', lazy='dynamic'))
+       backref=db.backref('users', lazy='dinamic'))
+    
     
     role_id = Column(db.SmallInteger, default=USER)
 
+    def comprobarPermiso (self, key):
+        roles = self.rolPorUsuario
+        for item in roles: 
+            rol=Rol.query.filter_by(id=item.id).first_or_404()
+            permisos=rol.permisoPorRol
+            for permiso in permisos:
+                if permiso.nombre==key:
+                    return True          
+                
+        return False
+    
     def getRole(self):
         return USER_ROLE[self.role_id]
 
@@ -267,7 +301,18 @@ class Proyecto(db.Model):
     usuarioPorProyecto = db.relationship('User', secondary=usuarioPorProyecto,
                                          backref=db.backref('usuarioPorProyecto', lazy='dynamic'))  
     
+    # One-to-one relationship between comite and proyecto 
     comite = db.relationship('Comite', backref='proyecto', uselist=False)
+    
+    # One-to-many relationship between proyecto and fases
+    fases = db.relationship('Fase', backref='proyecto',lazy='dynamic')
+    
+    # One-to-many relationship between proyecto and roles
+    roles = db.relationship('Rol', backref='proyecto',lazy='dynamic')
+    
+    # One-to-many relationship between proyecto and tipoItem
+    tiposItem = db.relationship('TipoItem', backref='proyecto',lazy='dynamic')
+    
     
     # ================================================================
     # One-to-many relationship between projects and project_statuses.
@@ -321,3 +366,27 @@ class Proyecto(db.Model):
             ))
         q = reduce(db.and_, criteria)
         return cls.query.filter(q)
+    
+class TipoItem(db.Model):
+    
+    __tablename__ = 'tipoItem'
+    
+    id = Column(db.Integer, primary_key=True)
+    nombre= Column(db.String(32), nullable=False, unique=True)
+    descripcion= Column(db.String(200), nullable=True)
+    proyecto_id = Column(db.Integer, db.ForeignKey('proyecto.id'))
+#    atributos= db.relationship('Atributo', backref='tipoItem')
+    
+#class Atributo(db.Model):
+#    
+#    __tablename__ = 'atributo'
+#    
+#    id = Column(db.Integer, primary_key=True)
+#    nombre= Column(db.String(32), nullable=False, unique=True)
+#    tipo= Column(db.String(32), nullable=False, unique=True)
+#    descripcion= Column(db.String(200), nullable=True)
+#    valorString= Column(db.String(32))
+#    valorInteger= Column(db.Integer)
+#    valorFecha=  Column(db.DateTime)
+#    tipoItem_id = Column(Integer, ForeignKey('tipoItem.id'))
+#    item_id = Column(Integer, ForeignKey('item.id'))

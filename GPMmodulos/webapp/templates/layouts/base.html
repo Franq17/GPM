@@ -76,7 +76,7 @@
                                     {% endif %}
                                     <li class="divider"></li>
                                     
-                                    {% if current_user.comprobarPermiso('verProyectos')  %}                                    
+                                    {% if current_user.comprobarPermiso('verComites')  %}                                    
                                     <li><a href="{{ url_for('admin.comites') }}">Comites</a></li>
                                     {% else %}
                                     <li><a href="#" onClick="alert('No cuenta con permisos para administar Comites.')">Comites</a></li>

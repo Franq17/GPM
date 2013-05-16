@@ -11,6 +11,7 @@
 			<input type='text' class="search-query" name='keywords' value='{{ keywords|default('') }}' placeholder='Buscar' />
 		</form>
     </div>
+    {% if current_user.comprobarPermiso('verUsuarios')  %}
     <table class='table table-bordered table-condensed'>
         <thead>
             <tr>
@@ -33,11 +34,12 @@
             <td>{{ user.email }}</td>
             <td>{{ user.ci }}</td>
             <td>{{ user.telefono }}</td>
-            <td>{{ user.getStatus() }}</td>
+            <td>{{ user.getStatus() }} | | <a href="{{ url_for('admin.historialxitem', user_id=user.id) }}"><i class="icon-eye-open"></i>Historial</a></td>
             <td>{{ user.created_time|format_date }}</td>
             <td><a href="{{ url_for('admin.rolesxusuario', user_id=user.id) }}"><i class="icon-eye-open"></i>Roles</a> | <a href="{{ url_for('admin.user', user_id=user.id) }}"><i class="icon-pencil"></i>Editar</a> | <a href="{{ url_for('admin.deleteUser', user_id=user.id) }}" ><i class="icon-remove"></i>Eliminar</a></td>
         </tr>
         {% endfor %}
     </table>
+    {% endif %}
 </div>
 {% endblock %}

@@ -29,8 +29,9 @@ DEPOSIT_MAX = 9999999999.99
 
 
 def get_current_time():
-    return datetime.utcnow()
-
+    #return datetime.utcnow()
+    return datetime.now()
+    
 
 def pretty_date(dt, default=None):
     """

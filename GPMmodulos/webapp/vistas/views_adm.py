@@ -7,7 +7,10 @@ from ..extensions import db
 from ..decorators import *
 
 
-#from ..modelos import User, Rol, Permiso, Proyecto, Comite, Fase
+
+
+#from ..modelos import User, Rol, Permiso, Proyecto, Comite, Fase, HistorialItem
+
 from ..modelos import *
 from .forms_adm import *
 #from .forms_adm import UserForm, DeleteUserForm, CreateUserForm
@@ -29,7 +32,6 @@ def index():
     
 @admin.route('/users')
 @login_required
-@verUsuarios_required
 def users():
     """Funcion que lista los usuarios del sistema"""
     users = User.query.all()
@@ -54,9 +56,16 @@ def createUser():
         for rolID in listaTotal:
             rol = Rol.query.filter_by(id=rolID).first()
             user.rolPorUsuario.append(rol)
+        
         db.session.add(user)
         db.session.commit()
         
+        historial = HistorialItem()
+        historial.usuarioId=user.id
+        historial.descripcion= "Se crea el item " + user.name
+        
+        db.session.add(historial)
+        db.session.commit()
         flash('Usuario creado.', 'success')
         return redirect(url_for('admin.users'))
 
@@ -665,7 +674,7 @@ def usuariosxproyecto(proyecto_id):
     listaUsuariosActuales=[]
     for usuario in usuariosActuales:
         print usuario.nombre
-        print "##################Usuarios actuales del proyect"
+        print "##################Usuarios actuales del proyect0"
         listaUsuariosActuales.append(usuario)
        
     form.usuarioPorProyecto.choices = [(h.id, h.nombre) for h in usuariosDisponibles ]
@@ -749,6 +758,23 @@ def tiposItemxproyecto(proyecto_id):
     proyecto = Proyecto.query.filter_by(id=proyecto_id).first_or_404()
     tiposItemExistentes = proyecto.tiposItem
     return render_template('admin/tiposItemxproyecto.html', proyecto=proyecto, tiposItem=tiposItemExistentes, active='Tipos de Item')
+
+
+@admin.route('/historialxitem/<user_id>', methods=['GET', 'POST'])
+@login_required
+def historialxitem(user_id):
+    """Funcion que lista el historial de un Item"""
+    usuario = User.query.filter_by(id=user_id).first_or_404()
+    todosHistoriales = HistorialItem.query.all()
+    
+    historiales=[]
+    for historial in todosHistoriales:
+        if historial.usuarioId==usuario.id:
+            historiales.append(historial)
+                
+    
+    return render_template('admin/historialxitem.html', usuario=usuario, historiales=historiales)
+    #return render_template('admin/permisos.html', permisos=permisos)
 
 
 

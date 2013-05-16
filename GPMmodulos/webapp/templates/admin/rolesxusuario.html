@@ -18,9 +18,36 @@
 		<tr>
             <td>{{ rol.nombre }}</td>
 			<td><a data-toggle="modal" href="#example" class="text">Quitar</a></td>
+				<div id="example" class="modal hide fade in" style="display: none;">
+					<div class="modal-header">
+						<a data-dismiss="modal" class="close">×</a>
+						<h4>Desasignar Rol</h4>
+					</div>
+					<div class="modal-body">
+						<p>Favor, confirme su respuesta</p>
+					</div>
+					<div class="modal-footer">
+						<a href="{{ url_for('admin.permisosxrol', rol_id=rol.id) }}" class="btn btn-primary">Quitar</a>
+						<a href="#" data-dismiss="modal" class="btn">Cerrar</a>
+					</div>
+		
+				</div>
         </tr>
         {% endfor %}
     </table>
 
+	<div id="aaaa" class="modal hide fade in" style="display: none;">
+		<div class="modal-header">
+			<a data-dismiss="modal" class="close">×</a>
+			<h4>Desasignar Rol</h4>
+		</div>
+		<div class="modal-body">
+			<p>Favor, confirme su respuesta</p>
+		</div>
+		<div class="modal-footer">
+			<a href="{{ url_for('admin.permisosxrol', rol_id=1) }}" class="btn btn-primary">Quitar</a>
+			<a href="#" data-dismiss="modal" class="btn">Cerrar</a>
+		</div>		
+	</div>
 </div>
 {% endblock %}

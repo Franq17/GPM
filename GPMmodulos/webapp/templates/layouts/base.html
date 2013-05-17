@@ -93,7 +93,7 @@
                             	
                             	{% if current_user.getProyectos()|default('',false) %}
                             		{% for proyecto in current_user.getProyectos() %}
-                                	<li><a href="{{ url_for('admin.usuariosxproyecto', proyecto_id=proyecto.id) }}">{{ proyecto.nombre}}</a></li>
+                                	<li><a href="{{ url_for('admin.itemsxproyecto', proyecto_id=proyecto.id) }}">{{ proyecto.nombre}}</a></li>
                                 	{% endfor%}
                                 {% else %}
                                     <li><a href="#">< Ninguno ></a></li>

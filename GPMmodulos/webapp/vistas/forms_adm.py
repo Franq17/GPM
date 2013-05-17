@@ -189,4 +189,17 @@ class RolxProyectoForm(Form):
     next = HiddenField()
     roles = SelectMultipleField(u'Roles', coerce=int)
     submit = SubmitField(u'Agregar')
-       
+
+class CrearItemForm(Form):
+    next = HiddenField()
+    nombre = nombre = TextField(u'Nombre del Item', [Required(), Length(REALNAME_LEN_MIN, REALNAME_LEN_MAX)])
+    tipoItem_id = SelectField(u'TipoItemID', coerce=int,)
+    descripcion = TextAreaField(u'Descripción', [Optional(), Length(max=1024)])
+    submit = SubmitField(u'Crear')
+
+class ItemForm(Form):
+    next = HiddenField()
+    nombre = nombre = TextField(u'Nombre del Item', [Required(), Length(REALNAME_LEN_MIN, REALNAME_LEN_MAX)])
+    descripcion = TextAreaField(u'Descripción', [Optional(), Length(max=1024)])
+    submit = SubmitField(u'Editar')
+    

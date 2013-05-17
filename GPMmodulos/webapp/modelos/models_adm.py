@@ -198,7 +198,6 @@ class User(db.Model, UserMixin):
     
     
     role_id = Column(db.SmallInteger, default=USER)
-
     
 
     def comprobarPermiso (self, key):
@@ -330,6 +329,9 @@ class Proyecto(db.Model):
     # One-to-many relationship between proyecto and tipoItem
     tiposItem = db.relationship('TipoItem', backref='proyecto',lazy='dynamic')
     
+    # One-to-many relationship between proyecto and fases
+    items = db.relationship('Item', backref='proyecto',lazy='dynamic')
+    
     
     # ================================================================
     # One-to-many relationship between projects and project_statuses.
@@ -392,6 +394,9 @@ class TipoItem(db.Model):
     nombre= Column(db.String(32), nullable=False, unique=True)
     descripcion= Column(db.String(200), nullable=True)
     proyecto_id = Column(db.Integer, db.ForeignKey('proyecto.id'))
+    
+    # One-to-many relationship between proyecto and roles
+    #items = db.relationship('Item', backref='tipoItem',lazy='dynamic')
 #    atributos= db.relationship('Atributo', backref='tipoItem')
 
     # ================================================================
@@ -413,9 +418,25 @@ class HistorialItem(db.Model):
     __tablename__ = 'historialItem'
 
     id = Column(db.Integer, primary_key=True)
-    usuarioId= Column(db.Integer, nullable=False)
+    itemId= Column(db.Integer, nullable=False)
     descripcion = Column(db.String)
     fecha= Column(db.DateTime, default=get_current_time)
+
+class Item(db.Model):
+    __tablename__='item'
+    
+    id = Column(db.Integer, primary_key=True)
+    nombre = Column(db.String(32), nullable=False, unique=True)
+    descripcion = Column(db.String(),nullable=True)
+    
+    # =========================
+    # One-to-many relationship
+    estado = Column(db.SmallInteger,default=INICIAL)
+    # =========================
+    # One-to-many relationship
+    proyecto_id = Column(db.Integer, db.ForeignKey('proyecto.id'))
+    
+    tipoItem_id= Column(db.Integer, db.ForeignKey('tipoItem.id'), nullable=True)
     
 
 #class Atributo(db.Model):

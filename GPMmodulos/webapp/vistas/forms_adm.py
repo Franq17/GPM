@@ -10,7 +10,7 @@ from flask_wtf.html5 import EmailField
 from flask_wtf import Required, Optional, Length, EqualTo, Email
 from flask_wtf import (HiddenField, BooleanField, TextField, TextAreaField,
                        PasswordField, IntegerField, SelectField, SelectMultipleField, SubmitField)
-from ..modelos import User, Proyecto, Comite, TipoItem, Fase
+from ..modelos import User, Proyecto, Comite, TipoItem, Fase, Atributo, Rol
 from ..utils import (PASSWORD_LEN_MIN, PASSWORD_LEN_MAX, 
         USERNAME_LEN_MIN, USERNAME_LEN_MAX, REALNAME_LEN_MIN, REALNAME_LEN_MAX)      
 
@@ -21,7 +21,7 @@ class UserForm(Form):
     status_id = RadioField(u"Estados", [AnyOf([str(val) for val in USER_STATUS.keys()])],
             choices=[(str(val), label) for val, label in USER_STATUS.items()])
     # A demo of datepicker.
-    created_time = DateField(u'Fecha de Creación')
+    created_time = DateField(u'Fecha de Creacion')
     submit = SubmitField(u'Guardar')
 
 class DeleteUserForm(Form):
@@ -29,7 +29,7 @@ class DeleteUserForm(Form):
     status_id = RadioField(u"Estados", [AnyOf([str(val) for val in USER_STATUS.keys()])],
             choices=[(str(val), label) for val, label in USER_STATUS.items()])
     # A demo of datepicker.
-    created_time = DateField(u'Fecha de Creación')
+    created_time = DateField(u'Fecha de Creacion')
     submit = SubmitField(u'Eliminar')
 
 class CreateUserForm(Form):
@@ -53,7 +53,7 @@ class ProyectoForm(Form):
     next = HiddenField()
     estado_id = RadioField(u"Estados", [AnyOf([str(val) for val in PROYECTO_ESTADOS.keys()])],
             choices=[(str(val), label) for val, label in PROYECTO_ESTADOS.items()])
-    descripcion = TextAreaField(u'Descripción', [Optional(), Length(max=1024)])
+    descripcion = TextAreaField(u'Descripcion', [Optional(), Length(max=1024)])
     submit = SubmitField(u'Guardar')
     
 
@@ -62,15 +62,15 @@ class BorrarProyectoForm(Form):
     estado_id = RadioField(u"Estados", [AnyOf([str(val) for val in PROYECTO_ESTADOS.keys()])],
             choices=[(str(val), label) for val, label in PROYECTO_ESTADOS.items()])
     # A demo of datepicker.
-    created_time = DateField(u'Fecha de Creación')
+    created_time = DateField(u'Fecha de Creacion')
     submit = SubmitField(u'Eliminar')
 
 class CrearProyectoForm(Form):
     next = HiddenField()
     nombre = TextField(u'Nombre del Proyecto', [Required(), Length(REALNAME_LEN_MIN, REALNAME_LEN_MAX)])
     numero_fases = IntegerField(u'Número de fases',[Required()])
-    lider_proyecto = SelectField(u'Líder de Proyecto',coerce=int,)
-    descripcion = TextAreaField(u'Descripción', [Optional(), Length(max=1024)])
+    lider_proyecto = SelectField(u'Lider de Proyecto',coerce=int,)
+    descripcion = TextAreaField(u'Descripcion', [Optional(), Length(max=1024)])
     submit = SubmitField(u'Crear')
 
     def validate_nombre(self, field):
@@ -89,14 +89,14 @@ class ComiteForm(Form):
     
 class CrearComiteForm(Form):
     next = HiddenField()
-    nombre = TextField(u'Nombre de Comité', [Required(), Length(REALNAME_LEN_MIN, REALNAME_LEN_MAX)])
+    nombre = TextField(u'Nombre de Comite', [Required(), Length(REALNAME_LEN_MIN, REALNAME_LEN_MAX)])
     proyecto_id = SelectField(u'ProyectoID', coerce=int,)
     descripcion = TextAreaField(u'Descripción', [Optional(), Length(max=1024)])
     submit = SubmitField(u'Crear')
     
     def validate_nombre(self, field):
         if Comite.query.filter_by(nombre=field.data).first() is not None:
-            raise ValidationError(u'El nombre del Comité ya existe')
+            raise ValidationError(u'El nombre del Comite ya existe')
     
 class BorrarComiteForm(Form):
     next = HiddenField()
@@ -161,6 +161,22 @@ class TipoItemForm(Form):
     next = HiddenField()
     descripcion = TextAreaField(u'Descripción', [Optional(), Length(max=1024)])
     submit = SubmitField(u'Editar')
+
+class CrearAtributoForm(Form):
+    next = HiddenField()
+    nombre = TextField(u'Nombre de Atributo', [Required(), Length(REALNAME_LEN_MIN, REALNAME_LEN_MAX)])
+    atributo_id = SelectField(u'AtributoID', [Optional()], coerce=int)
+    valor = TextField(u'Valor', [Optional(), Length(max=1024)])
+    submit = SubmitField(u'Crear')
+    
+    def validate_nombre(self, field):
+        if Atributo.query.filter_by(nombre=field.data).first() is not None:
+            raise ValidationError(u'El nombre del Atributo ya existe')
+
+
+
+
+
 ####################################################################################    
 #RELACIONES
 

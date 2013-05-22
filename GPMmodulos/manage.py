@@ -6,7 +6,7 @@ from flask_script import Manager
 
 from webapp import create_app
 from webapp.extensions import db
-from webapp.modelos import User, Rol, Permiso, Proyecto, INICIADO, Comite, ADMIN, USER, ACTIVE
+from webapp.modelos import User, Rol, Permiso, Proyecto, INICIADO, Comite, Atributo, ADMIN, USER, ACTIVE
 
 
 app = create_app()
@@ -122,6 +122,15 @@ def initdb():
             role_id=USER,
             status_id=ACTIVE
             )
+    
+    atributoString = Atributo(nombre=u'String',tipo=u'1')
+    atributoInt = Atributo(nombre=u'Int',tipo=u'2')
+    atributoFecha = Atributo(nombre=u'Fecha',tipo=u'3')
+    
+    db.session.add(atributoString)
+    db.session.add(atributoInt)
+    db.session.add(atributoFecha)
+    
     
     db.session.add(admin)
     db.session.add(lider) 

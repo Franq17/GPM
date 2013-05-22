@@ -44,7 +44,7 @@ def login():
                 flash(_("Sesión Iniciada"), 'success')
             return redirect(form.next.data or url_for('user.index'))
         else:
-            flash(_('Lo siento, login inválido'), 'error')
+            flash(_('Lo siento, login invalido'), 'error')
 
     return render_template('frontend/login.html', form=form)
 

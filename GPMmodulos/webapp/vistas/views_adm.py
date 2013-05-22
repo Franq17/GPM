@@ -460,7 +460,9 @@ def fase(proyecto_id, fase_id):
 def crearTipoItem(proyecto_id):
     """Funcion que permite crear un Tipo de Item en un Proyecto"""
     proyecto = Proyecto.query.filter_by(id=proyecto_id).first_or_404()
+    #atributos = Atributo.query.all()
     form = CrearTipoItemForm(next=request.args.get('next'))
+    #form.atributo_id.choices=[(h.id, h.nombre) for h in atributos]
     if form.validate_on_submit():
         tipoItem = TipoItem()
         tipoItem.nombre = form.nombre.data
@@ -474,6 +476,40 @@ def crearTipoItem(proyecto_id):
         return redirect(url_for('admin.tiposItemxproyecto',proyecto_id=proyecto.id))
             
     return render_template('admin/crearTipoItem.html', proyecto=proyecto, form=form)
+
+
+@admin.route('/crearAtributo/<proyecto_id>/<tipoItem_id>', methods=['GET', 'POST'])
+@login_required
+def crearAtributo(proyecto_id, tipoItem_id):
+    """Funcion que permite crear Atributo a tipo de item"""
+    proyecto = Proyecto.query.filter_by(id=proyecto_id).first_or_404()
+    tipoItem = TipoItem.query.filter_by(id=tipoItem_id).first_or_404()
+    
+    atributos = Atributo.query.all()
+    form = CrearAtributoForm(next=request.args.get('next'))
+    form.atributo_id.choices=[(h.id, h.nombre) for h in atributos]
+   
+    if form.validate_on_submit():
+        atributo = Atributo()
+        atributo.nombre = form.nombre.data
+        atributo.valorString = form.valor.data
+        
+        
+        db.session.add(atributo)
+        db.session.commit()
+        
+        
+#        tipoItem.atributoPorTipoItem = atributo.id          
+#        
+#        db.session.add(tipoItem)
+#        db.session.commit()
+#            
+        flash('Atributo agregado.', 'success')
+        return redirect(url_for('admin.tiposItemxproyecto',proyecto_id=proyecto.id))
+            
+    return render_template('admin/crearAtributo.html', proyecto=proyecto, tipoItem=tipoItem, form=form)
+
+
 
 @admin.route('/TI<tipoItem_id>/<proyecto_id>', methods=['GET', 'POST'])
 @login_required

@@ -68,6 +68,11 @@ rolPorUsuario = db.Table('rolPorUsuario',
     Column('user_id', db.Integer, db.ForeignKey('users.id'))
 )
 
+atributoPorTipoItem = db.Table('atributoPorTipoItem',
+    Column('tipoItem_id', db.Integer, db.ForeignKey('tipoItem.id')),
+    Column('atributo_id', db.Integer, db.ForeignKey('atributo.id'))
+)
+
 
 class Rol(db.Model):
 
@@ -397,8 +402,12 @@ class TipoItem(db.Model):
     
     # One-to-many relationship between proyecto and roles
     #items = db.relationship('Item', backref='tipoItem',lazy='dynamic')
-#    atributos= db.relationship('Atributo', backref='tipoItem')
+    # atributos= db.relationship('Atributo', backref='tipoItem')
 
+    atributoPorTipoItem = db.relationship('Atributo', secondary=atributoPorTipoItem,
+        backref=db.backref('atributoPorTipoItem', lazy='dynamic'))
+    
+    
     # ================================================================
     # Class methods
 
@@ -439,16 +448,15 @@ class Item(db.Model):
     tipoItem_id= Column(db.Integer, db.ForeignKey('tipoItem.id'), nullable=True)
     
 
-#class Atributo(db.Model):
-#    
-#    __tablename__ = 'atributo'
-#    
-#    id = Column(db.Integer, primary_key=True)
-#    nombre= Column(db.String(32), nullable=False, unique=True)
-#    tipo= Column(db.String(32), nullable=False, unique=True)
-#    descripcion= Column(db.String(200), nullable=True)
-#    valorString= Column(db.String(32))
-#    valorInteger= Column(db.Integer)
-#    valorFecha=  Column(db.DateTime)
-#    tipoItem_id = Column(Integer, ForeignKey('tipoItem.id'))
-#    item_id = Column(Integer, ForeignKey('item.id'))
+class Atributo(db.Model):
+    
+    __tablename__ = 'atributo'
+    
+    id = Column(db.Integer, primary_key=True)
+    nombre= Column(db.String(32), nullable=False, unique=True)
+    tipo= Column(db.Integer)
+    descripcion= Column(db.String(200), nullable=True)
+    valorString= Column(db.String(32))
+    valorInteger= Column(db.Integer)
+    valorFecha=  Column(db.DateTime)
+    

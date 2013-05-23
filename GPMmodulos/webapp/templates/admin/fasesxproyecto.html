@@ -11,7 +11,7 @@
 ]%}
 
 {% block body %}
-	<h2>Fases del Proyecto: {{ proyecto.nombre }}</h2>
+	<h2>Fases del Proyecto: <font color="royalblue">{{ proyecto.nombre }}</font></h2>
 	<div class="row-fluid">    
 	    <div class="span2">
 	    <a class="btn btn-primary" href="{{ url_for('admin.crearFase', proyecto_id=proyecto.id)}}"><strong>Crear Fase</strong></a><br><br></div>

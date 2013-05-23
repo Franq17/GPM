@@ -5,7 +5,7 @@
 
 {% block body %}
 <div class="container">
-    <h2>Editar Usuario: {{user.name}}</h2>
+    <h2>Editar Usuario: <font color="royalblue">{{user.name}}</font></h2>
     {{ render_form(url_for('admin.user', user_id=user.id), form) }}
 </div>
 {% endblock %}

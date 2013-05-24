@@ -18,9 +18,32 @@
 		<tr>
             <td>{{ rol.nombre }}</td>
 			<td><a data-toggle="modal" href="#example" class="text">Quitar</a></td>
+				
         </tr>
         {% endfor %}
     </table>
 
+	<div id="example" class="modal hide fade in" style="display: none;">
+			<div class="modal-header">
+				<a data-dismiss="modal" class="close">×</a>
+				<h4>Desasignar Rol</h4>
+			</div>
+			<div class="modal-body">
+				<table class='table table-bordered table-hover table-condensed'>
+			        <thead>
+			            <tr>
+			                <th>Nombre</th>
+			                <th>Descripcion</th>
+			            </tr>
+			        </thead>
+			    </table>    
+				<p>Favor, confirme su respuesta</p>
+			</div>
+			<div class="modal-footer">
+				<a href="#	" class="btn btn-primary">Quitar</a>
+				<a href="#" data-dismiss="modal" class="btn">Cerrar</a>
+			</div>
+		
+	</div>
 </div>
 {% endblock %}

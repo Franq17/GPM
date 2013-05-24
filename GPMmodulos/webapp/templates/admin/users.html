@@ -11,6 +11,7 @@
 			<input type='text' class="search-query" name='keywords' value='{{ keywords|default('') }}' placeholder='Buscar' />
 		</form>
     </div>
+    {% if current_user.comprobarPermiso('verUsuarios')  %}
     <table class='table table-bordered table-condensed'>
         <thead>
             <tr>
@@ -21,7 +22,7 @@
                 <th>CI</th>
                 <th>Telefono</th>
                 <th>Estado</th>
-                <th>Fecha de Creación</th>
+                <th>Fecha de Creacion</th>
                 <th></th>
             </tr>
         </thead>
@@ -39,5 +40,6 @@
         </tr>
         {% endfor %}
     </table>
+    {% endif %}
 </div>
 {% endblock %}

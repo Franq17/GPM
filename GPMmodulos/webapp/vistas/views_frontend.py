@@ -41,10 +41,10 @@ def login():
         if user and authenticated:
             remember = request.form.get('remember') == 'y'
             if login_user(user, remember=remember):
-                flash(_("Sesión Iniciada"), 'success')
+                flash(_("Sesion Iniciada"), 'success')
             return redirect(form.next.data or url_for('user.index'))
         else:
-            flash(_('Lo siento, login inválido'), 'error')
+            flash(_('Lo siento, login invalido'), 'error')
 
     return render_template('frontend/login.html', form=form)
 
@@ -71,7 +71,7 @@ def reauth():
 @login_required
 def logout():
     logout_user()
-    flash(_('Sesión Finalizada'), 'success')
+    flash(_('Sesion Finalizada'), 'success')
     return redirect(url_for('frontend.index'))
 
 

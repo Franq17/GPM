@@ -1,13 +1,15 @@
 # -*- coding: utf-8 -*-
 
 from flask import Blueprint, render_template, request, flash, url_for, redirect
-from flask_login import login_required
+from flask_login import login_required, current_user
 
 from ..extensions import db
 from ..decorators import *
 
 
-#from ..modelos import User, Rol, Permiso, Proyecto, Comite, Fase
+
+#from ..modelos import User, Rol, Permiso, Proyecto, Comite, Fase, HistorialItem
+
 from ..modelos import *
 from .forms_adm import *
 #from .forms_adm import UserForm, DeleteUserForm, CreateUserForm
@@ -29,7 +31,6 @@ def index():
     
 @admin.route('/users')
 @login_required
-@verUsuarios_required
 def users():
     """Funcion que lista los usuarios del sistema"""
     users = User.query.all()
@@ -54,6 +55,7 @@ def createUser():
         for rolID in listaTotal:
             rol = Rol.query.filter_by(id=rolID).first()
             user.rolPorUsuario.append(rol)
+        
         db.session.add(user)
         db.session.commit()
         
@@ -461,6 +463,7 @@ def crearTipoItem(proyecto_id):
     """Funcion que permite crear un Tipo de Item en un Proyecto"""
     proyecto = Proyecto.query.filter_by(id=proyecto_id).first_or_404()
     form = CrearTipoItemForm(next=request.args.get('next'))
+
     if form.validate_on_submit():
         tipoItem = TipoItem()
         tipoItem.nombre = form.nombre.data
@@ -474,6 +477,38 @@ def crearTipoItem(proyecto_id):
         return redirect(url_for('admin.tiposItemxproyecto',proyecto_id=proyecto.id))
             
     return render_template('admin/crearTipoItem.html', proyecto=proyecto, form=form)
+
+
+@admin.route('/crearAtributo/<proyecto_id>/<tipoItem_id>', methods=['GET', 'POST'])
+@login_required
+def crearAtributo(proyecto_id, tipoItem_id):
+    """Funcion que permite crear Atributo a tipo de item"""
+    proyecto = Proyecto.query.filter_by(id=proyecto_id).first_or_404()
+    tipoItem = TipoItem.query.filter_by(id=tipoItem_id).first_or_404()
+    
+    atributos = Atributo.query.all()
+    form = CrearAtributoForm(next=request.args.get('next'))
+    form.atributo_id.choices=[(h.id, h.nombre) for h in atributos]
+   
+    if form.validate_on_submit():
+        atributo = Atributo()
+        atributo.nombre = form.nombre.data
+        atributo.valorString = form.valor.data
+                
+        db.session.add(atributo)
+        db.session.commit()
+        
+        
+#        tipoItem.atributoPorTipoItem = atributo.id          
+#        
+#        db.session.add(tipoItem)
+#        db.session.commit()
+#            
+        flash('Atributo agregado.', 'success')
+        return redirect(url_for('admin.tiposItemxproyecto',proyecto_id=proyecto.id))
+            
+    return render_template('admin/crearAtributo.html', proyecto=proyecto, tipoItem=tipoItem, form=form)
+
 
 @admin.route('/TI<tipoItem_id>/<proyecto_id>', methods=['GET', 'POST'])
 @login_required
@@ -665,7 +700,7 @@ def usuariosxproyecto(proyecto_id):
     listaUsuariosActuales=[]
     for usuario in usuariosActuales:
         print usuario.nombre
-        print "##################Usuarios actuales del proyect"
+        print "##################Usuarios actuales del proyect0"
         listaUsuariosActuales.append(usuario)
        
     form.usuarioPorProyecto.choices = [(h.id, h.nombre) for h in usuariosDisponibles ]
@@ -750,6 +785,85 @@ def tiposItemxproyecto(proyecto_id):
     tiposItemExistentes = proyecto.tiposItem
     return render_template('admin/tiposItemxproyecto.html', proyecto=proyecto, tiposItem=tiposItemExistentes, active='Tipos de Item')
 
+@admin.route('/historialxitem/<item_id>', methods=['GET', 'POST'])
+@login_required
+def historialxitem(item_id):
+    """Funcion que lista el historial de un Item"""
+    item = Item.query.filter_by(id=item_id).first_or_404()
+    todosHistoriales = HistorialItem.query.all()
+    
+    historiales=[]
+    for historial in todosHistoriales:
+        if historial.itemId==item.id:
+            historiales.append(historial)
+    return render_template('admin/historialxitem.html', item=item, historiales=historiales)
+    #return render_template('admin/permisos.html', permisos=permisos)
+
+@admin.route('/itemsxproyecto/<proyecto_id>', methods=['GET', 'POST'])
+@login_required
+def itemsxproyecto(proyecto_id):
+    """Funcion que lista las fases de un Proyecto"""
+    proyecto = Proyecto.query.filter_by(id=proyecto_id).first_or_404()
+    itemsExistentes = proyecto.items
+#   fases = Fase.query.filter_by(proyecto_id=proyecto.id).first_or_404
+    return render_template('admin/itemsxproyecto.html', proyecto=proyecto, items=itemsExistentes, active='Items')
 
 
+@admin.route('/crearItem/<proyecto_id>', methods=['GET', 'POST'])
+@login_required
+def crearItem(proyecto_id):
+    """Funcion que permite instanciar un Item de un Proyecto"""
+    proyecto = Proyecto.query.filter_by(id=proyecto_id).first_or_404()
+    tiposItem= TipoItem.query.filter_by(proyecto_id=proyecto_id)
+    form = CrearItemForm(next=request.args.get('next'))
+    form.tipoItem_id.choices = [(h.id, h.nombre) for h in tiposItem ]
+    if form.validate_on_submit():
+        item = Item()
+        tipoItem = TipoItem.query.filter_by(id=form.tipoItem_id.data).first_or_404()
+        item.nombre = form.nombre.data
+        item.descripcion = form.descripcion.data
+        item.proyecto_id = proyecto.id
+        item.tipoItem_id = tipoItem.id
+        
+        db.session.add(item)
+        db.session.commit()
+        
+        historial = HistorialItem()
+        historial.itemId=item.id
+        historial.descripcion= current_user.nombre+" creo el item, con nombre: " + item.nombre
+        
+        db.session.add(historial)
+        db.session.commit()
+     
+        
+        flash('Item creado.', 'success')
+        return redirect(url_for('admin.itemsxproyecto',proyecto_id=proyecto.id))
+        
+    return render_template('admin/crearItem.html', proyecto=proyecto, form=form)
+
+
+@admin.route('/IdItem<item_id>/<proyecto_id>', methods=['GET', 'POST'])
+@login_required
+def item(proyecto_id, item_id):
+    """Funcion que permite editar un item"""
+    item = Item.query.filter_by(id=item_id).first_or_404()
+    proyecto = Proyecto.query.filter_by(id=proyecto_id).first_or_404()
+    form = ItemForm(obj=item, next=request.args.get('next'))
+    if form.validate_on_submit():
+        form.populate_obj(item)
+
+        db.session.add(item)
+        db.session.commit()
+
+        historial = HistorialItem()
+        historial.itemId=item.id
+        historial.descripcion= current_user.nombre+" modifico el item." 
+        
+        db.session.add(historial)
+        db.session.commit()
+     
+        flash('Item actualizado.', 'success')
+        return redirect(url_for('admin.itemsxproyecto',proyecto_id=proyecto.id))
+
+    return render_template('admin/item.html', item=item, proyecto=proyecto, form=form)
 

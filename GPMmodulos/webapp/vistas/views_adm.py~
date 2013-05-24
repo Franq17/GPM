@@ -241,7 +241,7 @@ def crearComite():
 
         db.session.add(comite)
         db.session.commit()
-        flash('Comité creado.', 'success')
+        flash('Comite creado.', 'success')
         return redirect(url_for('admin.comites'))
 
     return render_template('admin/crearComite.html', form=form)

@@ -60,12 +60,12 @@ class TestUser (unittest.TestCase):
     def test_authenticate(self):
         result = self.usertest.is_authenticated()
         self.assertTrue(result)
-        print 'Prueba de autenticación del usuario: Ok'
+        print 'Prueba de autenticacion del usuario: Ok'
     
     def test_checkpassword(self):
         result = self.usertest.check_password('123456')
         self.assertEqual(result, 0)
-        print 'Prueba de checkeo de contraseña: Ok'
+        print 'Prueba de checkeo de contrasena: Ok'
         
     def test_UserIsAdmin(self):
         result = self.usertest.is_admin()

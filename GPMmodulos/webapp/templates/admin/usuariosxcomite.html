@@ -19,7 +19,20 @@
        	{% for user in users%}
 		<tr>
         	<td>{{ user.nombre }}</td>
-            <td><a href="#"><i class="icon-remove"></i>Eliminar</a></td>
+            <td><a data-toggle="modal" href="#{{user.id}}"><i class="icon-remove"></i>Eliminar</a></td>
+			<div id="{{user.id}}" class="modal hide fade in" style="display: none;">
+				<div class="modal-header">
+					<a data-dismiss="modal" class="close">×</a>
+					<h4>Desasignar Miembro: <font color="royalblue">{{ user.nombre }}</font></h4>
+				</div>
+				<div class="modal-body">
+					<p>Favor, confirme su respuesta</p>
+				</div>
+				<div class="modal-footer">
+					<a href="#" data-dismiss="modal" class="btn">Cancelar</a>
+					<a href="{{ url_for('admin.desasignarMiembro', comite_id=comite.id, user_id=user.id)}}" class="btn btn-primary">Desasignar</a>
+				</div>
+			</div>
         </tr>
         {% endfor %}
 	</table>

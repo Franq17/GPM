@@ -372,6 +372,9 @@ def desasignarUsuario(proyecto_id, user_id):
     for item in usuariosAsignados:
         if item == usuarioDesasignar:
             proyecto.usuarioPorProyecto.remove(item)
+            if item in proyecto.comite:
+                desasignarMiembro(proyecto.comite.id, usuarioDesasignar.id)
+            
             db.session.add(proyecto)
             db.session.commit()
             flash('Usuario desasignado.', 'success')
@@ -469,6 +472,26 @@ def borrarComite(comite_id):
         return redirect(url_for('admin.comites'))
 
     return render_template('admin/borrarComite.html', comite=comite, form=form)
+
+@admin.route('/usuariosxcomite/Comite<comite_id>/Usuario<user_id>', methods=['GET', 'POST'])
+@login_required
+#@desasignarMiembro_required
+def desasignarMiembro(comite_id, user_id):
+    """Funcion que permite desasignar a un usuario de un comite"""
+    miembroDesasignar = User.query.filter_by(id=user_id).first_or_404()
+    comite = Comite.query.filter_by(id=comite_id).first_or_404()
+    form = UserxComiteForm(obj=user, next=request.args.get('next'))
+    miembrosAsignados = comite.usuarioPorComite
+    
+    for item in miembrosAsignados:
+        if item == miembroDesasignar:
+            comite.usuarioPorComite.remove(item)
+            db.session.add(comite)
+            db.session.commit()
+            flash('Miembro desasignado.', 'success')
+            return redirect(url_for('admin.usuariosxcomite', comite_id=comite.id))
+    
+    return render_template('admin/usuariosxcomite.html', comite=comite, form=form, users=miembrosAsignados)
 
 #FASES
 
@@ -602,7 +625,7 @@ def usuariosxcomite(comite_id):
         db.session.add(comite)
         db.session.commit()
        
-        flash('Usuario asignado.', 'success')
+        flash('Miembro asignado.', 'success')
         return redirect(url_for('admin.usuariosxcomite', comite_id=comite.id))
     
     return render_template('admin/usuariosxcomite.html', comite=comite, form=form, users=usuariosAsignados)  
@@ -632,9 +655,13 @@ def permisosxrol(rol_id):
             rol.permisoPorRol.append(permiso)
         db.session.add(rol)
         db.session.commit()
-       
-        flash('Rol modificado.', 'success')
-        return redirect(url_for('admin.roles'))
+        
+        if len(PermisosAsignar)==1:
+            flash('Permiso asignado.', 'success')
+        else:
+            flash('Permisos asignados.', 'success')
+        
+        return redirect(url_for('admin.permisosxrol', rol_id=rol.id))
        
     return render_template('admin/permisosxrol.html', rol=rol, form=form, permisos=permisosAsignados)
 

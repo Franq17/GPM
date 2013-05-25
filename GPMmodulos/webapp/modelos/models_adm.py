@@ -73,6 +73,10 @@ atributoPorTipoItem = db.Table('atributoPorTipoItem',
     Column('atributo_id', db.Integer, db.ForeignKey('atributo.id'))
 )
 
+solicitudPorUsuario = db.Table('solicitudPorUsuario',
+    Column('user_id', db.Integer, db.ForeignKey('users.id')),
+    Column('solicitud_id', db.Integer, db.ForeignKey('solicitud.id'))
+)
 
 class Rol(db.Model):
 
@@ -132,6 +136,8 @@ class Comite(db.Model):
     
     usuarioPorComite = db.relationship('User', secondary=usuarioPorComite,
         backref=db.backref('comites', lazy='dynamic')) 
+    
+    solicitudes = db.relationship('Solicitud', backref='comite',lazy='dynamic')
     
     
     # ================================================================
@@ -201,6 +207,8 @@ class User(db.Model, UserMixin):
     rolPorUsuario = db.relationship('Rol', secondary=rolPorUsuario,
        backref=db.backref('users', lazy='dinamic'))
     
+    solicitudPorUsuario = db.relationship('Solicitud', secondary=solicitudPorUsuario,
+       backref=db.backref('users', lazy='dinamic'))
     
     role_id = Column(db.SmallInteger, default=USER)
     
@@ -229,7 +237,26 @@ class User(db.Model, UserMixin):
                     misProyectos.append(unProyecto)
         return misProyectos
         
+    def getCantSolicitudes (self):
+        listaSolicitudes = self.solicitudPorUsuario
+        return len(listaSolicitudes)
     
+    def getSolicitudes (self):
+        listaSolicitudes = self.solicitudPorUsuario
+        listaItem=[]
+        for solicitud in listaSolicitudes:
+            item = Item.query.filter_by(id = solicitud.item_id).first_or_404()
+            print '#############################33'
+            print item.nombre
+            listaItem.append(item)
+        return listaItem    
+    
+                   
+   
+    
+        
+        
+            
     def getRole(self):
         return USER_ROLE[self.role_id]
 
@@ -306,6 +333,11 @@ class User(db.Model, UserMixin):
         q = reduce(db.and_, criteria)
         return cls.query.filter(q)
 
+#class Lista(object):
+#    comite = {"item": Item, "Bar":Proyecto}
+    
+
+
 
 class Proyecto(db.Model):
 
@@ -339,7 +371,7 @@ class Proyecto(db.Model):
     
     
     # ================================================================
-    # One-to-many relationship between projects and project_statuses.
+    # One-to-many relationship betwee    n projects and project_statuses.
     estado_id = Column(db.SmallInteger, default=NO_INICIADO)
 
     def getStatus(self):
@@ -349,6 +381,11 @@ class Proyecto(db.Model):
     # Follow / Following
     followers = Column(DenormalizedText)
     following = Column(DenormalizedText)
+
+    def getTodosProyectos(self):
+        todosProyectos = Proyecto.query.filter(Proyecto.id != self.id)
+        return todosProyectos
+   
 
     @property
     def num_followers(self):
@@ -396,13 +433,9 @@ class TipoItem(db.Model):
     __tablename__ = 'tipoItem'
     
     id = Column(db.Integer, primary_key=True)
-    nombre= Column(db.String(32), nullable=False, unique=True)
+    nombre= Column(db.String(32), nullable=False)
     descripcion= Column(db.String(200), nullable=True)
     proyecto_id = Column(db.Integer, db.ForeignKey('proyecto.id'))
-    
-    # One-to-many relationship between proyecto and roles
-    #items = db.relationship('Item', backref='tipoItem',lazy='dynamic')
-    # atributos= db.relationship('Atributo', backref='tipoItem')
 
     atributoPorTipoItem = db.relationship('Atributo', secondary=atributoPorTipoItem,
         backref=db.backref('atributoPorTipoItem', lazy='dynamic'))
@@ -446,6 +479,7 @@ class Item(db.Model):
     proyecto_id = Column(db.Integer, db.ForeignKey('proyecto.id'))
     
     tipoItem_id= Column(db.Integer, db.ForeignKey('tipoItem.id'), nullable=True)
+    solicitudes = db.relationship('Solicitud', backref='item',lazy='dynamic')
     
 
 class Atributo(db.Model):
@@ -459,4 +493,16 @@ class Atributo(db.Model):
     valorString= Column(db.String(32))
     valorInteger= Column(db.Integer)
     valorFecha=  Column(db.DateTime)
+    
+class Solicitud(db.Model):
+    __tablemame__ = 'solicitud'
+    
+    id = Column(db.Integer, primary_key=True)
+    comite_id = Column(db.Integer, db.ForeignKey('comite.id'))
+    item_id = Column(db.Integer, db.ForeignKey('item.id'))
+    estado = Column(db.SmallInteger, default=NO_INICIADO)
+    si = Column(db.Integer, nullable=False, default=0)
+    no = Column(db.Integer, nullable=False, default=0)
+    
+    
     

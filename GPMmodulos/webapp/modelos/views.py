@@ -3,7 +3,7 @@
 from flask import Blueprint, render_template, current_app, redirect, url_for, send_from_directory
 from flask_login import login_required, current_user
 
-from .models_adm import User, Rol, Proyecto, Comite, TipoItem
+from .models_adm import User, Rol, Proyecto, Comite, TipoItem, Solicitud
 from .constants import DEFAULT_USER_AVATAR
 
 user = Blueprint('user', __name__, url_prefix='/user')
@@ -14,8 +14,12 @@ tipoItem = Blueprint('tipoItem', __name__, url_prefix='/tipoItem')
 
 @user.route('/')
 @login_required
-def index():
-    return render_template('index/indexUser.html', current_user=current_user)
+def index(id_solicitud=None):
+    if id_solicitud is not None:
+        solicitud = Solicitud.query.filter_by(id=id_solicitud).first_or_404()
+    else:
+        solicitud = None
+    return render_template('index/indexUser.html', current_user=current_user, solicitud=solicitud)
 
 @user.route('/<name>')
 def pub(name):

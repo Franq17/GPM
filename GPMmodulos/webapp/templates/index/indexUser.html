@@ -17,32 +17,64 @@
 <h4>Para salir elija la opcion de <i><b>Cerrar Sesion</b></i></h4>
 
 <tr>
-	<div id="{{current_user.name}}" class="modal hide fade" style="display: none;">
-		<div class="modal-header">
-			<a data-dismiss="modal" class="close">×</a>
-				<h4>Aprobar Solicitud de Cambio: <font color="royalblue">{{ current_user.name }}</font></h4>
-				<h4>item: [ <font color="royalblue">{{ current_user.nombre }}</font> ] <h4>
-		</div>
-		<div class="modal-body">
-			<center><a class="btn btn-primary" href="#example"><i class="icon-eye-open"></i> Ver impacto</a></center>
-				<div id="example" class="dropdown">
-				    <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu">
-    					<li><a tabindex="-1" href="#">Action</a></li>
-    					<li><a tabindex="-1" href="#">Another action</a></li>
-    					<li><a tabindex="-1" href="#">Something else here</a></li>
-    					<li class="divider"></li>
-    					<li><a tabindex="-1" href="#">Separated link</a></li>
-    				</ul>
-				</div>
-			<th>--</th>
-			<p>Favor, confirme su respuesta</p>
-		</div>
-		<div class="modal-footer">
-			<a href="#" data-dismiss="modal" class="btn">Cancelar</a>
-			<a href="#" class="btn btn-primary">Rechazar</a>
-			<a href="#" class="btn btn-primary">Aprobar</a>
-		</div>
-	</div>
+	
+					<div id="{{current_user.name}}2" class="modal hide fade" style="display: none;">
+					 <div class="modal-header">
+							<a data-dismiss="modal" class="close">×</a>
+							<h4>Solicitudes de Cambio </h4>
+						</div>
+						<div class="modal-body">
+							<p>Seleccione un Solicitud para Votar:</p>
+							    <ul class="nav nav-list">
+							    		<li class="nav-header">Items de: </li>
+				  						{% for item in current_user.getSolicitudes() %}
+				  						<li><a data-toggle="modal" data-dismiss="modal" href="#id">Solicitud p/ eliminar el item {{item.nombre}}
+				  						</a></li>
+				  										  						
+				  						{% endfor %}
+				  											
+				  				</ul>
+						</div>
+						<div class="modal-footer">
+							<a href="#" data-dismiss="modal" class="btn">Cancelar</a>
+						</div>
+					</div>
+				
+					<div id="id" class="modal hide fade" style="display: none;">
+								<div class="modal-header">
+									<a data-dismiss="modal" class="close">×</a>
+										<h4>Aprobar Solicitud de Cambio: <font color="royalblue">hola</font></h4>
+										<h4>item: [ <font color="royalblue">{{ current_user.nombre }}</font> ] <h4>
+								</div>
+								<div class="modal-body">
+									<center><a class="btn btn-primary" href="#example"><i class="icon-eye-open"></i> Ver impacto</a></center>
+										<div id="example" class="dropdown">
+										    <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu">
+						    					<li><a tabindex="-1" href="#">Action</a></li>
+						    					<li><a tabindex="-1" href="#">Another action</a></li>
+						    					<li><a tabindex="-1" href="#">Something else here</a></li>
+						    					<li class="divider"></li>
+						    					<li><a tabindex="-1" href="#">Separated link</a></li>
+						    				</ul>
+										</div>
+									<th>--</th>
+									<p>Favor, confirme su respuesta</p>
+								</div>
+								<div class="modal-footer">
+									<a href="#" data-dismiss="modal" class="btn">Cancelar</a>
+									<a href="#" class="btn btn-primary">Rechazar</a>
+									<a href="#" class="btn btn-primary">Aprobar</a>
+								</div>
+							</div>
+					
+					
+	
+											
+	
+	
+	
+	
+	
 </tr>
 
 

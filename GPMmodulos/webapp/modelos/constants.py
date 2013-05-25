@@ -51,4 +51,16 @@ FASE_ESTADOS = {
     COMPROMETIDA: "comprometida",
 }
 
+# LineaBase_estados
+ABIERTA=0
+CERRADA=1
+COMPROMETIDA=3
+
+LINEABASE_ESTADOS = {
+    ABIERTA: "abierta",
+    CERRADA: "cerrada",
+    COMPROMETIDA: "comprometida",
+}
+
+
 DEFAULT_USER_AVATAR = 'default.png'

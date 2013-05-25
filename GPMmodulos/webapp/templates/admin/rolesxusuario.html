@@ -16,6 +16,7 @@
 		{% for rol in roles%}
 		<tr>
             <td>{{ rol.nombre }}</td>
+
 			<td><a data-toggle="modal" href="#{{rol.id}}" class="text">Quitar</a></td>
 			<div id="{{rol.id}}" class="modal hide fade in" style="display: none;">
 				<div class="modal-header">
@@ -30,9 +31,9 @@
 					<a href="{{ url_for('admin.desasignarRol', user_id=user.id, rol_id=rol.id)}}" class="btn btn-primary">Desasignar</a>
 				</div>
 			</div>
+
         </tr>
         {% endfor %}
     </table>
 </div>
-
 {% endblock %}

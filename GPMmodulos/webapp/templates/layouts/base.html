@@ -93,13 +93,21 @@
                             	
                             	{% if current_user.getProyectos()|default('',false) %}
                             		{% for proyecto in current_user.getProyectos() %}
-                                	<li><a href="{{ url_for('admin.usuariosxproyecto', proyecto_id=proyecto.id) }}">{{ proyecto.nombre}}</a></li>
+                                	<li><a href="{{ url_for('admin.itemsxproyecto', proyecto_id=proyecto.id) }}">{{ proyecto.nombre}}</a></li>
                                 	{% endfor%}
                                 {% else %}
                                     <li><a href="#">< Ninguno ></a></li>
                                 {% endif%}    	
                                 </ul>    
-                            </li>	
+                            </li>
+							<li class="dropdown">
+                            	<a href="#" class="dropdown-toggle" data-toggle="dropdown">Gestión de Cambios <b class="caret"></b></a>
+                            	<ul class="dropdown-menu">
+                                	<li><a href="#">Lineas Base</a></li>
+									<li class="divider"></li>
+                                    <li><a href="#">Solicitud de Cambio</a></li>   	
+                                </ul>    
+                            </li>
                          	<li><a href='{{ url_for('frontend.about') }}'>Acerca de GPM</a></li>
                          </ul> 
                          
@@ -120,7 +128,7 @@
                             <li class="divider"></li>
                             <li><a href="{{ url_for('settings.perfil') }}">Configuraciones</a></li>
                             <li class="divider"></li>
-                            <li><a href="{{ url_for('frontend.logout') }}">Cerrar Sesión</a></li>
+                            <li><a href="{{ url_for('frontend.logout') }}">Cerrar Sesion</a></li>
                         </ul>
                         </li>
                     </ul>
@@ -128,7 +136,7 @@
                 {% else %}
                 <div class="nav-collapse collapse pull-right">
                     <ul class="nav">
-                        <li><span><a class="btn btn-primary" href="{{ url_for('frontend.login') }}"><strong>Iniciar Sesión</strong></a></span></li>
+                        <li><span><a class="btn btn-primary" href="{{ url_for('frontend.login') }}"><strong>Iniciar Sesion</strong></a></span></li>
                         
                     </ul>
                 </div>

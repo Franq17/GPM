@@ -10,7 +10,7 @@ from flask_login import UserMixin
 
 from ..extensions import db
 from ..utils import get_current_time
-from .constants import USER, USER_ROLE, ADMIN, INACTIVE, USER_STATUS,NO_INICIADO, PROYECTO_ESTADOS
+from .constants import USER, USER_ROLE, ADMIN, INACTIVE, USER_STATUS,NO_INICIADO, PROYECTO_ESTADOS, LINEABASE_ESTADOS
 from .constants import INICIAL
 
 class DenormalizedText(Mutable, types.TypeDecorator):
@@ -68,6 +68,11 @@ rolPorUsuario = db.Table('rolPorUsuario',
     Column('user_id', db.Integer, db.ForeignKey('users.id'))
 )
 
+atributoPorTipoItem = db.Table('atributoPorTipoItem',
+    Column('tipoItem_id', db.Integer, db.ForeignKey('tipoItem.id')),
+    Column('atributo_id', db.Integer, db.ForeignKey('atributo.id'))
+)
+
 
 class Rol(db.Model):
 
@@ -113,6 +118,10 @@ class Fase(db.Model):
     # =========================
     # One-to-many relationship
     proyecto_id = Column(db.Integer, db.ForeignKey('proyecto.id'))
+    
+    # One-to-many relationship between fases and lineas base
+    lineaBase = db.relationship('LineaBase', backref='fase',lazy='dynamic')
+    
     
 class Comite(db.Model):
     
@@ -397,8 +406,12 @@ class TipoItem(db.Model):
     
     # One-to-many relationship between proyecto and roles
     #items = db.relationship('Item', backref='tipoItem',lazy='dynamic')
-#    atributos= db.relationship('Atributo', backref='tipoItem')
+    # atributos= db.relationship('Atributo', backref='tipoItem')
 
+    atributoPorTipoItem = db.relationship('Atributo', secondary=atributoPorTipoItem,
+        backref=db.backref('atributoPorTipoItem', lazy='dynamic'))
+    
+    
     # ================================================================
     # Class methods
 
@@ -438,17 +451,45 @@ class Item(db.Model):
     
     tipoItem_id= Column(db.Integer, db.ForeignKey('tipoItem.id'), nullable=True)
     
+    lineaBase_id = Column(db.Integer, db.ForeignKey('lineaBase.id'))
+    
 
-#class Atributo(db.Model):
-#    
-#    __tablename__ = 'atributo'
-#    
-#    id = Column(db.Integer, primary_key=True)
-#    nombre= Column(db.String(32), nullable=False, unique=True)
-#    tipo= Column(db.String(32), nullable=False, unique=True)
-#    descripcion= Column(db.String(200), nullable=True)
-#    valorString= Column(db.String(32))
-#    valorInteger= Column(db.Integer)
-#    valorFecha=  Column(db.DateTime)
-#    tipoItem_id = Column(Integer, ForeignKey('tipoItem.id'))
-#    item_id = Column(Integer, ForeignKey('item.id'))
+class Atributo(db.Model):
+    
+    __tablename__ = 'atributo'
+    
+    id = Column(db.Integer, primary_key=True)
+    nombre= Column(db.String(32), nullable=False, unique=True)
+    tipo= Column(db.Integer)
+    descripcion= Column(db.String(200), nullable=True)
+    valorString= Column(db.String(32))
+    valorInteger= Column(db.Integer)
+    valorFecha=  Column(db.DateTime)
+    
+class LineaBase(db.Model):
+    __tablename__='lineaBase'
+    
+    id = Column(db.Integer, primary_key=True)
+    numero_lb = Column(db.Integer, nullable=False)
+    descripcion = Column(db.String(),nullable=True)
+    
+    # =========================
+    # One-to-many relationship
+    estado = Column(db.SmallInteger,default=INICIAL)
+    # =========================
+    # One-to-many relationship between proyecto and fases
+    items = db.relationship('Item', backref='lineaBase',lazy='dynamic')
+    
+    fase_id = Column(db.Integer, db.ForeignKey('fase.id'))
+    
+    def getStatus(self):
+        return LINEABASE_ESTADOS[self.estado]
+
+class HistorialLineaBase(db.Model):
+
+    __tablename__ = 'historialLB'
+
+    id = Column(db.Integer, primary_key=True)
+    lineaBase_id = Column(db.Integer, nullable=False)
+    descripcion = Column(db.String(200))
+    fecha = Column(db.DateTime, default=get_current_time)

@@ -40,7 +40,7 @@ class SignupForm(Form):
 
     def validate_email(self, field):
         if User.query.filter_by(email=field.data).first() is not None:
-            raise ValidationError(u'Email ya está en uso')
+            raise ValidationError(u'Email ya esta en uso')
 
 
 class RecoverPasswordForm(Form):

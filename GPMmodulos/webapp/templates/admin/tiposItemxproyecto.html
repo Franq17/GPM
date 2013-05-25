@@ -11,7 +11,7 @@
 ]%}
 
 {% block body %}
-	<h2>Tipos de Item del Proyecto: {{ proyecto.nombre }}</h2>
+	<h2>Tipos de Item del Proyecto: <font color="royalblue">{{ proyecto.nombre }}</font></h2>
 	<div class="row-fluid">    
 	    <div class="span2">
 	    <a class="btn btn-primary" href="{{ url_for('admin.crearTipoItem', proyecto_id=proyecto.id)}}"><strong>Crear Tipo de Item</strong></a><br><br></div>

@@ -46,45 +46,89 @@
                 <div class="nav-collapse collapse pull-left">
 						<ul class="nav">
 							<li class="dropdown">
-							{% if current_user.is_admin() %}
-                                <a href="#" class="dropdown-toggle" data-toggle="dropdown">Administracion <b class="caret"></b></a>
+							    <a href="#" class="dropdown-toggle" data-toggle="dropdown">Administracion <b class="caret"></b></a>
                                 <ul class="dropdown-menu">
+                                	<!--  {% if current_user.comprobarPermiso('verUsuarios')  %}
+                                    
+                                    {% else %}
+                                    <li><a href="#" onClick="alert('No cuenta con permisos para administar Usuarios.')">Usuarios</a></li>
+                                    {% endif %}-->
+                                    
                                     <li><a href="{{ url_for('admin.users') }}">Usuarios</a></li>
+                                    
                                     <li class="divider"></li>
-                                    <li><a href="{{ url_for('admin.roles') }}">Roles</a></li>
+                                    {% if current_user.comprobarPermiso('verRoles')  %}
+                                   	<li><a href="{{ url_for('admin.roles') }}">Roles</a></li>
+                                    {% else %}
+                                    <li><a href="#" onClick="alert('No cuenta con permisos para administrar Roles.')">Roles</a></li>
+                                    {% endif %}
+                                    
                                     <li class="divider"></li>
+                                    {% if current_user.comprobarPermiso('verPermisos')  %}
                                     <li><a href="{{ url_for('admin.permisos') }}">Permisos</a></li>
+                                    {% else %}
+                                    <li><a href="#" onClick="alert('No cuenta con permisos para administar Permisos.')">Permisos</a></li>
+                                    {% endif %}
+                                    
                                     <li class="divider"></li>
+                                    {% if current_user.comprobarPermiso('verProyectos')  %}
                                     <li><a href="{{ url_for('admin.proyectos') }}">Proyectos</a></li>
+                                    {% else %}
+                                    <li><a href="#" onClick="alert('No cuenta con permisos para administar Proyectos.')">Proyectos</a></li>
+                                    {% endif %}
                                     <li class="divider"></li>
-                                    <li><a href="{{ url_for('admin.comites') }}">Comites</a></li>                                         
+                                    
+                                    {% if current_user.comprobarPermiso('verComites')  %}                                    
+                                    <li><a href="{{ url_for('admin.comites') }}">Comites</a></li>
+                                    {% else %}
+                                    <li><a href="#" onClick="alert('No cuenta con permisos para administar Comites.')">Comites</a></li>
+                                    {% endif %}                                         
                                 </ul>
                             </li>
-                            {% endif %}
-                            <li><a href="#">Proyectos</a></li>
-                            <li><a href='{{ url_for('frontend.about') }}'>About</a></li>                            
+                        </ul>   
+                        <ul class="nav">
+                        	<li class="dropdown">
+                            	<a href="#" class="dropdown-toggle" data-toggle="dropdown">Mis Proyectos <b class="caret"></b></a>
+                            	<ul class="dropdown-menu">
+                            	
+                            	{% if current_user.getProyectos()|default('',false) %}
+                            		{% for proyecto in current_user.getProyectos() %}
+                                	<li><a href="{{ url_for('admin.usuariosxproyecto', proyecto_id=proyecto.id) }}">{{ proyecto.nombre}}</a></li>
+                                	{% endfor%}
+                                {% else %}
+                                    <li><a href="#">< Ninguno ></a></li>
+                                {% endif%}    	
+                                </ul>    
+                            </li>	
+                         	<li><a href='{{ url_for('frontend.about') }}'>Acerca de GPM</a></li>
+                         </ul> 
+                         
+                                                     
                             
-                        </ul>
+                        
+                        
                 </div>
-                
-                <div class="nav-collapse collapse pull-right">
+            <!--<div class="nav-collapse collapse pull-right">
                     <ul class="nav">
 						<img src="{{ url_for('user.avatar', avatar_filename=current_user.avatar) }}" style="border:1px solid black" width="40" alt="" />
+						<li>
+							<td><a data-toggle="modal" href="#{{current_user.name}}" class="text"><span class="badge badge-info">6</span> Solicitud de Cambio</a></td>
+						</li>
                         <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown">{{ current_user.name }} <b class="caret"></b></a>
                         <ul class="dropdown-menu">                            
                             <li class="divider"></li>
                             <li><a href="{{ url_for('settings.perfil') }}">Configuraciones</a></li>
                             <li class="divider"></li>
-                            <li><a href="{{ url_for('frontend.logout') }}">Cerrar Sesion</a></li>
+                            <li><a href="{{ url_for('frontend.logout') }}">Cerrar Sesión</a></li>
                         </ul>
                         </li>
                     </ul>
-                </div>
+                </div>-->
                 {% else %}
                 <div class="nav-collapse collapse pull-right">
                     <ul class="nav">
-                        <li><span><a class="btn btn-primary" href="{{ url_for('frontend.login') }}"><strong>Iniciar Sesion</strong></a></span></li>
+                        <li><span><a class="btn btn-primary" href="{{ url_for('frontend.login') }}"><strong>Iniciar Sesión</strong></a></span></li>
                         
                     </ul>
                 </div>
@@ -101,7 +145,7 @@
     <div class="container">
 
         {% block top %}
-            <ul class="nav nav-pills">
+            <ul class="nav nav-tabs">
                 {% for tab, link in tabs %}
                 <li class="{% if active == tab %}active{% endif %}">
                     <a href="{{ link }}">{{ tab|capitalize }}</a>

@@ -128,6 +128,26 @@ def permisos():
     permisos = Permiso.query.all()
     return render_template('admin/permisos.html', permisos=permisos)
 
+@admin.route('/permisosxrol/Rol<rol_id>/Permiso<permiso_id>', methods=['GET', 'POST'])
+@login_required
+#@desasignarPermiso_required
+def desasignarPermiso(rol_id, permiso_id):
+    """Funcion que permite desasignar un permiso"""    
+    permisoDesasignar = Permiso.query.filter_by(id=permiso_id).first_or_404()
+    rol = Rol.query.filter_by(id=rol_id).first_or_404()
+    form = PermisoxRolForm(obj=user, next=request.args.get('next'))
+    permisosAsignados = rol.permisoPorRol
+    
+    for item in permisosAsignados:
+        if item == permisoDesasignar:
+            rol.permisoPorRol.remove(item)
+            db.session.add(rol)
+            db.session.commit()
+            flash('Permiso desasignado.', 'success')
+            return redirect(url_for('admin.permisosxrol', rol_id=rol.id))
+     
+    return render_template('admin/permisosxrol.html', rol=rol, form=form, permisos=permisosAsignados)
+
 #ROL
 
 @admin.route('/roles')
@@ -212,6 +232,26 @@ def borrarRol(rol_id):
         return redirect(url_for('admin.roles'))
 
     return render_template('admin/borrarRol.html', rol=rol, form=form)
+
+@admin.route('/rolesxusuario/User<user_id>/Rol<rol_id>', methods=['GET', 'POST'])
+@login_required
+#@desasignarRol_required
+def desasignarRol(user_id, rol_id):
+    """Funcion que permite desasignar un rol"""
+    rolDesasignar = Rol.query.filter_by(id=rol_id).first_or_404()
+    user = User.query.filter_by(id=user_id).first_or_404()
+    form = RolxUsuarioForm(obj=user, next=request.args.get('next'))
+    rolesAsignados = user.rolPorUsuario
+    
+    for item in rolesAsignados:
+        if item == rolDesasignar:
+            user.rolPorUsuario.remove(item)
+            db.session.add(user)
+            db.session.commit()
+            flash('Rol desasignado.', 'success')
+            return redirect(url_for('admin.rolesxusuario', user_id=user.id))
+     
+    return render_template('admin/rolesxusuario.html', user=user, form=form, roles=rolesAsignados)
 
 @admin.route('/searchRol')
 @verRoles_required
@@ -320,6 +360,30 @@ def borrarProyecto(proyecto_id):
             flash('Proyecto eliminado.', 'success')
             return redirect(url_for('admin.proyectos'))
         return render_template('admin/borrarProyecto.html', proyecto=proyecto, form=form)
+ 
+@admin.route('/usuarioxproyecto/Proyecto<proyecto_id>/Usuario<user_id>', methods=['GET', 'POST'])
+@login_required
+#@desasignarUsuario_required
+def desasignarUsuario(proyecto_id, user_id):
+    """Funcion que permite desasignar a un usuario de un proyecto"""
+    usuarioDesasignar = User.query.filter_by(id=user_id).first_or_404()
+    proyecto = Proyecto.query.filter_by(id=proyecto_id).first_or_404()
+    form = UsuarioxProyectoForm(obj=user, next=request.args.get('next'))
+    usuariosAsignados = proyecto.usuarioPorProyecto
+      
+    for item in usuariosAsignados:
+        if item == usuarioDesasignar:
+            proyecto.usuarioPorProyecto.remove(item)
+            if item in proyecto.comite:
+                desasignarMiembro(proyecto.comite.id, usuarioDesasignar.id)
+            
+            db.session.add(proyecto)
+            db.session.commit()
+            flash('Usuario desasignado.', 'success')
+            return redirect(url_for('admin.usuariosxproyecto', proyecto_id=proyecto.id))
+       
+    return render_template('admin/usuariosxproyecto.html', proyecto=proyecto, form=form, users=usuariosAsignados)
+
 
 #COMITE
 
@@ -410,6 +474,26 @@ def borrarComite(comite_id):
         return redirect(url_for('admin.comites'))
 
     return render_template('admin/borrarComite.html', comite=comite, form=form)
+
+@admin.route('/usuariosxcomite/Comite<comite_id>/Usuario<user_id>', methods=['GET', 'POST'])
+@login_required
+#@desasignarMiembro_required
+def desasignarMiembro(comite_id, user_id):
+    """Funcion que permite desasignar a un usuario de un comite"""
+    miembroDesasignar = User.query.filter_by(id=user_id).first_or_404()
+    comite = Comite.query.filter_by(id=comite_id).first_or_404()
+    form = UserxComiteForm(obj=user, next=request.args.get('next'))
+    miembrosAsignados = comite.usuarioPorComite
+    
+    for item in miembrosAsignados:
+        if item == miembroDesasignar:
+            comite.usuarioPorComite.remove(item)
+            db.session.add(comite)
+            db.session.commit()
+            flash('Miembro desasignado.', 'success')
+            return redirect(url_for('admin.usuariosxcomite', comite_id=comite.id))
+    
+    return render_template('admin/usuariosxcomite.html', comite=comite, form=form, users=miembrosAsignados)
 
 #FASES
 
@@ -576,8 +660,8 @@ def usuariosxcomite(comite_id):
         db.session.add(comite)
         db.session.commit()
        
-        flash('Comite modificado.', 'success')
-        return redirect(url_for('admin.comites'))
+        flash('Miembro asignado.', 'success')
+        return redirect(url_for('admin.usuariosxcomite', comite_id=comite.id))
     
     return render_template('admin/usuariosxcomite.html', comite=comite, form=form, users=usuariosAsignados)  
 
@@ -606,9 +690,13 @@ def permisosxrol(rol_id):
             rol.permisoPorRol.append(permiso)
         db.session.add(rol)
         db.session.commit()
-       
-        flash('Rol modificado.', 'success')
-        return redirect(url_for('admin.roles'))
+        
+        if len(PermisosAsignar)==1:
+            flash('Permiso asignado.', 'success')
+        else:
+            flash('Permisos asignados.', 'success')
+        
+        return redirect(url_for('admin.permisosxrol', rol_id=rol.id))
        
     return render_template('admin/permisosxrol.html', rol=rol, form=form, permisos=permisosAsignados)
 
@@ -732,10 +820,10 @@ def usuariosxproyecto(proyecto_id):
         db.session.add(proyecto)
         db.session.commit()
        
-        flash('Proyecto modificado.', 'success')
-        return redirect(url_for('admin.proyectos'))
+        flash('Usuario agregado al proyecto.', 'success')
+        return redirect(url_for('admin.usuariosxproyecto', proyecto_id=proyecto.id))
        
-    return render_template('admin/proyectoMiembro.html', proyecto=proyecto, form=form, users=listaUsuariosActuales, active='Miembros')
+    return render_template('admin/usuarioxproyecto.html', proyecto=proyecto, form=form, users=listaUsuariosActuales, active='Miembros')
 
 @admin.route('/rolesxproyecto/<proyecto_id>', methods=['GET', 'POST'])
 @login_required

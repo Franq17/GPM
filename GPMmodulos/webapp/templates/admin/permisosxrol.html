@@ -4,14 +4,8 @@
 
 {% block body %}
 <div class="container">
-   
-    <h2>Asignar Permisos al Rol</h2>
-    <h3><p class="text-success">{{ rol.nombre }}</p></h3>
-    
-    <div>
+    <h2>Asignar Permisos al Rol: <font color="royalblue">{{ rol.nombre }}</font></h2>
         {{ render_form(url_for('admin.permisosxrol', rol_id=rol.id), form)}}
-    </div>
-   
     <h2>Permisos asignados</h2>
     <table class='table table-bordered table-hover table-condensed'>
         <thead>
@@ -22,6 +16,20 @@
         {% for permiso in permisos%}
         <tr>
             <td>{{ permiso.nombre }}</td>
+			<td><a data-toggle="modal" href="#{{permiso.id}}" class="text">Quitar</a></td>
+			<div id="{{permiso.id}}" class="modal hide fade in" style="display: none;">
+				<div class="modal-header">
+					<a data-dismiss="modal" class="close">×</a>
+					<h4>Desasignar Permiso: <font color="royalblue">{{ permiso.nombre }}</font></h4>
+				</div>
+				<div class="modal-body">
+					<p>Favor, confirme su respuesta</p>
+				</div>
+				<div class="modal-footer">
+					<a href="#" data-dismiss="modal" class="btn">Cancelar</a>
+					<a href="{{ url_for('admin.desasignarPermiso', rol_id=rol.id, permiso_id=permiso.id)}}" class="btn btn-primary">Desasignar</a>
+				</div>
+			</div>
         </tr>
         {% endfor %}
     </table>

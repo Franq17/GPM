@@ -8,8 +8,7 @@ from ..decorators import *
 
 
 
-
-#from ..modelos import User, Rol, Permiso, Proyecto, Comite, Fase, HistorialItem
+from ..modelos import User, Rol, Permiso, Proyecto, Comite, Fase, HistorialItem
 
 from ..modelos import *
 from .forms_adm import *

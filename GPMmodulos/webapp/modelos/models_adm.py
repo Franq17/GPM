@@ -408,7 +408,6 @@ class TipoItem(db.Model):
         q = reduce(db.and_, criteria)
         return cls.query.filter(q)
 
-
 class HistorialItem(db.Model):
 
     __tablename__ = 'historialItem'
@@ -417,8 +416,7 @@ class HistorialItem(db.Model):
     usuarioId= Column(db.Integer, nullable=False)
     descripcion = Column(db.String)
     fecha= Column(db.DateTime, default=get_current_time)
-
-    
+   
 
 #class Atributo(db.Model):
 #    

@@ -68,6 +68,7 @@ rolPorUsuario = db.Table('rolPorUsuario',
     Column('user_id', db.Integer, db.ForeignKey('users.id'))
 )
 
+
 class Rol(db.Model):
 
     __tablename__ = 'rol'
@@ -198,6 +199,8 @@ class User(db.Model, UserMixin):
     
     role_id = Column(db.SmallInteger, default=USER)
 
+    
+
     def comprobarPermiso (self, key):
         roles = self.rolPorUsuario
         for item in roles: 
@@ -206,8 +209,22 @@ class User(db.Model, UserMixin):
             for permiso in permisos:
                 if permiso.nombre==key:
                     return True          
-                
         return False
+    
+    
+    def getProyectos (self):
+        todosProyectos = Proyecto.query.all()
+        
+        misProyectos=[]
+        for proyecto in todosProyectos:
+            #misProyectos.append(proyecto.nombre)
+            unProyecto=Proyecto.query.filter_by(id=proyecto.id).first_or_404()
+            miembros=unProyecto.usuarioPorProyecto
+            for miembro in miembros:
+                if self.id==miembro.id:
+                    misProyectos.append(unProyecto)
+        return misProyectos
+        
     
     def getRole(self):
         return USER_ROLE[self.role_id]
@@ -390,7 +407,17 @@ class TipoItem(db.Model):
             )
         q = reduce(db.and_, criteria)
         return cls.query.filter(q)
-    
+
+class HistorialItem(db.Model):
+
+    __tablename__ = 'historialItem'
+
+    id = Column(db.Integer, primary_key=True)
+    usuarioId= Column(db.Integer, nullable=False)
+    descripcion = Column(db.String)
+    fecha= Column(db.DateTime, default=get_current_time)
+   
+
 #class Atributo(db.Model):
 #    
 #    __tablename__ = 'atributo'

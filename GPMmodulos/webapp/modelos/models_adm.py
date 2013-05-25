@@ -416,7 +416,7 @@ class HistorialItem(db.Model):
     usuarioId= Column(db.Integer, nullable=False)
     descripcion = Column(db.String)
     fecha= Column(db.DateTime, default=get_current_time)
-   
+    
 
 #class Atributo(db.Model):
 #    

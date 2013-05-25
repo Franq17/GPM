@@ -7,9 +7,7 @@ from ..extensions import db
 from ..decorators import *
 
 
-
-from ..modelos import User, Rol, Permiso, Proyecto, Comite, Fase, HistorialItem
-
+#from ..modelos import User, Rol, Permiso, Proyecto, Comite, Fase, HistorialItem
 from ..modelos import *
 from .forms_adm import *
 #from .forms_adm import UserForm, DeleteUserForm, CreateUserForm
@@ -758,7 +756,6 @@ def tiposItemxproyecto(proyecto_id):
     tiposItemExistentes = proyecto.tiposItem
     return render_template('admin/tiposItemxproyecto.html', proyecto=proyecto, tiposItem=tiposItemExistentes, active='Tipos de Item')
 
-
 @admin.route('/historialxitem/<user_id>', methods=['GET', 'POST'])
 @login_required
 def historialxitem(user_id):
@@ -774,7 +771,6 @@ def historialxitem(user_id):
     
     return render_template('admin/historialxitem.html', usuario=usuario, historiales=historiales)
     #return render_template('admin/permisos.html', permisos=permisos)
-
 
 
 

@@ -14,7 +14,35 @@
 	<h2>Tipos de Item del Proyecto: <font color="royalblue">{{ proyecto.nombre }}</font></h2>
 	<div class="row-fluid">    
 	    <div class="span2">
-	    <a class="btn btn-primary" href="{{ url_for('admin.crearTipoItem', proyecto_id=proyecto.id)}}"><strong>Crear Tipo de Item</strong></a><br><br></div>
+		    <a class="btn btn-primary" href="{{ url_for('admin.crearTipoItem', proyecto_id=proyecto.id)}}"><strong>Crear Tipo de Item</strong></a><br><br>
+		</div>
+		
+		<div class="span3">
+		    <a class="btn btn-primary" data-toggle="modal" href="#id"><strong>Importar Tipo de Item</strong></a><br><br>
+		</div>
+		
+		
+			<div id="id" class="modal hide fade in" style="display: none;">
+				<div class="modal-header">
+					<a data-dismiss="modal" class="close">×</a>
+					<h4>Importar Tipo de Item </h4>
+				</div>
+				<div class="modal-body">
+					<p>Seleccione un Item a importar</p>
+					    <ul class="nav nav-list">
+					    {% for proyect in proyecto.getTodosProyectos() %}
+    						<li class="nav-header">Items de: {{proyect.nombre}}</li>
+    						{% for tipoItem in proyect.tiposItem %}
+    							<li><a href="{{ url_for('admin.importarTipoItem', proyecto_id=proyecto.id, tipoItem_id=tipoItem.id)}}">{{ tipoItem.nombre }}</a></li>
+    						{% endfor %}
+    					{% endfor %}	
+    				    </ul>
+				</div>
+				<div class="modal-footer">
+					<a href="#" data-dismiss="modal" class="btn">Cancelar</a>
+				</div>
+			</div>
+		
     	<form class="navbar-search pull-left" action="{{ url_for('admin.buscarTipoItem') }}">
 			<input type='text' class="search-query" name='keywords' value='{{ keywords|default('') }}' placeholder='Buscar' />
 		</form>

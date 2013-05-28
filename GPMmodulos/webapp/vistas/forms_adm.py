@@ -232,4 +232,3 @@ class LineaBaseForm(Form):
     descripcion = TextAreaField(u'Descripcion', [Optional(), Length(max=1024)])
     submit = SubmitField(u'Editar')
 
-    

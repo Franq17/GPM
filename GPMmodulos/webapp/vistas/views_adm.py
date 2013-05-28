@@ -611,6 +611,27 @@ def tipoItem(proyecto_id, tipoItem_id):
 
     return render_template('admin/tipoItem.html', tipoItem=tipoItem, proyecto=proyecto, form=form)
 
+@admin.route('/<proyecto_id>/<tipoItem_id>', methods=['GET', 'POST'])
+@login_required
+def importarTipoItem(proyecto_id, tipoItem_id):
+    """Funcion que permite editar un comite"""
+    proyecto = Proyecto.query.filter_by(id = proyecto_id).first_or_404()
+    tipoItem = TipoItem.query.filter_by(id=tipoItem_id).first_or_404()
+    
+    nuevotipoItem = TipoItem()
+    nuevotipoItem.nombre = tipoItem.nombre
+    nuevotipoItem.descripcion = tipoItem.descripcion
+    nuevotipoItem.atributo = tipoItem.atributoPorTipoItem
+    nuevotipoItem.proyecto_id = proyecto.id
+        
+    db.session.add(nuevotipoItem)
+    db.session.commit()
+
+    flash('Tipo de Item importado correctamente..', 'success')
+    return redirect(url_for('admin.tiposItemxproyecto',proyecto_id=proyecto.id))
+    
+
+
 
 @admin.route('/buscarTipoItem')
 @login_required
@@ -954,6 +975,7 @@ def item(proyecto_id, item_id):
 
     return render_template('admin/item.html', item=item, proyecto=proyecto, form=form)
 
+
 @admin.route('/lineaBasexproyecto/<proyecto_id>', methods=['GET', 'POST'])
 @login_required
 def lineaBasexproyecto(proyecto_id):
@@ -1035,3 +1057,33 @@ def lineaBase(proyecto_id, lineabase_id):
         return redirect(url_for('admin.lineaBasexproyecto', proyecto_id=proyecto.id, lineabase_id=lineaBase.id))
 
     return render_template('cambios/lineaBase.html', proyecto=proyecto, lineabase=lineaBase, form=form)
+
+@admin.route('/IT<item_id>/PR<proyecto_id>', methods=['GET', 'POST'])
+@login_required
+def crearSolicitud(proyecto_id, item_id):
+    proyecto = Proyecto.query.filter_by(id=proyecto_id).first_or_404()
+    comite = proyecto.comite
+    item = Item.query.filter_by(id=item_id).first_or_404()
+    usuariosComite = comite.usuarioPorComite
+    itemsExistentes = proyecto.items
+    
+    solicitud = Solicitud()
+    solicitud.comite_id = comite.id
+    solicitud.item_id = item_id
+    db.session.add(solicitud)
+    db.session.commit()
+    
+    for usuario in usuariosComite:
+        usuario.solicitudPorUsuario.append(solicitud)
+        print '#################usuario'
+        print usuario.nombre
+        
+        db.session.add(usuario)
+        db.session.commit()
+    
+    flash('Solicitud enviada cor    rectamente.', 'success')
+   
+    return render_template('admin/itemsxproyecto.html', proyecto=proyecto, items=itemsExistentes, active='Items')
+    
+    
+

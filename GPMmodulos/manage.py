@@ -65,9 +65,16 @@ def initdb():
     
     #*******************Permisos de Fases*****************************
     permiso23 = Permiso(nombre=u'crearFases',descripcion=u'permite crear Fases')
-    permiso24 = Permiso(nombre=u'modificarFases',descripcion=u'permite crear Fases')
-    permiso25 = Permiso(nombre=u'eliminarFases',descripcion=u'permite crear Fases')
-    permiso26 = Permiso(nombre=u'verFases',descripcion=u'permite crear Fases')
+    permiso24 = Permiso(nombre=u'modificarFases',descripcion=u'permite modificar Fases')
+    permiso25 = Permiso(nombre=u'eliminarFases',descripcion=u'permite eliminar Fases')
+    permiso26 = Permiso(nombre=u'verFases',descripcion=u'permite ver Fases')
+    
+    #*******************Permisos de Lineas Bases*****************************
+    permiso27 = Permiso(nombre=u'crearLineaBase',descripcion=u'permite crear Linea Base')
+    permiso28 = Permiso(nombre=u'modificarLineaBase',descripcion=u'permite modificar Linea Base')
+    permiso29 = Permiso(nombre=u'eliminarLineaBase',descripcion=u'permite eliminar Linea Base')
+    permiso30 = Permiso(nombre=u'verLineaBase',descripcion=u'permite ver Linea Base')
+
     
     rol_admin = Rol(nombre=u'administrador',
                     descripcion=u'rol del administrador', 
@@ -76,7 +83,7 @@ def initdb():
                                    permiso11,permiso12,permiso13,permiso14,permiso15,
                                    permiso16,permiso17,permiso18,permiso19,permiso20,
                                    permiso21,permiso22,permiso23,permiso24,permiso25,
-                                   permiso26])
+                                   permiso26,permiso27,permiso28,permiso29,permiso30])
     
     rol_admin_usuarios = Rol(nombre=u'administrador Usuarios',
                     descripcion=u'rol que solo administra usuarios', 

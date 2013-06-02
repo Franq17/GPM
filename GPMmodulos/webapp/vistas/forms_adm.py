@@ -4,7 +4,7 @@ from flask_wtf import Form, ValidationError
 from flask_wtf import HiddenField, SubmitField, RadioField, DateField
 from flask_wtf import AnyOf
 
-from ..modelos import USER_ROLE, USER_STATUS, PROYECTO_ESTADOS, COMITE_ESTADOS
+from ..modelos import USER_ROLE, USER_STATUS, PROYECTO_ESTADOS, COMITE_ESTADOS,LINEABASE_ESTADOS
 
 from flask_wtf.html5 import EmailField
 from flask_wtf import Required, Optional, Length, EqualTo, Email
@@ -216,4 +216,19 @@ class ItemForm(Form):
     nombre = nombre = TextField(u'Nombre del Item', [Required(), Length(REALNAME_LEN_MIN, REALNAME_LEN_MAX)])
     descripcion = TextAreaField(u'Descripcion', [Optional(), Length(max=1024)])
     submit = SubmitField(u'Editar')
-    
+
+class CrearLineaBaseForm(Form):
+    next = HiddenField()
+    numero_lb = IntegerField(u'Numero de Linea Base',[Required()])
+    fase_id = SelectField(u'FaseID', coerce=int,)
+    descripcion = TextAreaField(u'Descripcion', [Optional(), Length(max=1024)])
+    submit = SubmitField(u'Crear')
+
+class LineaBaseForm(Form):
+    next = HiddenField()
+    numero_lb = IntegerField(u'Numero de Linea Base',[Required()])
+    estado = RadioField(u"Estados", [AnyOf([str(val) for val in LINEABASE_ESTADOS.keys()])],
+            choices=[(str(val), label) for val, label in LINEABASE_ESTADOS.items()])
+    descripcion = TextAreaField(u'Descripcion', [Optional(), Length(max=1024)])
+    submit = SubmitField(u'Editar')
+

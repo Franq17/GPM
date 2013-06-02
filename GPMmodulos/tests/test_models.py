@@ -3,7 +3,7 @@
 import unittest
 #from webapp.extensions import db
 from webapp.modelos.models_adm import User, Permiso, Rol, Proyecto, Comite, Fase
-from webapp.modelos.models_adm import TipoItem, Item
+from webapp.modelos.models_adm import TipoItem, Item, Atributo, LineaBase
 
 class TestUser (unittest.TestCase):
     """Unit test case for the ``User`` model."""
@@ -221,6 +221,49 @@ class TestItem(unittest.TestCase):
         self.assertEqual(instance.nombre, 'ItemTest')
         self.assertEqual(instance.descripcion, 'Description')
         print 'Prueba de crear Item: Ok'
+
+class TestAtributo(unittest.TestCase):
+    """Unit test case for the ``Atributo`` model."""
+    
+    def setUp(self):
+        unittest.TestCase.setUp(self)
+        self.atributo = Atributo()
+     
+    def tearDown(self):
+        unittest.TestCase.tearDown(self)
+        del self.atributo
+        
+    def _makeOne(self, nombre= 'AtributoTest', descripcion= 'Description'):
+        atributo = Atributo(nombre= nombre, descripcion= descripcion)
+        return atributo
+
+    def test_constructor(self):
+        instance = self._makeOne()
+        self.assertEqual(instance.nombre, 'AtributoTest')
+        #self.assertEqual(intance.tipo, string)
+        self.assertEqual(instance.descripcion, 'Description')
+        print 'Prueba de crear Atributo: Ok'
+
+class TestLineaBase(unittest.TestCase):
+    """Unit test case for the ``Linea Base`` model."""
+    
+    def setUp(self):
+        unittest.TestCase.setUp(self)
+        self.lineaBase = LineaBase()
+     
+    def tearDown(self):
+        unittest.TestCase.tearDown(self)
+        del self.lineaBase
+        
+    def _makeOne(self, numero= 3, descripcion= 'Description'):
+        lineaBase = LineaBase(numero_lb= numero, descripcion= descripcion)
+        return lineaBase
+
+    def test_constructor(self):
+        instance = self._makeOne()
+        self.assertEqual(instance.numero_lb, 3)
+        self.assertEqual(instance.descripcion, 'Description')
+        print 'Prueba de crear Linea Base: Ok'
 
 if __name__ == "__main__":
     unittest.main() # run all tests

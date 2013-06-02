@@ -1,0 +1,49 @@
+{% from "macros/_form.html" import render_form %}
+{% extends "layouts/base.html" %}
+{% set page_header = _(active|capitalize) %}
+{% set page_title = 'Proyecto_Miembro' %}
+
+{% set tabs = [
+    ("Fases",url_for('admin.fasesxproyecto', proyecto_id=proyecto.id)), 
+    ("Roles",url_for('admin.rolesxproyecto', proyecto_id=proyecto.id)),
+    ("Tipos de Item",url_for('admin.tiposItemxproyecto', proyecto_id=proyecto.id)),
+    ("Miembros",url_for('admin.usuariosxproyecto', proyecto_id=proyecto.id))
+]%}
+
+{% block body %}
+	<h2>Usuarios del Proyecto: <font color="royalblue">{{ proyecto.nombre }}</font></h2>
+	{{ render_form(url_for('admin.usuariosxproyecto', proyecto_id=proyecto.id), form)}}
+	<table class='table table-bordered table-hover table-condensed'>
+    	<thead>
+        	<tr>
+            	<th>Nombre</th>
+                <th>Apellido</th>
+                <th>Estado</th>
+                <th>Fecha de Ingreso</th>
+                <th></th>
+            </tr>
+        </thead>
+        {% for user in users %}
+        <tr>
+            <td>{{ user.nombre }}</td>
+            <td>{{ user.apellido }}</td>
+            <td>{{ user.getStatus() }}</td>
+            <td>{{ user.created_time|format_date }}</td>
+            <td><a><i class="icon-eye-open"></i>Roles</a> | <a data-toggle="modal" href="#{{user.id}}"><i class="icon-remove"></i>Eliminar</a></td>
+			<div id="{{user.id}}" class="modal hide fade in" style="display: none;">
+				<div class="modal-header">
+					<a data-dismiss="modal" class="close">×</a>
+					<h4>Desasignar usuario: <font color="royalblue">{{ user.nombre }}</font></h4>
+				</div>
+				<div class="modal-body">
+					<p>Favor, confirme su respuesta</p>
+				</div>
+				<div class="modal-footer">
+					<a href="#" data-dismiss="modal" class="btn">Cancelar</a>
+					<a href="{{ url_for('admin.desasignarUsuario', proyecto_id=proyecto.id, user_id=user.id)}}" class="btn btn-primary">Desasignar</a>
+				</div>
+			</div>
+        </tr>
+        {% endfor %}
+    </table>
+{% endblock %}

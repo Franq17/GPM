@@ -1,0 +1,47 @@
+{% from "macros/_form.html" import render_form %}
+{% extends "layouts/base.html" %}
+{% set page_header = _(active|capitalize) %}
+{% set page_title = 'Linea Base' %}
+
+{% if current_user.comprobarPermiso('verLineaBase')  %}
+	{% set tabs = [
+		("Fases",url_for('admin.fasesxproyecto', proyecto_id=proyecto.id)), 
+		("Items",url_for('admin.itemsxproyecto', proyecto_id=proyecto.id)),
+		("Lineas Base",url_for('admin.lineaBasexproyecto', proyecto_id=proyecto.id))
+	]%}
+{% else %}
+	{% set tabs = [
+		("Fases",url_for('admin.fasesxproyecto', proyecto_id=proyecto.id)), 
+		("Items",url_for('admin.itemsxproyecto', proyecto_id=proyecto.id))
+	]%}
+{% endif%}
+
+{% block body %}
+	<h2>Lineas Base del Proyecto: <font color="royalblue">{{ proyecto.nombre }}</font></h2>
+	<div class="row-fluid">    
+	    <div class="span2">
+	    <a class="btn btn-primary" href="{{ url_for('admin.crearLineaBase', proyecto_id=proyecto.id)}}"><strong>Crear Linea Base</strong></a><br><br></div>
+    </div>
+	<table class='table table-bordered table-hover table-condensed'>
+        <thead>
+            <tr>
+                <th>Fase</th>
+                <th>Numero de LB</th>
+                <th>Estado</th>
+                <th>Descripción</th>
+                <th>Historiales</th>
+                <th></th>
+            </tr>
+        </thead>
+        {% for lineabase in lineasBases %}
+        <tr>
+            <td>{{ lineabase.fase_id }}</td>
+            <td>{{ lineabase.numero_lb }}</td>
+            <td>{{ lineabase.getStatus() }}</td>
+            <td>{{ lineabase.descripcion}}</td>
+            <td><a href="{{ url_for('admin.historialxlineabase', lineabase_id=lineabase.id)}}"><i class="icon-calendar"></i> Ver Historial</a></td>
+            <td><a href="{{ url_for('admin.lineaBase', proyecto_id=proyecto.id, lineabase_id=lineabase.id)}}"><i class="icon-pencil"></i>Editar</a> | <a href="#"><i class="icon-remove"></i>Eliminar</td>
+        </tr>
+        {% endfor %}
+    </table>
+{% endblock %}

@@ -1,0 +1,11 @@
+{% from "macros/_form.html" import render_form %}
+
+{% extends "layouts/base.html" %}
+{% set page_title = 'Crear Item' %}
+
+{% block body %}
+<div class="container">
+    <h2>Crear Item en el proyecto  {{proyecto.nombre}}</h2>
+    {{ render_form(url_for('admin.crearItem', proyecto_id=proyecto.id), form)}}
+</div>
+{% endblock %}

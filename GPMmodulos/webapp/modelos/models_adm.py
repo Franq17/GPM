@@ -11,7 +11,7 @@ from flask_login import UserMixin
 from ..extensions import db
 from ..utils import get_current_time
 from .constants import USER, USER_ROLE, ADMIN, INACTIVE, USER_STATUS,NO_INICIADO, PROYECTO_ESTADOS, LINEABASE_ESTADOS
-from .constants import INICIAL
+from .constants import INICIAL, FASE_ESTADOS
 
 class DenormalizedText(Mutable, types.TypeDecorator):
     """
@@ -127,6 +127,11 @@ class Fase(db.Model):
     # One-to-many relationship between fases and lineas base
     lineaBase = db.relationship('LineaBase', backref='fase',lazy='dynamic')
     
+    def getStatus(self):
+        return FASE_ESTADOS[self.estado]
+    
+    def setStatus(self, estado):
+        self.estado = estado
     
 class Comite(db.Model):
     
@@ -274,6 +279,9 @@ class User(db.Model, UserMixin):
 
     def getStatus(self):
         return USER_STATUS[self.status_id]
+    
+    def setStatus(self, estado):
+        self.estado = estado
 
     # ================================================================
     # One-to-one (uselist=False) relationship between users and user_details.
@@ -381,6 +389,9 @@ class Proyecto(db.Model):
 
     def getStatus(self):
         return PROYECTO_ESTADOS[self.estado_id]
+    
+    def setStatus(self, estado):
+        self.estado = estado
 
     # ================================================================
     # Follow / Following
@@ -521,6 +532,9 @@ class LineaBase(db.Model):
     
     def getStatus(self):
         return LINEABASE_ESTADOS[self.estado]
+    
+    def setStatus(self, estado):
+        self.estado = estado
 
 class HistorialLineaBase(db.Model):
 

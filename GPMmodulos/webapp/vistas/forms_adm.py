@@ -4,7 +4,7 @@ from flask_wtf import Form, ValidationError
 from flask_wtf import HiddenField, SubmitField, RadioField, DateField
 from flask_wtf import AnyOf
 
-from ..modelos import USER_ROLE, USER_STATUS, PROYECTO_ESTADOS, COMITE_ESTADOS,LINEABASE_ESTADOS
+from ..modelos import USER_ROLE, USER_STATUS, PROYECTO_ESTADOS, COMITE_ESTADOS, LINEABASE_ESTADOS, FASE_ESTADOS
 
 from flask_wtf.html5 import EmailField
 from flask_wtf import Required, Optional, Length, EqualTo, Email
@@ -144,6 +144,8 @@ class CrearFaseForm(Form):
     
 class FaseForm(Form):
     next = HiddenField()
+    estado = RadioField(u"Estados", [AnyOf([str(val) for val in FASE_ESTADOS.keys()])],
+            choices=[(str(val), label) for val, label in FASE_ESTADOS.items()])
     descripcion = TextAreaField(u'Descripcion', [Optional(), Length(max=1024)])
     submit = SubmitField(u'Editar')
      

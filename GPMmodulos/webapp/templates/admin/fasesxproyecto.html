@@ -21,6 +21,7 @@
         <thead>
             <tr>
                 <th>Nombre</th>
+				<th>Estado</th>
                 <th>Descripcion</th>
                 <th></th>
             </tr>
@@ -28,6 +29,7 @@
         {% for fase in fases %}
         <tr>
             <td>{{ fase.nombre }}</td>
+			<td>{{ fase.getStatus() }}</td>
             <td>{{ fase.descripcion }}</td>
             <td><a href="{{ url_for('admin.fase', fase_id=fase.id, proyecto_id=proyecto.id) }}"><i class="icon-pencil"></i>Editar</a></td>
         </tr>

@@ -54,11 +54,13 @@ FASE_ESTADOS = {
 # LineaBase_estados
 ABIERTA=0
 CERRADA=1
+PARA_REVISION=2
 COMPROMETIDA=3
 
 LINEABASE_ESTADOS = {
     ABIERTA: "abierta",
     CERRADA: "cerrada",
+    PARA_REVISION: "para revision",
     COMPROMETIDA: "comprometida",
 }
 

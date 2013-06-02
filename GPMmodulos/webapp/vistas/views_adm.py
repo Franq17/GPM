@@ -1005,9 +1005,11 @@ def crearLineaBase(proyecto_id):
     if form.validate_on_submit():
         lineabase = LineaBase()
         fase = Fase.query.filter_by(id=form.fase_id.data).first_or_404()
+        fase.setStatus(1) #Estado: DESARROLLO
         lineabase.numero_lb = form.numero_lb.data
         lineabase.descripcion = form.descripcion.data
         lineabase.fase_id = fase.id
+        
         
         db.session.add(lineabase)
         db.session.commit()

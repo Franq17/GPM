@@ -1081,7 +1081,7 @@ def crearSolicitud(proyecto_id, item_id):
         db.session.add(usuario)
         db.session.commit()
     
-    flash('Solicitud enviada correctamente.', 'success')
+    flash('Solicitud enviada cor    rectamente.', 'success')
    
     return render_template('admin/itemsxproyecto.html', proyecto=proyecto, items=itemsExistentes, active='Items')
     

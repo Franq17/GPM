@@ -3,14 +3,22 @@
 {% set page_header = _(active|capitalize) %}
 {% set page_title = 'Proyecto_Item' %}
 
-{% set tabs = [
-    ("Fases",url_for('admin.fasesxproyecto', proyecto_id=proyecto.id)), 
-    ("Items",url_for('admin.itemsxproyecto', proyecto_id=proyecto.id))
-    
-]%}
+
+{% if current_user.comprobarPermiso('verLineaBase')  %}
+	{% set tabs = [
+		("Fases",url_for('admin.fasesxproyecto', proyecto_id=proyecto.id)), 
+		("Items",url_for('admin.itemsxproyecto', proyecto_id=proyecto.id)),
+		("Lineas Base",url_for('admin.lineaBasexproyecto', proyecto_id=proyecto.id))
+	]%}
+{% else %}
+	{% set tabs = [
+		("Fases",url_for('admin.fasesxproyecto', proyecto_id=proyecto.id)), 
+		("Items",url_for('admin.itemsxproyecto', proyecto_id=proyecto.id))
+	]%}
+{% endif%}
 
 {% block body %}
-	<h2>Items del Proyecto: {{ proyecto.nombre }}</h2>
+	<h2>Items del Proyecto: <font color="royalblue">{{ proyecto.nombre }}</font></h2>
 	<div class="row-fluid">    
 	    <div class="span2">
 	    <a class="btn btn-primary" href="{{ url_for('admin.crearItem', proyecto_id=proyecto.id)}}"><strong>Crear Item</strong></a><br><br></div>

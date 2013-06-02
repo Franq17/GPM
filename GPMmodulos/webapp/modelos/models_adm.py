@@ -47,11 +47,11 @@ class DenormalizedText(Mutable, types.TypeDecorator):
     def copy_value(self, value):
         return set(value)
 
-
 permisoPorRol = db.Table('permisoPorRol',
     Column('rol_id', db.Integer, db.ForeignKey('rol.id')),
     Column('permiso_id', db.Integer, db.ForeignKey('permiso.id'))
 )
+
 
 usuarioPorComite = db.Table('usuarioPorComite',
     Column('comite_id', db.Integer, db.ForeignKey('comite.id')),
@@ -62,7 +62,6 @@ usuarioPorProyecto = db.Table('usuarioPorProyecto',
     Column('proyecto_id', db.Integer, db.ForeignKey('proyecto.id')),
     Column('user_id', db.Integer, db.ForeignKey('users.id'))
 )
-
 rolPorUsuario = db.Table('rolPorUsuario',
     Column('rol_id', db.Integer, db.ForeignKey('rol.id')),
     Column('user_id', db.Integer, db.ForeignKey('users.id'))
@@ -72,7 +71,6 @@ atributoPorTipoItem = db.Table('atributoPorTipoItem',
     Column('tipoItem_id', db.Integer, db.ForeignKey('tipoItem.id')),
     Column('atributo_id', db.Integer, db.ForeignKey('atributo.id'))
 )
-
 
 class Rol(db.Model):
 
@@ -446,6 +444,20 @@ class Item(db.Model):
     proyecto_id = Column(db.Integer, db.ForeignKey('proyecto.id'))
     
     tipoItem_id= Column(db.Integer, db.ForeignKey('tipoItem.id'), nullable=True)
+    
+    # ================================================================
+    # Class methods
+
+    @classmethod
+    def search(cls, keywords):
+        criteria = []
+        for keyword in keywords.split():
+            keyword = '%' + keyword + '%'
+            criteria.append(db.or_
+            (Item.nombre.ilike(keyword))
+            )
+        q = reduce(db.and_, criteria)
+        return cls.query.filter(q)
     
 
 class Atributo(db.Model):

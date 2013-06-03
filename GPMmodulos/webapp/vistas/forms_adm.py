@@ -83,27 +83,27 @@ class CrearProyectoForm(Form):
             raise ValidationError(u'Numero de fases de un proyecto no valido')
           
 #COMITE
-class ComiteForm(Form):
-    next = HiddenField()
-    descripcion = TextAreaField(u'Descripcion', [Optional(),Length(max=1024)])
-    submit = SubmitField(u'Guardar')
-    
-class CrearComiteForm(Form):
-    next = HiddenField()
-    nombre = TextField(u'Nombre de Comite', [Required(), Length(REALNAME_LEN_MIN, REALNAME_LEN_MAX)])
-    proyecto_id = SelectField(u'ProyectoID', coerce=int,)
-    descripcion = TextAreaField(u'Descripcion', [Optional(), Length(max=1024)])
-    submit = SubmitField(u'Crear')
-    
-    def validate_nombre(self, field):
-        if Comite.query.filter_by(nombre=field.data).first() is not None:
-            raise ValidationError(u'El nombre del Comite ya existe')
-    
-class BorrarComiteForm(Form):
-    next = HiddenField()
-    descripcion = TextAreaField(u'Descripcion', [Optional(), Length(max=1024)])
-    # A demo of datepicker.
-    submit = SubmitField(u'Eliminar')
+#class ComiteForm(Form):
+#    next = HiddenField()
+#    descripcion = TextAreaField(u'Descripcion', [Optional(),Length(max=1024)])
+#    submit = SubmitField(u'Guardar')
+#    
+#class CrearComiteForm(Form):
+#    next = HiddenField()
+#    nombre = TextField(u'Nombre de Comite', [Required(), Length(REALNAME_LEN_MIN, REALNAME_LEN_MAX)])
+#    proyecto_id = SelectField(u'ProyectoID', coerce=int,)
+#    descripcion = TextAreaField(u'Descripcion', [Optional(), Length(max=1024)])
+#    submit = SubmitField(u'Crear')
+#    
+#    def validate_nombre(self, field):
+#        if Comite.query.filter_by(nombre=field.data).first() is not None:
+#            raise ValidationError(u'El nombre del Comite ya existe')
+#    
+#class BorrarComiteForm(Form):
+#    next = HiddenField()
+#    descripcion = TextAreaField(u'Descripcion', [Optional(), Length(max=1024)])
+#    # A demo of datepicker.
+#    submit = SubmitField(u'Eliminar')
     
 #ROL
 
@@ -206,18 +206,18 @@ class RolxProyectoForm(Form):
     roles = SelectMultipleField(u'Roles', coerce=int)
     submit = SubmitField(u'Agregar')
 
-class CrearItemForm(Form):
-    next = HiddenField()
-    nombre = nombre = TextField(u'Nombre del Item', [Required(), Length(REALNAME_LEN_MIN, REALNAME_LEN_MAX)])
-    tipoItem_id = SelectField(u'TipoItemID', coerce=int,)
-    descripcion = TextAreaField(u'Descripcion', [Optional(), Length(max=1024)])
-    submit = SubmitField(u'Crear')
-
-class ItemForm(Form):
-    next = HiddenField()
-    nombre = nombre = TextField(u'Nombre del Item', [Required(), Length(REALNAME_LEN_MIN, REALNAME_LEN_MAX)])
-    descripcion = TextAreaField(u'Descripcion', [Optional(), Length(max=1024)])
-    submit = SubmitField(u'Editar')
+#class CrearItemForm(Form):
+#    next = HiddenField()
+#    nombre = nombre = TextField(u'Nombre del Item', [Required(), Length(REALNAME_LEN_MIN, REALNAME_LEN_MAX)])
+#    tipoItem_id = SelectField(u'TipoItemID', coerce=int,)
+#    descripcion = TextAreaField(u'Descripcion', [Optional(), Length(max=1024)])
+#    submit = SubmitField(u'Crear')
+#
+#class ItemForm(Form):
+#    next = HiddenField()
+#    nombre = nombre = TextField(u'Nombre del Item', [Required(), Length(REALNAME_LEN_MIN, REALNAME_LEN_MAX)])
+#    descripcion = TextAreaField(u'Descripcion', [Optional(), Length(max=1024)])
+#    submit = SubmitField(u'Editar')
 
 class CrearLineaBaseForm(Form):
     next = HiddenField()

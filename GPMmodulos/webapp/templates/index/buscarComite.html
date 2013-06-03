@@ -12,7 +12,7 @@
     {% if pagination and pagination.pages > 0 %}
         <p>{% trans total=pagination.total, keywords=keywords %}<strong>{{ total }}</strong> found for your search "<strong>{{ keywords }}</strong>".{% endtrans %}</p>
         {{ render_comite_table(pagination.items, 'zebra-striped') }}
-        {{ render_pagination(pagination, 'admin.buscarComite') }}
+        {{ render_pagination(pagination, 'cambios.buscarComite') }}
     {% else %}
         <p>{% trans keywords=keywords %}Lo siento, no se encontraron resultados con: "<strong>{{ keywords }}</strong>".{% endtrans %}</p>
     {% trans %}

@@ -15,9 +15,9 @@
     	<tr>
             <td>{{ comite.nombre }}</td>
             <td>{{ comite.proyecto_id }}</td>
-            <td><a href="{{ url_for('admin.usuariosxcomite', comite_id=comite.id) }}"><i class="icon-user"></i> Ver Miembros</a></td>
+            <td><a href="{{ url_for('cambios.usuariosxcomite', comite_id=comite.id) }}"><i class="icon-user"></i> Ver Miembros</a></td>
             <td>{{ comite.descripcion }}</td>
-            <td><a href="{{ url_for('admin.comite', comite_id=comite.id) }}"><i class="icon-pencil"></i>Editar</a> | <a href="{{ url_for('admin.borrarComite', comite_id=comite.id) }}"><i class="icon-remove"></i>Eliminar</a></td>
+            <td><a href="{{ url_for('cambios.comite', comite_id=comite.id) }}"><i class="icon-pencil"></i>Editar</a> | <a href="{{ url_for('cambios.borrarComite', comite_id=comite.id) }}"><i class="icon-remove"></i>Eliminar</a></td>
         </tr>     
 </table>
 

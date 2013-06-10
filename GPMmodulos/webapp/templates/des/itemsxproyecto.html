@@ -5,23 +5,19 @@
 
 {% if current_user.comprobarPermiso('verLineaBase')  %}
 	{% set tabs = [
-		("Fases",url_for('admin.fasesxproyecto', proyecto_id=proyecto.id)), 
+		("Fases",url_for('des.fasesxproyecto', proyecto_id=proyecto.id)), 
 		("Items",url_for('des.itemsxproyecto', proyecto_id=proyecto.id))
 	]%}
 {% else %}
 	{% set tabs = [
-		("Fases",url_for('admin.fasesxproyecto', proyecto_id=proyecto.id)), 
+		("Fases",url_for('des.fasesxproyecto', proyecto_id=proyecto.id)), 
 		("Items",url_for('des.itemsxproyecto', proyecto_id=proyecto.id))
 	]%}
 {% endif%}
 
 {% block body %}
 	<h2>Items del Proyecto: <font color="royalblue">{{ proyecto.nombre }}</font></h2>
-	<div class="row-fluid">    
-	    <div class="span2">
-	    <a class="btn btn-primary" href="{{ url_for('des.crearItem', proyecto_id=proyecto.id)}}"><strong>Crear Item</strong></a><br><br></div>
-    </div>
-
+	
 	<table class='table table-bordered table-hover table-condensed'>
         <thead>
             <tr>
@@ -57,9 +53,8 @@
 						<a href="{{ url_for('des.crearSolicitud', proyecto_id=proyecto.id, item_id=item.id)  }}" class="btn btn-primary">Enviar Solicitud</a>
 					</div>
 				</div>
-	      
         </tr>
         {% endfor %}
-        
+       
     </table>
 {% endblock %}

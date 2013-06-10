@@ -127,6 +127,13 @@ class Fase(db.Model):
     # One-to-many relationship between fases and lineas base
     lineaBase = db.relationship('LineaBase', backref='fase',lazy='dynamic')
     
+    items = db.relationship('Item', backref='fase',lazy='dynamic')
+    
+    
+    def getItems (self, proyecto_id):
+        misItems = self.items
+        return misItems
+    
     
 class Comite(db.Model):
     
@@ -257,11 +264,6 @@ class User(db.Model, UserMixin):
         return listaItem    
     
                    
-   
-    
-        
-        
-            
     def getRole(self):
         return USER_ROLE[self.role_id]
 
@@ -474,7 +476,7 @@ class Item(db.Model):
     __tablename__='item'
     
     id = Column(db.Integer, primary_key=True)
-    nombre = Column(db.String(32), nullable=False, unique=True)
+    nombre = Column(db.String(32), nullable=False)
     descripcion = Column(db.String(),nullable=True)
     version = Column(db.Integer)
     complejidad= Column(db.Integer)
@@ -485,6 +487,9 @@ class Item(db.Model):
     # Relacion del item por proyecto
     proyecto_id = Column(db.Integer, db.ForeignKey('proyecto.id'))
     
+    #Relacion del item por fase
+    fase_id = Column(db.Integer, db.ForeignKey('fase.id'))
+    
     #Relacion del item con su tipo de Item
     tipoItem_id= Column(db.Integer, db.ForeignKey('tipoItem.id'), nullable=True)
     
@@ -494,83 +499,90 @@ class Item(db.Model):
     #Relacion del item con su linea base
     lineaBase_id = Column(db.Integer, db.ForeignKey('lineaBase.id'))
     
+    def getHistorial(self):
+        todosHistoriales = HistorialItem.query.all()
+        historiales=[]
+        for historial in todosHistoriales:
+            if historial.itemId==self.id:
+                historiales.append(historial)
+        return historiales    
     """
     Colummnas para relaciones de versiones de items
     """
-    versionSuperior_id = Column(db.Integer, ForeignKey('item.id'))
-    versionAnterior = relationship('Item')
-    
-    """
-    Relacion con el item sucesor
-    """
-    relacionSucesor= relationship('RelacionSucesor', primaryjoin=id==RelacionSucesor.left_id, backref='items')
-    
-    relacionHijo= relationship('RelacionHijo', primaryjoin=id==RelacionHijo.left_id, backref='item')
-    
-    def tieneVersionAnterior(self):
-        if len(self.versionAnterior) > 0:
-            return True
-        else:
-            return False
-    
-    def getVersionAnterior(self):
-        return self.versionAnterior[0]
-    
-    def tieneVersionSuperior(self):
-        if self.versionSuperior_id == None:
-            return False
-        else:
-            return True
-    
-    def getVersionSuperior(self, session):
-        item= session.query(Item).filter_by(id= self.versionSuperior_id).first()
-        return item
-    
-    def tienePadre(self, fase):
-        for item in fase.items:
-            if item.getEstado() != 'Eliminado' and item != self:
-                for relacion in item.relacionHijo:
-                    if relacion.hijo == self:
-                        return True
-        return False
-    
-    """
-    note: metodo que devuelve el padre del item, devuelve None en caso de no tener
-    """
-#    def getPadre(self, fase):
+#    versionSuperior_id = Column(db.Integer, ForeignKey('item.id'))
+#    versionAnterior = relationship('Item')
+#    
+#    """
+#    Relacion con el item sucesor
+#    """
+#    relacionSucesor= relationship('RelacionSucesor', primaryjoin=id==RelacionSucesor.left_id, backref='items')
+#    
+#    relacionHijo= relationship('RelacionHijo', primaryjoin=id==RelacionHijo.left_id, backref='item')
+#    
+#    def tieneVersionAnterior(self):
+#        if len(self.versionAnterior) > 0:
+#            return True
+#        else:
+#            return False
+#    
+#    def getVersionAnterior(self):
+#        return self.versionAnterior[0]
+#    
+#    def tieneVersionSuperior(self):
+#        if self.versionSuperior_id == None:
+#            return False
+#        else:
+#            return True
+#    
+#    def getVersionSuperior(self, session):
+#        item= session.query(Item).filter_by(id= self.versionSuperior_id).first()
+#        return item
+#    
+#    def tienePadre(self, fase):
 #        for item in fase.items:
 #            if item.getEstado() != 'Eliminado' and item != self:
 #                for relacion in item.relacionHijo:
 #                    if relacion.hijo == self:
-#                        return item
-#        return None
+#                        return True
+#        return False
 #    
-    """
-    note metodo que pregunta si un item es descendiente de otro en una fase dada
-    """
-#    def esDescendiente(self, fase, item):
-#        lista_hijos= self.getGeneraciones(fase, self)
-#        print "\n\n\n\n\n\n\n"
-#        for aux in lista_hijos:
-#            print aux.getNombre()
-#        print "\n\n\n\n\n\n\n"
-#        return item in lista_hijos
-
-
-    
-
-class RelacionSucesor(db.Model):
-    __tablename__ = 'relacion_sucesor'
-    left_id = Column(Integer, ForeignKey('item.id'), primary_key=True)
-    right_id = Column(Integer, ForeignKey('item.id'), primary_key=True)
-    item = relationship('Item', primaryjoin="Item.id==RelacionSucesor.right_id", backref='relacion_sucesor')
-    
-
-class RelacionHijo(db.Model):
-    __tablename__ = 'relacion_hijo'
-    left_id = Column(db.Integer, ForeignKey('item.id'), primary_key=True)
-    right_id = Column(db.Integer, ForeignKey('item.id'), primary_key=True)
-    hijo = relationship('Item', primaryjoin="Item.id==RelacionHijo.right_id", backref='relacion_hijo')
+#    """
+#    note: metodo que devuelve el padre del item, devuelve None en caso de no tener
+#    """
+##    def getPadre(self, fase):
+##        for item in fase.items:
+##            if item.getEstado() != 'Eliminado' and item != self:
+##                for relacion in item.relacionHijo:
+##                    if relacion.hijo == self:
+##                        return item
+##        return None
+##    
+#    """
+#    note metodo que pregunta si un item es descendiente de otro en una fase dada
+#    """
+##    def esDescendiente(self, fase, item):
+##        lista_hijos= self.getGeneraciones(fase, self)
+##        print "\n\n\n\n\n\n\n"
+##        for aux in lista_hijos:
+##            print aux.getNombre()
+##        print "\n\n\n\n\n\n\n"
+##        return item in lista_hijos
+#
+#
+#    
+#
+#class RelacionSucesor(db.Model):
+#    __tablename__ = 'relacion_sucesor'
+#    left_id = Column(Integer, ForeignKey('item.id'), primary_key=True)
+#    right_id = Column(Integer, ForeignKey('item.id'), primary_key=True)
+#    item = relationship('Item', primaryjoin="Item.id==RelacionSucesor.right_id", backref='relacion_sucesor')
+#    
+#
+#class RelacionHijo(db.Model):
+#    __tablename__ = 'relacion_hijo'
+#    left_id = Column(db.Integer, ForeignKey('item.id'), primary_key=True)
+#    right_id = Column(db.Integer, ForeignKey('item.id'), primary_key=True)
+#    hijo = relationship('Item', primaryjoin="Item.id==RelacionHijo.right_id", backref='relacion_hijo')
     
 
 class Atributo(db.Model):

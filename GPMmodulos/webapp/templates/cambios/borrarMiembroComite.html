@@ -6,6 +6,6 @@
 {% block body %}
 <div class="container">
     <h2>Eliminar Miembro del Comite</h2>
-    {{ render_form(url_for('admin.borrarMiembroComite', usuarioPorComite_user_id=usuarioPorComite.user_id), form) }}
+    {{ render_form(url_for('cambios.borrarMiembroComite', usuarioPorComite_user_id=usuarioPorComite.user_id), form) }}
 </div>
 {% endblock %}

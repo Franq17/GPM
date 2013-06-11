@@ -10,8 +10,8 @@
 
     <div class="row-fluid">    
 	    <div class="span2">
-	    <a class="btn btn-primary" href="{{ url_for('admin.crearComite')}}"><strong>Crear Comite</strong></a><br><br></div>
-		<form class="navbar-search pull-left" action="{{ url_for('admin.buscarComite') }}">
+	    <a class="btn btn-primary" href="{{ url_for('cambios.crearComite')}}"><strong>Crear Comite</strong></a><br><br></div>
+		<form class="navbar-search pull-left" action="{{ url_for('cambios.buscarComite') }}">
 			<input type='text' class="search-query" name='keywords' value='{{ keywords|default('') }}' placeholder='Buscar' />
 		</form>
     </div>
@@ -29,9 +29,9 @@
         <tr>
             <td>{{ comite.nombre }}</td>
             <td>{{ comite.proyecto_id }}</td>
-            <td><a href="{{ url_for('admin.usuariosxcomite', comite_id=comite.id) }}" ><i class="icon-user"></i> Ver Miembros</a></td>
+            <td><a href="{{ url_for('cambios.usuariosxcomite', comite_id=comite.id) }}" ><i class="icon-user"></i> Ver Miembros</a></td>
             <td>{{ comite.descripcion }}</td>
-            <td><a href="{{ url_for('admin.comite', comite_id=comite.id) }}"><i class="icon-pencil"></i>Editar</a> | <a href="{{ url_for('admin.borrarComite', comite_id=comite.id) }}"><i class="icon-remove"></i>Eliminar</a></td>
+            <td><a href="{{ url_for('cambios.comite', comite_id=comite.id) }}"><i class="icon-pencil"></i>Editar</a> | <a href="{{ url_for('cambios.borrarComite', comite_id=comite.id) }}"><i class="icon-remove"></i>Eliminar</a></td>
         </tr>
         {% endfor %}
     </table>

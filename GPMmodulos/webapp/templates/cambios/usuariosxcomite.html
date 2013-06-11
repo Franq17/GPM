@@ -7,7 +7,7 @@
 
     <h2>Miembros del Comite: <font color="royalblue">{{ comite.nombre }}</font></h2>
 
-    {{ render_form(url_for('admin.usuariosxcomite', comite_id=comite.id), form)}}  
+    {{ render_form(url_for('cambios.usuariosxcomite', comite_id=comite.id), form)}}  
     <h2>Usuarios asignados</h2>
     <table class='table table-bordered table-hover table-condensed'>
         <thead>
@@ -30,7 +30,7 @@
 				</div>
 				<div class="modal-footer">
 					<a href="#" data-dismiss="modal" class="btn">Cancelar</a>
-					<a href="{{ url_for('admin.desasignarMiembro', comite_id=comite.id, user_id=user.id)}}" class="btn btn-primary">Desasignar</a>
+					<a href="{{ url_for('cambios.desasignarMiembro', comite_id=comite.id, user_id=user.id)}}" class="btn btn-primary">Desasignar</a>
 				</div>
 			</div>
         </tr>

@@ -1061,178 +1061,35 @@ def tiposItemxproyecto(proyecto_id):
 #    return render_template('cambios/lineaBase.html', proyecto=proyecto, lineabase=lineaBase, form=form)
 
 
+#@admin.route('/IT<item_id>/PR<proyecto_id>', methods=['GET', 'POST'])
+#@login_required
+#def crearSolicitud(proyecto_id, item_id):
+#    proyecto = Proyecto.query.filter_by(id=proyecto_id).first_or_404()
+#    comite = proyecto.comite
+#    item = Item.query.filter_by(id=item_id).first_or_404()
+#    usuariosComite = comite.usuarioPorComite
+#    itemsExistentes = proyecto.items
+#    
+#    solicitud = Solicitud()
+#    solicitud.comite_id = comite.id
+#    solicitud.item_id = item_id
+#    db.session.add(solicitud)
+#    db.session.commit()
+#    
+#    for usuario in usuariosComite:
+#        usuario.solicitudPorUsuario.append(solicitud)
+#        print '#################usuario'
+#        print usuario.nombre
+#        
+#        db.session.add(usuario)
+#        db.session.commit()
+#    
+#    flash('Solicitud enviada correctamente.', 'success')
+#   
+#    return render_template('admin/itemsxproyecto.html', proyecto=proyecto, items=itemsExistentes, active='Items')
+#    
+#    
 
-@admin.route('/crearItem/<proyecto_id>', methods=['GET', 'POST'])
-@login_required
-def crearItem(proyecto_id):
-    """Funcion que permite instanciar un Item de un Proyecto"""
-    proyecto = Proyecto.query.filter_by(id=proyecto_id).first_or_404()
-    tiposItem= TipoItem.query.filter_by(proyecto_id=proyecto_id)
-    form = CrearItemForm(next=request.args.get('next'))
-    form.tipoItem_id.choices = [(h.id, h.nombre) for h in tiposItem ]
-    if form.validate_on_submit():
-        item = Item()
-        tipoItem = TipoItem.query.filter_by(id=form.tipoItem_id.data).first_or_404()
-        item.nombre = form.nombre.data
-        item.descripcion = form.descripcion.data
-        item.proyecto_id = proyecto.id
-        item.tipoItem_id = tipoItem.id
-        
-        db.session.add(item)
-        db.session.commit()
-        
-        historial = HistorialItem()
-        historial.itemId=item.id
-        historial.descripcion= current_user.nombre+" creo el item, con nombre: " + item.nombre
-        
-        db.session.add(historial)
-        db.session.commit()
-     
-        
-        flash('Item creado.', 'success')
-        return redirect(url_for('admin.itemsxproyecto',proyecto_id=proyecto.id))
-        
-    return render_template('admin/crearItem.html', proyecto=proyecto, form=form)
-
-
-@admin.route('/IdItem<item_id>/<proyecto_id>', methods=['GET', 'POST'])
-@login_required
-def item(proyecto_id, item_id):
-    """Funcion que permite editar un item"""
-    item = Item.query.filter_by(id=item_id).first_or_404()
-    proyecto = Proyecto.query.filter_by(id=proyecto_id).first_or_404()
-    form = ItemForm(obj=item, next=request.args.get('next'))
-    if form.validate_on_submit():
-        form.populate_obj(item)
-
-        db.session.add(item)
-        db.session.commit()
-
-        historial = HistorialItem()
-        historial.itemId=item.id
-        historial.descripcion= current_user.nombre+" modifico el item." 
-        
-        db.session.add(historial)
-        db.session.commit()
-     
-        flash('Item actualizado.', 'success')
-        return redirect(url_for('admin.itemsxproyecto',proyecto_id=proyecto.id))
-
-    return render_template('admin/item.html', item=item, proyecto=proyecto, form=form)
-
-
-@admin.route('/lineaBasexproyecto/<proyecto_id>', methods=['GET', 'POST'])
-@login_required
-def lineaBasexproyecto(proyecto_id):
-    """Funcion que lista las lineas base de un Proyecto"""
-    proyecto = Proyecto.query.filter_by(id=proyecto_id).first_or_404()
-    fases = proyecto.fases
-    
-    listaDeLB = []
-    for fase in fases:
-        faseElegida = Fase.query.filter_by(id=fase.id).first_or_404()
-        lb = faseElegida.lineaBase
-        for linea in lb:
-            lineaBase = LineaBase.query.filter_by(id=linea.id).first_or_404()
-            listaDeLB.append(lineaBase)
-    
-    return render_template('cambios/lineaBasexproyecto.html', proyecto=proyecto, fases=fases, lineasBases=listaDeLB, active='Lineas Base')
-
-@admin.route('/crearLineaBase/<proyecto_id>', methods=['GET', 'POST'])
-@login_required
-def crearLineaBase(proyecto_id):
-    """Funcion que permite instanciar una Linea Base de una Fase"""
-    proyecto = Proyecto.query.filter_by(id=proyecto_id).first_or_404()
-    fases = Fase.query.filter_by(proyecto_id=proyecto_id)
-    form = CrearLineaBaseForm(next=request.args.get('next'))
-    form.fase_id.choices = [(h.id, h.nombre) for h in fases ]
-    
-    if form.validate_on_submit():
-        lineabase = LineaBase()
-        fase = Fase.query.filter_by(id=form.fase_id.data).first_or_404()
-        fase.setStatus(1) #Estado: DESARROLLO
-        lineabase.numero_lb = form.numero_lb.data
-        lineabase.descripcion = form.descripcion.data
-        lineabase.fase_id = fase.id
-        
-        
-        db.session.add(lineabase)
-        db.session.commit()
-        
-        historial = HistorialLineaBase()
-        historial.lineaBase_id = lineabase.id
-        historial.descripcion= current_user.nombre+" creo la Linea Base " +str(lineabase.numero_lb)+ " de la Fase " +str(lineabase.fase_id)
-        
-        db.session.add(historial)
-        db.session.commit()
-        
-        flash('Linea Base creada.', 'success')
-        return redirect(url_for('admin.lineaBasexproyecto',proyecto_id=proyecto.id))
-    
-    return render_template('cambios/crearLineaBase.html', proyecto=proyecto, form=form)
-
-@admin.route('/historialxlineabase/<lineabase_id>', methods=['GET', 'POST'])
-@login_required
-def historialxlineabase(lineabase_id):
-    """Funcion que lista el historial de un Item"""
-    lineabase = LineaBase.query.filter_by(id=lineabase_id).first_or_404()
-    todosHistoriales = HistorialLineaBase.query.all()
-    
-    historiales=[]
-    for historial in todosHistoriales:
-        if historial.lineaBase_id==lineabase.id:
-            historiales.append(historial)
-    return render_template('cambios/historialxlineabase.html', lineabase=lineabase, historiales=historiales)
-
-@admin.route('/lineaBasexproyecto/<proyecto_id>/<lineabase_id>', methods=['GET', 'POST'])
-@login_required
-#@modificarProyectos_required
-def lineaBase(proyecto_id, lineabase_id):
-    """Funcion que permite editar una Linea Base"""
-    lineaBase = LineaBase.query.filter_by(id=lineabase_id).first_or_404()
-    form = LineaBaseForm(obj=lineaBase, next=request.args.get('next'))
-    proyecto = Proyecto.query.filter_by(id=proyecto_id).first_or_404()
-    #fases = proyecto.fases
-
-    if form.validate_on_submit():
-        form.populate_obj(lineaBase)
-
-        db.session.add(lineaBase)
-        db.session.commit()
-
-        flash('Linea Base actualizado.', 'success')
-        return redirect(url_for('admin.lineaBasexproyecto', proyecto_id=proyecto.id, lineabase_id=lineaBase.id))
-
-    return render_template('cambios/lineaBase.html', proyecto=proyecto, lineabase=lineaBase, form=form)
-
-@admin.route('/IT<item_id>/PR<proyecto_id>', methods=['GET', 'POST'])
-@login_required
-def crearSolicitud(proyecto_id, item_id):
-    proyecto = Proyecto.query.filter_by(id=proyecto_id).first_or_404()
-    comite = proyecto.comite
-    item = Item.query.filter_by(id=item_id).first_or_404()
-    usuariosComite = comite.usuarioPorComite
-    itemsExistentes = proyecto.items
-    
-    solicitud = Solicitud()
-    solicitud.comite_id = comite.id
-    solicitud.item_id = item_id
-    db.session.add(solicitud)
-    db.session.commit()
-    
-    for usuario in usuariosComite:
-        usuario.solicitudPorUsuario.append(solicitud)
-        print '#################usuario'
-        print usuario.nombre
-        
-        db.session.add(usuario)
-        db.session.commit()
-    
-    flash('Solicitud enviada correctamente.', 'success')
-   
-    return render_template('admin/itemsxproyecto.html', proyecto=proyecto, items=itemsExistentes, active='Items')
-    
-    
 
 #@admin.route('/IT<item_id>/PR<proyecto_id>', methods=['GET', 'POST'])
 #@login_required

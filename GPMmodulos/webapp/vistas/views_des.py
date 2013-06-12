@@ -15,19 +15,22 @@ des = Blueprint('des', __name__, url_prefix='/des')
 @des.route('/itemsxproyecto/<proyecto_id>', methods=['GET', 'POST'])
 @login_required
 def itemsxproyecto(proyecto_id):
-    """Funcion que lista las fases de un Proyecto"""
+    """Funcion que lista los items de un Proyecto"""
     proyecto = Proyecto.query.filter_by(id=proyecto_id).first_or_404()
     itemsExistentes = proyecto.items
-#   fases = Fase.query.filter_by(proyecto_id=proyecto.id).first_or_404
     return render_template('des/itemsxproyecto.html', proyecto=proyecto, items=itemsExistentes, active='Items')
 
 
-@des.route('/crearItem/<proyecto_id>', methods=['GET', 'POST'])
+@des.route('/crearItem/<proyecto_id>/<fase_id>', methods=['GET', 'POST'])
 @login_required
-def crearItem(proyecto_id):
+def crearItem(proyecto_id, fase_id):
     """Funcion que permite instanciar un Item de un Proyecto"""
     proyecto = Proyecto.query.filter_by(id=proyecto_id).first_or_404()
+    fase = Fase.query.filter_by(id=fase_id).first_or_404()
     tiposItem= TipoItem.query.filter_by(proyecto_id=proyecto_id)
+    print '###### Recibi numero de fase#############'
+    print fase.id
+    
     form = CrearItemForm(next=request.args.get('next'))
     form.tipoItem_id.choices = [(h.id, h.nombre) for h in tiposItem ]
     if form.validate_on_submit():
@@ -36,8 +39,11 @@ def crearItem(proyecto_id):
         item.nombre = form.nombre.data
         item.descripcion = form.descripcion.data
         item.proyecto_id = proyecto.id
+        item.fase_id = fase.id
         item.tipoItem_id = tipoItem.id
         
+        print '###### commiteo el nro de fase ##########'
+        print item.fase_id
         db.session.add(item)
         db.session.commit()
         
@@ -52,7 +58,7 @@ def crearItem(proyecto_id):
         flash('Item creado.', 'success')
         return redirect(url_for('des.itemsxproyecto',proyecto_id=proyecto.id))
         
-    return render_template('des/crearItem.html', proyecto=proyecto, form=form)
+    return render_template('des/crearItem.html', proyecto=proyecto, fase = fase, form=form)
 
 
 @des.route('/IdItem<item_id>/<proyecto_id>', methods=['GET', 'POST'])
@@ -119,4 +125,23 @@ def crearSolicitud(proyecto_id, item_id):
     flash('Solicitud enviada correctamente.', 'success')
    
     return render_template('des/itemsxproyecto.html', proyecto=proyecto, items=itemsExistentes, active='Items')
+
+
+@des.route('/fasesxproyecto/<proyecto_id>', methods=['GET', 'POST'])
+@login_required
+def fasesxproyecto(proyecto_id):
+    """Funcion que lista las fases de un Proyecto"""
+    proyecto = Proyecto.query.filter_by(id=proyecto_id).first_or_404()
+    fasesExistentes = proyecto.fases
+    return render_template('des/fases.html', proyecto=proyecto, fases=fasesExistentes, active='Fases')
+
+@des.route('/IdF<fase_id>/<proyecto_id>', methods=['GET', 'POST'])
+@login_required
+def fase(proyecto_id, fase_id):
+    """Funcion que permite editar un comite"""
+    fase = Fase.query.filter_by(id=fase_id).first_or_404()
+    proyecto = Proyecto.query.filter_by(id=proyecto_id).first_or_404()
+    
+    return render_template('des/fase.html', fase=fase, proyecto=proyecto)
+
 

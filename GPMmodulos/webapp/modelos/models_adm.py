@@ -68,11 +68,15 @@ rolPorUsuario = db.Table('rolPorUsuario',
     Column('user_id', db.Integer, db.ForeignKey('users.id'))
 )
 
+rolPorProyecto = db.Table('rolPorProyecto',
+    Column('rol_id', db.Integer, db.ForeignKey('rol.id')),
+    Column('proyecto_id', db.Integer, db.ForeignKey('proyecto.id'))
+)
+
 atributoPorTipoItem = db.Table('atributoPorTipoItem',
     Column('tipoItem_id', db.Integer, db.ForeignKey('tipoItem.id')),
     Column('atributo_id', db.Integer, db.ForeignKey('atributo.id'))
 )
-
 
 solicitudPorUsuario = db.Table('solicitudPorUsuario',
     Column('user_id', db.Integer, db.ForeignKey('users.id')),
@@ -96,6 +100,14 @@ class Rol(db.Model):
     # ================================================================
     # Class methods
 
+    def tieneUsuarios(self, usuariosProyecto):
+        for usuario in usuariosProyecto:
+            for rol in usuario.rolPorUsuario:
+                if self.id == rol.id:
+                    return True
+        return False        
+    
+    
     @classmethod
     def search(cls, keywords):
         criteria = []
@@ -258,8 +270,6 @@ class User(db.Model, UserMixin):
         listaItem=[]
         for solicitud in listaSolicitudes:
             item = Item.query.filter_by(id = solicitud.item_id).first_or_404()
-            print '#############################33'
-            print item.nombre
             listaItem.append(item)
         return listaItem    
     
@@ -368,7 +378,9 @@ class Proyecto(db.Model):
     fases = db.relationship('Fase', backref='proyecto',lazy='dynamic')
     
     # One-to-many relationship between proyecto and roles
-    roles = db.relationship('Rol', backref='proyecto',lazy='dynamic')
+    roles = db.relationship('Rol', secondary=rolPorProyecto,
+                                 backref=db.backref('proyecto', lazy='dinamic'))
+
     
     # One-to-many relationship between proyecto and tipoItem
     tiposItem = db.relationship('TipoItem', backref='proyecto',lazy='dynamic')
@@ -378,7 +390,7 @@ class Proyecto(db.Model):
     
     
     # ================================================================
-    # One-to-many relationship betwee    n projects and project_statuses.
+    # One-to-many relationship between projects and project_statuses.
     estado_id = Column(db.SmallInteger, default=NO_INICIADO)
 
     def getStatus(self):
@@ -472,6 +484,13 @@ class HistorialItem(db.Model):
     descripcion = Column(db.String)
     fecha= Column(db.DateTime, default=get_current_time)
 
+class RelacionHijo(db.Model):
+    __tablename__ = 'relacion_hijo'
+    left_id = Column(db.Integer, db.ForeignKey('item.id'), primary_key=True)
+    right_id = Column(db.Integer, db.ForeignKey('item.id'), primary_key=True)
+    hijo = db.relationship('Item', primaryjoin="Item.id==RelacionHijo.right_id", backref='relacion_hijo')
+    
+
 class Item(db.Model):
     __tablename__='item'
     
@@ -491,13 +510,21 @@ class Item(db.Model):
     fase_id = Column(db.Integer, db.ForeignKey('fase.id'))
     
     #Relacion del item con su tipo de Item
-    tipoItem_id= Column(db.Integer, db.ForeignKey('tipoItem.id'), nullable=True)
+    tipoItem_id = Column(db.Integer, db.ForeignKey('tipoItem.id'), nullable=True)
     
     #Relacion del item con una solicitud de cambio
     solicitudes = db.relationship('Solicitud', backref='item',lazy='dynamic')
     
     #Relacion del item con su linea base
     lineaBase_id = Column(db.Integer, db.ForeignKey('lineaBase.id'))
+    
+    padre_id = Column(db.Integer, db.ForeignKey('item.id'))
+    
+    """
+    relacion con el item hijo
+    """
+    #relacionHijo = db.relationship("RelacionHijo", primaryjoin=id==RelacionHijo.left_id, backref='item')
+    
     
     def getHistorial(self):
         todosHistoriales = HistorialItem.query.all()
@@ -506,84 +533,7 @@ class Item(db.Model):
             if historial.itemId==self.id:
                 historiales.append(historial)
         return historiales    
-    """
-    Colummnas para relaciones de versiones de items
-    """
-#    versionSuperior_id = Column(db.Integer, ForeignKey('item.id'))
-#    versionAnterior = relationship('Item')
-#    
-#    """
-#    Relacion con el item sucesor
-#    """
-#    relacionSucesor= relationship('RelacionSucesor', primaryjoin=id==RelacionSucesor.left_id, backref='items')
-#    
-#    relacionHijo= relationship('RelacionHijo', primaryjoin=id==RelacionHijo.left_id, backref='item')
-#    
-#    def tieneVersionAnterior(self):
-#        if len(self.versionAnterior) > 0:
-#            return True
-#        else:
-#            return False
-#    
-#    def getVersionAnterior(self):
-#        return self.versionAnterior[0]
-#    
-#    def tieneVersionSuperior(self):
-#        if self.versionSuperior_id == None:
-#            return False
-#        else:
-#            return True
-#    
-#    def getVersionSuperior(self, session):
-#        item= session.query(Item).filter_by(id= self.versionSuperior_id).first()
-#        return item
-#    
-#    def tienePadre(self, fase):
-#        for item in fase.items:
-#            if item.getEstado() != 'Eliminado' and item != self:
-#                for relacion in item.relacionHijo:
-#                    if relacion.hijo == self:
-#                        return True
-#        return False
-#    
-#    """
-#    note: metodo que devuelve el padre del item, devuelve None en caso de no tener
-#    """
-##    def getPadre(self, fase):
-##        for item in fase.items:
-##            if item.getEstado() != 'Eliminado' and item != self:
-##                for relacion in item.relacionHijo:
-##                    if relacion.hijo == self:
-##                        return item
-##        return None
-##    
-#    """
-#    note metodo que pregunta si un item es descendiente de otro en una fase dada
-#    """
-##    def esDescendiente(self, fase, item):
-##        lista_hijos= self.getGeneraciones(fase, self)
-##        print "\n\n\n\n\n\n\n"
-##        for aux in lista_hijos:
-##            print aux.getNombre()
-##        print "\n\n\n\n\n\n\n"
-##        return item in lista_hijos
-#
-#
-#    
-#
-#class RelacionSucesor(db.Model):
-#    __tablename__ = 'relacion_sucesor'
-#    left_id = Column(Integer, ForeignKey('item.id'), primary_key=True)
-#    right_id = Column(Integer, ForeignKey('item.id'), primary_key=True)
-#    item = relationship('Item', primaryjoin="Item.id==RelacionSucesor.right_id", backref='relacion_sucesor')
-#    
-#
-#class RelacionHijo(db.Model):
-#    __tablename__ = 'relacion_hijo'
-#    left_id = Column(db.Integer, ForeignKey('item.id'), primary_key=True)
-#    right_id = Column(db.Integer, ForeignKey('item.id'), primary_key=True)
-#    hijo = relationship('Item', primaryjoin="Item.id==RelacionHijo.right_id", backref='relacion_hijo')
-    
+       
 
 class Atributo(db.Model):
     

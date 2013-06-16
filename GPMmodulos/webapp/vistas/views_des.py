@@ -28,8 +28,6 @@ def crearItem(proyecto_id, fase_id):
     proyecto = Proyecto.query.filter_by(id=proyecto_id).first_or_404()
     fase = Fase.query.filter_by(id=fase_id).first_or_404()
     tiposItem= TipoItem.query.filter_by(proyecto_id=proyecto_id)
-    print '###### Recibi numero de fase#############'
-    print fase.id
     
     form = CrearItemForm(next=request.args.get('next'))
     form.tipoItem_id.choices = [(h.id, h.nombre) for h in tiposItem ]
@@ -42,8 +40,7 @@ def crearItem(proyecto_id, fase_id):
         item.fase_id = fase.id
         item.tipoItem_id = tipoItem.id
         
-        print '###### commiteo el nro de fase ##########'
-        print item.fase_id
+        
         db.session.add(item)
         db.session.commit()
         
@@ -70,7 +67,8 @@ def item(proyecto_id, item_id):
     form = ItemForm(obj=item, next=request.args.get('next'))
     if form.validate_on_submit():
         form.populate_obj(item)
-
+        
+        
         db.session.add(item)
         db.session.commit()
 

@@ -16,11 +16,13 @@
 	]%}
 {% endif%}
 
+
+
 	
 {% block body %}
 	<h2>Fases del Proyecto: <font color="royalblue">{{ proyecto.nombre }}</font></h2>
 
-    <div class="tabbable tabs-left"> <!-- Only required for left/right tabs -->
+        <div class="tabbable tabs-left"> <!-- Only required for left/right tabs -->
     	<ul class="nav nav-tabs">
    			{% for fase in fases %}
    			<li><a href="#{{fase.id}}" data-toggle="tab">{{ fase.nombre }} </a></li>
@@ -33,7 +35,7 @@
     			<ul class="thumbnails">
 					<li class="span9">
 						<div class="thumbnail">
-							<img data-src="holder.js/300x200" alt="">
+							
 							<h3>Items de: <font color="royalblue">{{ fase.nombre }}</font></h3>
 							<p>Descripcion: {{fase.descripcion}}</p>
 							<p>Estado: <font color="royalblue">{{ fase.estado }}</font></p>
@@ -58,7 +60,7 @@
 						            <td>{{ item.nombre }}</td>
 						            <td>{{ item.descripcion }}</td>
 	<!-- 					            <td><a href="{{ url_for('des.historialxitem', item_id=item.id) }}"><i class="icon-calendar"></i> Ver Historial</a></td> -->
-						            <td><a data-toggle="modal" href="#modalHistorial"><i class="icon-calendar"></i> Ver Historial</a></td>
+						            <td><a data-toggle="modal" href="#{{item.id}}"><i class="icon-calendar"></i> Ver Historial</a></td>
 						            <td><a href="#"><i class="icon-eye-open"></i> Padre</a> | <a href="#"><i class="icon-eye-open"></i> Sucesor</a> | <a href="#"><i class="icon-eye-open"></i> Hijos</a></td>
 						            <td><a href="{{ url_for('des.item', item_id=item.id, proyecto_id=proyecto.id) }}"><i class="icon-pencil"></i>Editar</a>
 		        				{%if proyecto.comite is none%}
@@ -67,45 +69,8 @@
 		        					<a data-toggle="modal" href="#modalSolicitud"><i class="icon-remove"></i>Eliminar</a> </td>
 		        				{% endif %}  
 		            			</tr>
-	            			
-		            			<!--********** Modal que muestra que debe enviar una solicitud.**************-->
-		            			<div id="modalSolicitud" class="modal hide fade in" style="display: none;">
-									<div class="modal-header">
-										<a data-dismiss="modal" class="close">×</a>
-										<h4>Solicitud de Cambio</h4>
-									</div>
-									<div class="modal-body">
-										<p>Para eliminar un item debe enviar una <font color="royalblue">Solicitud de Cambio</font> y esperar aprobacion. </p>
-									</div>
-									<div class="modal-footer">	
-										<a href="#" data-dismiss="modal" class="btn">Cancelar</a>
-										<a href="{{ url_for('des.crearSolicitud', proyecto_id=proyecto.id, item_id=item.id)  }}" class="btn btn-primary">Enviar Solicitud</a>
-									</div>
-								</div>
-								
-			         			<!--********** Modal Historial Item.**************-->
-		            			<div id="modalHistorial" class="modal hide fade in" style="display: none;">
-									<div class="modal-header">
-										<a data-dismiss="modal" class="close">×</a>
-										<h4>Historial</h4>
-									</div>
-									<div class="modal-body">
-										<p>Historial de el item: <font color="royalblue">{{item.nombre}}</font></p>
-										<div>
-											 {% for historial in item.getHistorial() %}
-									            <p>_______________________________________________________</p>
-									            <p>{{ historial.descripcion }}  ||    {{ historial.fecha }}</p>
-									            <p></p>
-									        {% endfor %}
-											   
-	    								</div>
-									</div>
-									<div class="modal-footer">	
-										<a href="#" data-dismiss="modal" class="btn">Aceptar</a>
-									</div>
-								</div>
-        					{% endfor %}
-    					</table>	
+		       					{% endfor %}
+    						</table>	
 						</div>
 					</li>
 				</ul>	

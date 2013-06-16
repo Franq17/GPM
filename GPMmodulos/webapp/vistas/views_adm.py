@@ -211,28 +211,30 @@ def rol(rol_id):
         return redirect(url_for('admin.roles'))
     return render_template('admin/rol.html', rol=rol, form=form)
 
-@admin.route('/borrarRol/<rol_id>', methods=['GET', 'POST'])
-@login_required
-@eliminarRoles_required
-def borrarRol(rol_id):
-    """Funcion que permite eliminar un rol"""
-    rol = Rol.query.filter_by(id=rol_id).first_or_404()
-    form = BorrarRolForm(obj=rol, next=request.args.get('next'))
-    users = rol.users.all()
-    sum = 0
-    for user in users:
-        sum = sum + 1
-    if sum <> 0:
-        flash('Rol no eliminado. Rol asignado a usuario(s)', 'error')
-        return redirect(url_for('admin.roles'))
-    elif form.validate_on_submit():
-        db.session.delete(rol)
-        db.session.commit()
-   
-        flash('Rol eliminado.', 'success')
-        return redirect(url_for('admin.roles'))
 
-    return render_template('admin/borrarRol.html', rol=rol, form=form)
+
+@admin.route('/borrarRol/<proyecto_id>/<rol_id>', methods=['GET', 'POST'])
+@login_required
+#@eliminarRoles_required
+def borrarRol (proyecto_id, rol_id):
+    """Funcion que permite eliminar un rol de un proyecto"""
+    proyecto = Proyecto.query.filter_by(id=proyecto_id).first_or_404()
+    rol = Rol.query.filter_by(id=rol_id).first_or_404()
+    
+    if (rol.tieneUsuarios(proyecto.usuarioPorProyecto)):
+        flash('No se puede eliminar el Rol porque esta asignado a otros usuarios dentro del Proyecto', 'error')
+        return redirect(url_for('admin.rolesxproyecto', proyecto_id=proyecto.id))
+        
+    proyecto.roles.remove(rol)
+    db.session.add(proyecto)
+    db.session.commit()
+    
+    flash('Rol eliminado.', 'success')
+    return redirect(url_for('admin.rolesxproyecto', proyecto_id=proyecto.id))
+      
+    
+    
+
 
 @admin.route('/rolesxusuario/User<user_id>/Rol<rol_id>', methods=['GET', 'POST'])
 @login_required
@@ -255,7 +257,7 @@ def desasignarRol(user_id, rol_id):
     return render_template('admin/rolesxusuario.html', user=user, form=form, roles=rolesAsignados)
 
 @admin.route('/searchRol')
-@verRoles_required
+#@verRoles_required
 def searchRol():
     """Funcion que realiza una busqueda de roles por nombre"""
     keywords = request.args.get('keywords', '').strip()
@@ -272,7 +274,7 @@ def searchRol():
 
 @admin.route('/proyectos')
 @login_required
-@verProyectos_required
+#@verProyectos_required
 def proyectos():
     """Funcion que lista los proyectos del sistema"""
     proyectos = Proyecto.query.all()
@@ -280,7 +282,7 @@ def proyectos():
 
 @admin.route('/crearProyecto', methods=['GET', 'POST'])
 @login_required
-@crearProyectos_required
+#@crearProyectos_required
 def crearProyecto():
     """Funcion que permite la creacion de un Proyecto"""
     form = CrearProyectoForm(next=request.args.get('next'))
@@ -375,7 +377,7 @@ def desasignarUsuario(proyecto_id, user_id):
     for item in usuariosAsignados:
         if item == usuarioDesasignar:
             proyecto.usuarioPorProyecto.remove(item)
-            desasignarMiembro(proyecto.comite.id, usuarioDesasignar.id)
+            #desasignarMiembro(proyecto.comite.id, usuarioDesasignar.id)
             db.session.add(proyecto)
             db.session.commit()
             flash('Usuario desasignado.', 'success')
@@ -851,19 +853,19 @@ def rolesxproyecto(proyecto_id):
     """Funcion que asigna los roles de un proyecto"""
     proyecto = Proyecto.query.filter_by(id=proyecto_id).first_or_404()
     form = RolxProyectoForm(obj=proyecto, next=request.args.get('next'))
-    rolesAsignados = proyecto.roles
+    rolesActuales = proyecto.roles
     todosRoles = Rol.query.all()
-    RolesAsignar = [item for item in todosRoles if item not in rolesAsignados]
+    rolesCandidatos = [item for item in todosRoles if item not in rolesActuales]
     listaRoles=[]
-    for rolAsig in rolesAsignados:
-        listaRoles.append(rolAsig.id)
+    for rolAct in rolesActuales:
+        listaRoles.append(rolAct.id)
        
-    form.roles.choices = [(m.id, m.nombre) for m in RolesAsignar ]
+    form.roles.choices = [(m.id, m.nombre) for m in rolesCandidatos ]
    
     if form.validate_on_submit():       
         listaTotal=form.roles.data
-        for rolAsig in listaRoles:
-            listaTotal.append(rolAsig)
+        for rolAct in listaRoles:
+            listaTotal.append(rolAct)
         for rolID in listaTotal:
             rol = Rol.query.filter_by(id=rolID).first()
             proyecto.roles.append(rol)
@@ -873,7 +875,7 @@ def rolesxproyecto(proyecto_id):
         flash('Proyecto modificado.', 'success')
         return redirect(url_for('admin.proyectos'))
        
-    return render_template('admin/rolesxproyecto.html', proyecto=proyecto, form=form, roles=rolesAsignados, active='Roles')
+    return render_template('admin/rolesxproyecto.html', proyecto=proyecto, form=form, roles=rolesActuales, active='Roles')
 
 @admin.route('/fasesxproyecto/<proyecto_id>', methods=['GET', 'POST'])
 @login_required

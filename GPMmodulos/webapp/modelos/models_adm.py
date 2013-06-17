@@ -550,7 +550,7 @@ class Item(db.Model):
     estas dos columnas son para relacionar muchos items con un tipo de item
     """
     tipoItem_id= Column(db.Integer, db.ForeignKey('tipoItem.id'), nullable=True)
-    tipoItem = db.relationship("TipoItem", backref='item', lazy='dynamic')
+#    tipoItem = db.relationship("TipoItem", backref='item', lazy='dynamic')
 #    atributos= db.relationship('Atributo', backref='item',lazy='dynamic')
     archivoPorItem= db.relationship('Archivo', secondary=archivoPorItem,
        backref=db.backref('archivo', lazy='dynamic'))

@@ -9,7 +9,7 @@ from flask_wtf import (Required, Length, EqualTo, Email, AnyOf,
 from flask_wtf.html5 import URLField, EmailField, TelField
 from flask_login import current_user
 
-from ..modelos import User, USER_ROLE, USER_STATUS
+from ..modelos import User,USER_STATUS
 from ..utils import (PASSWORD_LEN_MIN, PASSWORD_LEN_MAX,
         USERNAME_LEN_MIN, USERNAME_LEN_MAX,
         AGE_MIN, AGE_MAX, DEPOSIT_MIN, DEPOSIT_MAX)

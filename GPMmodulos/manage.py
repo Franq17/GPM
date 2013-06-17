@@ -6,7 +6,7 @@ from flask_script import Manager
 
 from webapp import create_app
 from webapp.extensions import db
-from webapp.modelos import User, Rol, Permiso, Proyecto, INICIADO, Comite, Atributo, ADMIN, USER, ACTIVE
+from webapp.modelos import User, Rol, Permiso, Proyecto, INICIADO, Comite, Atributo, ACTIVE
 
 
 app = create_app()
@@ -104,7 +104,6 @@ def initdb():
             email=u'admin@example.com', 
             password=u'123456',
             rolPorUsuario=[rol_admin], 
-            role_id=ADMIN,
             status_id=ACTIVE
             )
     
@@ -115,7 +114,6 @@ def initdb():
             email=u'lider@example.com', 
             password=u'123456',
             rolPorUsuario=[rol_admin_usuarios], 
-            role_id=USER,
             status_id=ACTIVE
             )
             
@@ -126,7 +124,6 @@ def initdb():
             email=u'usuario@example.com', 
             password=u'123456',
             rolPorUsuario=[rol_admin_comites], 
-            role_id=USER,
             status_id=ACTIVE
             )
     

@@ -667,22 +667,22 @@ def rolesxproyecto(proyecto_id):
     """Funcion que asigna los roles de un proyecto"""
     proyecto = Proyecto.query.filter_by(id=proyecto_id).first_or_404()
     form = RolxProyectoForm(obj=proyecto, next=request.args.get('next'))
-    rolesAsignados = proyecto.roles
+    rolesAsignados = proyecto.rolPorProyecto
     todosRoles = Rol.query.all()
     RolesAsignar = [item for item in todosRoles if item not in rolesAsignados]
     listaRoles=[]
     for rolAsig in rolesAsignados:
         listaRoles.append(rolAsig.id)
        
-    form.roles.choices = [(m.id, m.nombre) for m in RolesAsignar ]
+    form.rolPorProyecto.choices = [(m.id, m.nombre) for m in RolesAsignar ]
    
     if form.validate_on_submit():       
-        listaTotal=form.roles.data
+        listaTotal=form.rolPorProyecto.data
         for rolAsig in listaRoles:
             listaTotal.append(rolAsig)
         for rolID in listaTotal:
             rol = Rol.query.filter_by(id=rolID).first()
-            proyecto.roles.append(rol)
+            proyecto.rolPorProyecto.append(rol)
         db.session.add(proyecto)
         db.session.commit()
        

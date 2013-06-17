@@ -271,6 +271,7 @@ class User(db.Model, UserMixin):
         for solicitud in listaSolicitudes:
             item = Item.query.filter_by(id = solicitud.item_id).first_or_404()
             listaItem.append(item)
+            
         return listaItem    
     
                    

@@ -17,69 +17,92 @@
 {% endif%}
 
 
-
-	
 {% block body %}
-	<h2>Fases del Proyecto: <font color="royalblue">{{ proyecto.nombre }}</font></h2>
+<h2>Fases del Proyecto: <font color="royalblue">{{ proyecto.nombre }}</font></h2>
 
-        <div class="tabbable tabs-left"> <!-- Only required for left/right tabs -->
-    	<ul class="nav nav-tabs">
-   			{% for fase in fases %}
-   			<li><a href="#{{fase.id}}" data-toggle="tab">{{ fase.nombre }} </a></li>
-   			{% endfor%}
-    	</ul>
-    	
-    	<div class="tab-content">
-    		{% for fase in fases %}
-    		<div class="tab-pane" id="{{fase.id}}">
-    			<ul class="thumbnails">
-					<li class="span9">
-						<div class="thumbnail">
-							
-							<h3>Items de: <font color="royalblue">{{ fase.nombre }}</font></h3>
-							<p>Descripcion: {{fase.descripcion}}</p>
-							<p>Estado: <font color="royalblue">{{ fase.estado }}</font></p>
-							
-							<div class="row-fluid">    
-	    						<div class="span2">
-	    							<a class="btn btn-primary" href="{{ url_for('des.crearItem', proyecto_id=proyecto.id, fase_id=fase.id)}}"><strong>Crear Item</strong></a><br><br></div>
-   							</div>
-							
-							<table class='table table-bordered table-hover table-condensed'>
-	        					<thead>
-	            				<tr>
-	                				<th>Nombre</th>
-	                				<th>Descripcion</th>
-	                				<th>Historiales</th>
-	                				<th>Relaciones</th>
-	                				<th></th>
-	            				</tr>
-	        					</thead>
-	        					{% for item in fase.getItems(proyecto.id) %}
-	        					<tr>
-						            <td>{{ item.nombre }}</td>
-						            <td>{{ item.descripcion }}</td>
-	<!-- 					            <td><a href="{{ url_for('des.historialxitem', item_id=item.id) }}"><i class="icon-calendar"></i> Ver Historial</a></td> -->
-						            <td><a data-toggle="modal" href="#{{item.id}}"><i class="icon-calendar"></i> Ver Historial</a></td>
-						            <td><a href="#"><i class="icon-eye-open"></i> Padre</a> | <a href="#"><i class="icon-eye-open"></i> Sucesor</a> | <a href="#"><i class="icon-eye-open"></i> Hijos</a></td>
-						            <td><a href="{{ url_for('des.item', item_id=item.id, proyecto_id=proyecto.id) }}"><i class="icon-pencil"></i>Editar</a>
-		        				{%if proyecto.comite is none%}
-		        					<a href="#" onClick="alert('El proyecto aun no cuenta con un Comite de cambios.')"><i class="icon-remove"></i>Eliminar</a></td>
-		        				{% else%}
-		        					<a data-toggle="modal" href="#modalSolicitud"><i class="icon-remove"></i>Eliminar</a> </td>
-		        				{% endif %}  
-		            			</tr>
-		       					{% endfor %}
-    						</table>	
+<div class="tabbable tabs-left"> <!-- Only required for left/right tabs -->
+	<ul class="nav nav-tabs">
+    {% for fase in fases %}
+    	<li><a href="#nombre{{fase.id}}" data-toggle="tab">{{ fase.nombre }} </a></li>
+    {% endfor%}
+    </ul>
+    
+    <div class="tab-content">
+    	{% for fase in fases %}
+     	<div class="tab-pane" id="nombre{{fase.id}}">
+     		<ul class="thumbnails">
+				<li class="span9">
+				<div class="thumbnail">
+
+					<h3>Items de: <font color="royalblue">{{ fase.nombre }}</font></h3>	
+					<p>Descripcion: {{fase.descripcion}}</p>
+					<p>Estado: <font color="royalblue">{{ fase.estado }}</font></p>
+	
+					<div class="row-fluid">
+						<div class="span2">
+						<a class="btn btn-primary" href="{{ url_for('des.crearItem', proyecto_id=proyecto.id, fase_id=fase.id)}}"><strong>Crear Item</strong></a><br><br>
 						</div>
-					</li>
-				</ul>	
-    		</div>
-    		{% endfor%}
-    	</div>
+	    			</div>
+	
+					<table class='table table-bordered table-hover table-condensed'>
+						<thead>
+						<tr>
+							<th>Nombre</th>
+							<th>Descripcion</th>
+							<th>Historiales</th>
+							<th>Relaciones</th>
+							<th></th>
+						</tr>
+						</thead>
+						{% for item in fase.getItems(proyecto.id) %}
+						<tr>
+							<td>{{ item.nombre }}</td>
+							<td>{{ item.descripcion }}</td>
+							<!-- <td><a href="{{ url_for('des.historialxitem', item_id=item.id) }}"><i class="icon-calendar"></i> Ver Historial</a></td> -->
+							<td><a data-toggle="modal" href="#{{item.id}}"><i class="icon-calendar"></i> Ver Historial</a></td>
+							<td><a href="#"><i class="icon-eye-open"></i> Padre</a> | <a href="#"><i class="icon-eye-open"></i> Sucesor</a> | <a href="#"><i class="icon-eye-open"></i> Hijos</a></td>
+							<td><a href="{{ url_for('des.item', item_id=item.id, proyecto_id=proyecto.id) }}"><i class="icon-pencil"></i>Editar</a>
+							{%if proyecto.comite is none%}
+							<a href="#" onClick="alert('El proyecto aun no cuenta con un Comite de cambios.')"><i class="icon-remove"></i>Eliminar</a></td>
+							{% else%}
+							<a data-toggle="modal" href="#modalSolicitud"><i class="icon-remove"></i>Eliminar</a> </td>
+							{% endif %}
+						</tr>
+						
+						<div id="modalSolicitud" class="modal hide fade in" style="display: none;">
+							<div class="modal-header">
+								<a data-dismiss="modal" class="close">×</a>
+								<h4>Solicitud de Cambio</h4>
+							</div>
+							<div class="modal-body">
+								<p>Para eliminar un item debe enviar una <font color="royalblue">Solicitud de Cambio</font> y esperar aprobacion. </p>
+							</div>
+							<div class="modal-footer">	
+								<a href="#" data-dismiss="modal" class="btn">Cancelar</a>
+								<a href="{{ url_for('des.crearSolicitud', item_id=item.id, proyecto_id=proyecto.id)  }}" class="btn btn-primary">Enviar Solicitud</a>
+							</div>
+						</div>
+						
+						
+						
+						{% endfor %}
+	     			</table>	
+				</div>
+				</li>
+			</ul>	
+     </div>
+     {% endfor%}
     </div>
-
+ </div>
 
 {% endblock %}
+
+
+
+
+
+
+
+	
 
 

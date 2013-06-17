@@ -52,8 +52,8 @@ def crearItem(proyecto_id, fase_id):
         db.session.commit()
      
         
-        flash('Item creado.', 'success')
-        return redirect(url_for('des.itemsxproyecto',proyecto_id=proyecto.id))
+        flash('Item creado correctamente.', 'success')
+        return redirect(url_for('des.fasesxproyecto', proyecto_id=proyecto.id))
         
     return render_template('des/crearItem.html', proyecto=proyecto, fase = fase, form=form)
 
@@ -99,12 +99,16 @@ def historialxitem(item_id):
 
 @des.route('/IT<item_id>/PR<proyecto_id>', methods=['GET', 'POST'])
 @login_required
-def crearSolicitud(proyecto_id, item_id):
+def crearSolicitud(item_id, proyecto_id):
     proyecto = Proyecto.query.filter_by(id=proyecto_id).first_or_404()
     comite = proyecto.comite
     item = Item.query.filter_by(id=item_id).first_or_404()
     usuariosComite = comite.usuarioPorComite
     itemsExistentes = proyecto.items
+    
+    print "Recibie$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$"
+    print item_id
+        
     
     solicitud = Solicitud()
     solicitud.comite_id = comite.id
@@ -114,8 +118,9 @@ def crearSolicitud(proyecto_id, item_id):
     
     for usuario in usuariosComite:
         usuario.solicitudPorUsuario.append(solicitud)
-        print '#################usuario'
-        print usuario.nombre
+        
+        print "Solicitu de$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$"
+        print solicitud.item_id
         
         db.session.add(usuario)
         db.session.commit()
@@ -130,16 +135,19 @@ def crearSolicitud(proyecto_id, item_id):
 def fasesxproyecto(proyecto_id):
     """Funcion que lista las fases de un Proyecto"""
     proyecto = Proyecto.query.filter_by(id=proyecto_id).first_or_404()
-    fasesExistentes = proyecto.fases
-    return render_template('des/fases.html', proyecto=proyecto, fases=fasesExistentes, active='Fases')
+    fases = proyecto.fases
+    #cabeceras=[]
+    #for fase in fasesExistentes:
+    #   cabeceras.append((fase.nombre, proyecto.id, fase.id ))
+    return render_template('des/fases.html', proyecto=proyecto, fases=fases, active='Fases')
 
 @des.route('/IdF<fase_id>/<proyecto_id>', methods=['GET', 'POST'])
 @login_required
 def fase(proyecto_id, fase_id):
-    """Funcion que permite editar un comite"""
+    """Funcion que permite ver contenidos de una fase"""
     fase = Fase.query.filter_by(id=fase_id).first_or_404()
     proyecto = Proyecto.query.filter_by(id=proyecto_id).first_or_404()
-    
-    return render_template('des/fase.html', fase=fase, proyecto=proyecto)
+    items =  fase.getItems(proyecto.id)
+    return render_template('des/fase.html', fase=fase, proyecto=proyecto, items=items, active='Fases', active1='Fase uno')
 
 

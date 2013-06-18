@@ -4,7 +4,6 @@ from flask_wtf import Form, ValidationError
 from flask_wtf import HiddenField, SubmitField, RadioField, DateField
 from flask_wtf import AnyOf
 
-
 from ..modelos import COMITE_ESTADOS
 
 from flask_wtf.html5 import EmailField
@@ -46,3 +45,4 @@ class UserxComiteForm(Form):
     # A demo of datepicker.
     usuarioPorComite = SelectMultipleField(u'Usuarios' ,coerce=int)
     submit = SubmitField(u'Agregar Miembro')
+

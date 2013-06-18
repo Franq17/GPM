@@ -28,7 +28,7 @@ def crearItem(proyecto_id, fase_id):
     proyecto = Proyecto.query.filter_by(id=proyecto_id).first_or_404()
     fase = Fase.query.filter_by(id=fase_id).first_or_404()
     tiposItem= TipoItem.query.filter_by(proyecto_id=proyecto_id)
-    
+   
     form = CrearItemForm(next=request.args.get('next'))
     form.tipoItem_id.choices = [(h.id, h.nombre) for h in tiposItem ]
     if form.validate_on_submit():
@@ -97,6 +97,7 @@ def historialxitem(item_id):
             historiales.append(historial)
     return render_template('des/historialxitem.html', item=item, historiales=historiales)
 
+
 @des.route('/IT<item_id>/PR<proyecto_id>', methods=['GET', 'POST'])
 @login_required
 def crearSolicitud(item_id, proyecto_id):
@@ -106,7 +107,7 @@ def crearSolicitud(item_id, proyecto_id):
     usuariosComite = comite.usuarioPorComite
     itemsExistentes = proyecto.items
     
-    print "Recibie$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$"
+    print "Recibi el item$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$"
     print item_id
         
     
@@ -119,7 +120,7 @@ def crearSolicitud(item_id, proyecto_id):
     for usuario in usuariosComite:
         usuario.solicitudPorUsuario.append(solicitud)
         
-        print "Solicitu de$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$"
+        print "Guardo la solictud con id$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$"
         print solicitud.item_id
         
         db.session.add(usuario)
@@ -144,10 +145,9 @@ def fasesxproyecto(proyecto_id):
 @des.route('/IdF<fase_id>/<proyecto_id>', methods=['GET', 'POST'])
 @login_required
 def fase(proyecto_id, fase_id):
-    """Funcion que permite ver contenidos de una fase"""
+    """Funcion que permite editar un comite"""
     fase = Fase.query.filter_by(id=fase_id).first_or_404()
     proyecto = Proyecto.query.filter_by(id=proyecto_id).first_or_404()
-    items =  fase.getItems(proyecto.id)
-    return render_template('des/fase.html', fase=fase, proyecto=proyecto, items=items, active='Fases', active1='Fase uno')
-
+    
+    return render_template('des/fase.html', fase=fase, proyecto=proyecto)
 

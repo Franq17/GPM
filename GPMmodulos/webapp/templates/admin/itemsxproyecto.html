@@ -3,7 +3,6 @@
 {% set page_header = _(active|capitalize) %}
 {% set page_title = 'Proyecto_Item' %}
 
-
 {% if current_user.comprobarPermiso('verLineaBase')  %}
 	{% set tabs = [
 		("Fases",url_for('admin.fasesxproyecto', proyecto_id=proyecto.id)), 

@@ -4,7 +4,7 @@ from flask_wtf import Form, ValidationError
 from flask_wtf import HiddenField, SubmitField, RadioField, DateField
 from flask_wtf import AnyOf
 
-from ..modelos import USER_ROLE, USER_STATUS, PROYECTO_ESTADOS, COMITE_ESTADOS,LINEABASE_ESTADOS
+from ..modelos import USER_STATUS, PROYECTO_ESTADOS, COMITE_ESTADOS,LINEABASE_ESTADOS
 
 from flask_wtf.html5 import EmailField
 from flask_wtf import Required, Optional, Length, EqualTo, Email
@@ -21,8 +21,6 @@ class UserForm(Form):
     next = HiddenField()
     status_id = RadioField(u"Estados", [AnyOf([str(val) for val in USER_STATUS.keys()])],
             choices=[(str(val), label) for val, label in USER_STATUS.items()])
-    # A demo of datepicker.
-    created_time = DateField(u'Fecha de Creacion')
     submit = SubmitField(u'Guardar')
 
 class DeleteUserForm(Form):
@@ -52,8 +50,7 @@ class CreateUserForm(Form):
 #PROYECTO
 class ProyectoForm(Form):
     next = HiddenField()
-    estado_id = RadioField(u"Estados", [AnyOf([str(val) for val in PROYECTO_ESTADOS.keys()])],
-            choices=[(str(val), label) for val, label in PROYECTO_ESTADOS.items()])
+    nombre = TextField(u'Nombre del Proyecto', [Required(), Length(REALNAME_LEN_MIN, REALNAME_LEN_MAX)])
     descripcion = TextAreaField(u'Descripcion', [Optional(), Length(max=1024)])
     submit = SubmitField(u'Guardar')
     
@@ -201,7 +198,7 @@ class UsuarioxProyectoForm(Form):
     
 class RolxProyectoForm(Form):
     next = HiddenField()
-    roles = SelectMultipleField(u'Roles', coerce=int)
+    rolPorProyecto = SelectMultipleField(u'Roles', coerce=int)
     submit = SubmitField(u'Agregar')
 
 #class CrearItemForm(Form):

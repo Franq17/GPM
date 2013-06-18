@@ -4,10 +4,10 @@
 {% set page_title = 'Proyecto_Miembro' %}
 
 {% set tabs = [
+	("Miembros",url_for('admin.usuariosxproyecto', proyecto_id=proyecto.id)),
+	("Roles",url_for('admin.rolesxproyecto', proyecto_id=proyecto.id)),
     ("Fases",url_for('admin.fasesxproyecto', proyecto_id=proyecto.id)), 
-    ("Roles",url_for('admin.rolesxproyecto', proyecto_id=proyecto.id)),
-    ("Tipos de Item",url_for('admin.tiposItemxproyecto', proyecto_id=proyecto.id)),
-    ("Miembros",url_for('admin.usuariosxproyecto', proyecto_id=proyecto.id))
+    ("Tipos de Item",url_for('admin.tiposItemxproyecto', proyecto_id=proyecto.id))
 ]%}
 
 {% block body %}

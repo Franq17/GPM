@@ -6,7 +6,7 @@ from flask_login import login_required, current_user
 from ..extensions import db
 from ..decorators import *
 
-
+from .views_gdc import *
 
 #from ..modelos import User, Rol, Permiso, Proyecto, Comite, Fase, HistorialItem
 
@@ -217,18 +217,15 @@ def rol(rol_id):
 def borrarRol(rol_id):
     """Funcion que permite eliminar un rol"""
     rol = Rol.query.filter_by(id=rol_id).first_or_404()
-    form = BorrarRolForm(obj=rol, next=request.args.get('next'))
-    users = rol.users.all()
-    sum = 0
-    for user in users:
-        sum = sum + 1
-    if sum <> 0:
-        flash('Rol no eliminado. Rol asignado a usuario(s)', 'error')
+    users = rol.getUsers()
+    
+    if len(users)!=0:
+        flash('El rol NO puede ser eliminado, esta asignado a usuario(s)', 'error')
         return redirect(url_for('admin.roles'))
-    elif form.validate_on_submit():
+    else:
         db.session.delete(rol)
         db.session.commit()
-   
+        
         flash('Rol eliminado.', 'success')
         return redirect(url_for('admin.roles'))
 
@@ -371,18 +368,41 @@ def desasignarUsuario(proyecto_id, user_id):
     proyecto = Proyecto.query.filter_by(id=proyecto_id).first_or_404()
     form = UsuarioxProyectoForm(obj=user, next=request.args.get('next'))
     usuariosAsignados = proyecto.usuarioPorProyecto
-      
+    
     for item in usuariosAsignados:
-        if item == usuarioDesasignar:
-            proyecto.usuarioPorProyecto.remove(item)
-            desasignarMiembro(proyecto.comite.id, usuarioDesasignar.id)
-            db.session.add(proyecto)
-            db.session.commit()
-            flash('Usuario desasignado.', 'success')
+        if usuarioDesasignar.id == proyecto.lider_proyecto:
+            flash('El usuario es Lider del proyecto, no puede ser desasignado.', 'error')
             return redirect(url_for('admin.usuariosxproyecto', proyecto_id=proyecto.id))
+        elif item == usuarioDesasignar:
+                proyecto.usuarioPorProyecto.remove(item)
+                if usuarioDesasignar.estaEnComite(proyecto.comite.id):
+                    desasignarMiembro(proyecto.comite.id, usuarioDesasignar.id)
+                db.session.add(proyecto)
+                db.session.commit()
+                flash('Usuario desasignado.', 'success')
+                return redirect(url_for('admin.usuariosxproyecto', proyecto_id=proyecto.id))
        
     return render_template('admin/usuariosxproyecto.html', proyecto=proyecto, form=form, users=usuariosAsignados)
 
+@admin.route('/rolesxproyecto/Proyecto<proyecto_id>/Rol<rol_id>', methods=['GET', 'POST'])
+@login_required
+#@desasignarRolProyecto_required
+def desasignarRolProyecto(proyecto_id, rol_id):
+    """Funcion que permite desasignar un rol de un proyecto"""
+    rolDesasignar = Rol.query.filter_by(id=rol_id).first_or_404()
+    proyecto = Proyecto.query.filter_by(id=proyecto_id).first_or_404()
+    form = RolxProyectoForm(obj=proyecto, next=request.args.get('next'))
+    rolesAsignados = proyecto.roles
+    
+    for item in rolesAsignados:
+        if item == rolDesasignar:
+            proyecto.roles.remove(item)
+            db.session.add(proyecto)
+            db.session.commit()
+            flash('Rol desasignado.', 'success')
+            return redirect(url_for('admin.rolesxproyecto', proyecto_id=proyecto.id))
+     
+    return render_template('admin/rolesxproyecto.html', proyecto=proyecto, form=form, roles=rolesAsignados)
 
 #COMITE
 
@@ -871,7 +891,7 @@ def rolesxproyecto(proyecto_id):
         db.session.commit()
        
         flash('Proyecto modificado.', 'success')
-        return redirect(url_for('admin.proyectos'))
+        return redirect(url_for('admin.rolesxproyecto', proyecto_id=proyecto.id))
        
     return render_template('admin/rolesxproyecto.html', proyecto=proyecto, form=form, roles=rolesAsignados, active='Roles')
 

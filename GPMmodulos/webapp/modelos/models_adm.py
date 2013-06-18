@@ -96,6 +96,15 @@ class Rol(db.Model):
     # ================================================================
     # Class methods
 
+    def getUsers (self):
+        users = User.query.all()
+        userList = []
+        for user in users:
+            roles = user.rolPorUsuario
+            if self in roles:
+                userList.append(user)
+        return userList
+    
     @classmethod
     def search(cls, keywords):
         criteria = []
@@ -271,6 +280,13 @@ class User(db.Model, UserMixin):
             listaItem.append(item)
         return listaItem    
     
+    def estaEnComite(self, comite_id):
+        comite = Comite.query.filter_by(id=comite_id).first_or_404()
+        members = comite.usuarioPorComite
+        for member in members:
+            if self.id == member.id:
+                return True
+        return False
                    
     def getRole(self):
         return USER_ROLE[self.role_id]

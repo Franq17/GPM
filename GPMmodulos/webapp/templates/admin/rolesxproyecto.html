@@ -4,10 +4,10 @@
 {% set page_title = 'Proyecto_Miembro' %}
 
 {% set tabs = [
+	("Miembros",url_for('admin.usuariosxproyecto', proyecto_id=proyecto.id)),
+	("Roles",url_for('admin.rolesxproyecto', proyecto_id=proyecto.id)),
     ("Fases",url_for('admin.fasesxproyecto', proyecto_id=proyecto.id)), 
-    ("Roles",url_for('admin.rolesxproyecto', proyecto_id=proyecto.id)),
-    ("Tipos de Item",url_for('admin.tiposItemxproyecto', proyecto_id=proyecto.id)),
-    ("Miembros",url_for('admin.usuariosxproyecto', proyecto_id=proyecto.id))
+    ("Tipos de Item",url_for('admin.tiposItemxproyecto', proyecto_id=proyecto.id))
 ]%}
 
 {% block body %}
@@ -26,7 +26,21 @@
             <td>{{ rol.nombre }}</td>
             <td>{{ rol.descripcion }}</td>
 
-            <td><a href="{{ url_for('admin.permisosxrol', rol_id=rol.id) }}"><i class="icon-eye-open"></i>Permisos</a> | <a href="{{ url_for('admin.rol', rol_id=rol.id) }}"><i class="icon-pencil"></i>Editar</a> | <a href="{{ url_for('admin.borrarRol', rol_id=rol.id) }}"><i class="icon-remove"></i>Eliminar</a></td>
+            <td><a href="{{ url_for('admin.permisosxrol', rol_id=rol.id) }}"><i class="icon-eye-open"></i>Permisos</a> | <a href="{{ url_for('admin.rol', rol_id=rol.id) }}"><i class="icon-pencil"></i>Editar</a> | <a data-toggle="modal" href="#{{rol.id}}" class="text"><i class="icon-remove"></i>Quitar</a></td>
+
+			<div id="{{rol.id}}" class="modal hide fade in" style="display: none;">
+				<div class="modal-header">
+					<a data-dismiss="modal" class="close">×</a>
+					<h4>Desasignar Rol: <font color="royalblue">{{ rol.nombre }}</font></h4>
+				</div>
+				<div class="modal-body">
+					<p>Favor, confirme su respuesta</p>
+				</div>
+				<div class="modal-footer">
+					<a href="#" data-dismiss="modal" class="btn">Cancelar</a>
+					<a href="{{ url_for('admin.desasignarRolProyecto', proyecto_id=proyecto.id, rol_id=rol.id)}}" class="btn btn-primary">Desasignar</a>
+				</div>
+			</div>
         </tr>
         {% endfor %}
     </table>

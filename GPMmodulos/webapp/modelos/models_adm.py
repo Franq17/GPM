@@ -91,19 +91,18 @@ archivoPorItem = db.Table('asociacion_item_archivo',
     Column('archivo_id', db.Integer, db.ForeignKey('archivo.id'))
 )
 
-relacion_sucesor = db.Table('relacion_sucesor',
-    Column('item1_id', db.Integer, db.ForeignKey('item.id')),
-    Column('item2_id', db.Integer, db.ForeignKey('item.id')),
-   # item = relationship('Item', primaryjoin="Item.id==RelacionSucesor.right_id", backref='relacion_sucesor')
-    Column('datos', db.String(50))
-)
+class RelacionSucesor(db.Model):
+    __tablename__ = 'relacion_sucesor'
+    left_id = Column(db.Integer, db.ForeignKey('item.id'), primary_key=True)
+    right_id = Column(db.Integer, db.ForeignKey('item.id'), primary_key=True)
+    item = db.relationship('Item', primaryjoin="Item.id==RelacionSucesor.right_id", backref='relacion_sucesor')
+    
+class RelacionHijo(db.Model):
+    __tablename__ = 'relacion_hijo'
+    left_id = Column(db.Integer, db.ForeignKey('item.id'), primary_key=True)
+    right_id = Column(db.Integer, db.ForeignKey('item.id'), primary_key=True)
+    hijo = db.relationship('Item', primaryjoin="Item.id==RelacionHijo.right_id", backref='relacion_hijo')
 
-relacion_hijo = db.Table('relacion_hijo',
-    Column('item1_id', db.Integer, db.ForeignKey('item.id')),
-    Column('item2_id', db.Integer, db.ForeignKey('item.id')),
-    Column('datos', db.String(50))
-# hijo = relationship('Item', primaryjoin="Item.id==RelacionHijo.right_id", backref='relacion_hijo')
-)
 
 ##############################################################################################
 ##############################################################################################
@@ -546,6 +545,7 @@ class Item(db.Model):
     fase_id = Column(db.Integer, db.ForeignKey('fase.id')) 
     solicitudes = db.relationship('Solicitud', backref='item',lazy='dynamic')
     lineaBase_id = Column(db.Integer, db.ForeignKey('lineaBase.id'))
+    
     """
     estas dos columnas son para relacionar muchos items con un tipo de item
     """
@@ -562,9 +562,9 @@ class Item(db.Model):
     """
     relacion con el item sucesor
     """
-#    relacionSucesor= relationship("RelacionSucesor", primaryjoin=id==RelacionSucesor.left_id, backref='items')
+    relacionSucesor= db.relationship("RelacionSucesor", primaryjoin=id==RelacionSucesor.left_id, backref='items')
 #    
-#    relacionHijo= relationship("RelacionHijo", primaryjoin=id==RelacionHijo.left_id, backref='item')
+    relacionHijo = db.relationship("RelacionHijo", primaryjoin=id==RelacionHijo.left_id, backref='item')
 
 
 # FUNCIONES  ====================================================================   

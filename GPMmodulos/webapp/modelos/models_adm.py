@@ -11,11 +11,8 @@ from flask_login import UserMixin
 from ..extensions import db
 from ..utils import get_current_time
 
-from .constants import INACTIVE, USER_STATUS,NO_INICIADO, PROYECTO_ESTADOS, LINEABASE_ESTADOS
-from .constants import INICIAL, FASE_ESTADOS
-
-# from .constants import INACTIVE, USER_STATUS,NO_INICIADO, PROYECTO_ESTADOS, LINEABASE_ESTADOS, FASE_ESTADOS
-# from .constants import INICIAL
+from .constants import INACTIVE, USER_STATUS,NO_INICIADO, PROYECTO_ESTADOS, LINEABASE_ESTADOS, FASE_ESTADOS, ITEM_ESTADOS
+from .constants import INICIAL, DESAPROBADO, ROL_ESTADOS, TIPOS_ROLES, NO_ASIGNADO
 
 
 class DenormalizedText(Mutable, types.TypeDecorator):
@@ -88,6 +85,11 @@ solicitudPorUsuario = db.Table('solicitudPorUsuario',
     Column('solicitud_id', db.Integer, db.ForeignKey('solicitud.id'))
 )
 
+tipoItemPorFase = db.Table ('tipoItemPorFase',
+    Column('tipoItem_id', db.Integer, db.ForeignKey('tipoItem.id')),
+    Column('fase_id', db.Integer, db.ForeignKey('fase.id'))
+)
+
 ############################################################################################
 #            Agregado de Adolfismo
 ############################################################################################
@@ -113,6 +115,7 @@ class RelacionHijo(db.Model):
 
 ##############################################################################################
 ##############################################################################################
+
     
 class User(db.Model, UserMixin):
 
@@ -133,8 +136,10 @@ class User(db.Model, UserMixin):
     
 # RELACIONES ==========================================================================
 
-    # Many-to-many relationship 
+    #esLiderFase = db.relationship('Fase', backref='users',lazy='dynamic')
     
+
+    # Many-to-many relationship    
     rolPorUsuario = db.relationship('Rol', secondary=rolPorUsuario,
        backref=db.backref('users', lazy='dynamic'))
     
@@ -218,6 +223,25 @@ class User(db.Model, UserMixin):
             if self.id == member.id:
                 return True
         return False
+    
+    ## Falta arreglar para el caso de desasignar el rol de un usuario en un Proyecto
+    def puedeSerLiderFase(self):
+        roles = self.rolPorUsuario
+        for rol_id in roles:
+            rol = Rol.query.filter_by(id=rol_id).first_or_404()
+            if rol.getTipo() == 'lider de Fase':
+                return True
+        return False
+     
+    def esLiderDeFase(self, proyecto_id):
+        proyecto = Proyecto.query.filter_by(id=proyecto_id).first_or_404()
+        fases = proyecto.fases
+        for fase_id in fases:
+            fase = Fase.query.filter_by(id=fase_id).first_or_404()
+            if self.id == fase.lider_fase:
+                return True
+        return False
+    ##
     
     def getStatus(self):
         return USER_STATUS[self.status_id]
@@ -308,7 +332,9 @@ class Rol(db.Model):
 
     id = Column(db.Integer, primary_key=True)
     nombre = Column(db.String(32), nullable=False, unique=True)
+    tipo = Column(db.SmallInteger)
     descripcion = Column(db.String)
+    estado_id = Column(db.SmallInteger, default=NO_ASIGNADO)
     
 # RELACIONES =================================================================
     permisoPorRol = db.relationship('Permiso', secondary=permisoPorRol,
@@ -326,7 +352,20 @@ class Rol(db.Model):
     
     def setDescripcion(self, descripcion):
         self.descripcion= descripcion
-        
+    
+    def getTipo(self):
+        return TIPOS_ROLES[self.tipo]
+    
+    def setTipo(self, tipo):
+        self.tipo = tipo
+    
+    def getEstado(self):
+        return ROL_ESTADOS[self.estado_id]
+    
+    def setEstado(self, estado):
+        self.estado_id = estado
+
+    
     # Class methods
 
     @classmethod
@@ -386,6 +425,9 @@ class Proyecto(db.Model):
     def getEstado(self):
         return PROYECTO_ESTADOS[self.estado_id]
     
+    def setEstado(self, estado):
+        self.estado_id = estado
+            
     def getNroFases(self):
         return self.numero_fases
     
@@ -401,7 +443,11 @@ class Proyecto(db.Model):
     def getTodosProyectos(self):
         todosProyectos = Proyecto.query.filter(Proyecto.id != self.id)
         return todosProyectos
-   
+    
+    def getLider(self):
+        lider = User.query.filter_by(id=self.lider_proyecto).first_or_404()
+        return lider.nombre+' '+lider.apellido
+    
     # ================================================================
     # Follow / Following
     followers = Column(DenormalizedText)
@@ -448,6 +494,7 @@ class Proyecto(db.Model):
         q = reduce(db.and_, criteria)
         return cls.query.filter(q)
 
+
     
 class Fase(db.Model):
     __tablename__='fase'
@@ -458,13 +505,19 @@ class Fase(db.Model):
     numero_fase = Column(db.Integer,nullable=True)
     numero_lb = Column(db.Integer,default=0)
     estado_id = Column(db.SmallInteger,default=INICIAL)
+    lider_fase = Column(db.Integer, nullable=True)
     
 # RELACIONES =================================================================
     # Many-to-one relationship
     proyecto_id = Column(db.Integer, db.ForeignKey('proyecto.id'))
+    #liderFase_id = Column(db.Integer(), db.ForeignKey('users.id'))
     # One-to-many relationship
     lineaBase = db.relationship('LineaBase', backref='fase',lazy='dynamic')
     items = db.relationship('Item', backref='fase',lazy='dynamic')
+    # Many-to-many relationship
+    tipoItemPorFase = db.relationship('TipoItem', secondary=tipoItemPorFase,
+       backref=db.backref('fases', lazy='dynamic'))
+    
     
 # FUNCIONES =================================================================    
 
@@ -500,6 +553,18 @@ class Fase(db.Model):
         misItems = self.items
         return misItems
     
+    def existeTipoItem (self, tipoItem_id):
+        for tipo in self.tipoItemPorFase:
+            if tipo.id == tipoItem_id:
+                return True
+        return False
+    
+    def getLider(self):
+        lider = User.query.filter_by(id=self.lider_fase).first_or_404()
+        return lider.nombre+' '+lider.apellido
+    
+    def setLider(self, lider):
+        self.lider_fase = lider
     
 class TipoItem(db.Model):
     
@@ -558,103 +623,20 @@ class Item(db.Model):
     descripcion = Column(db.String(),nullable=True)
     version = Column(db.Integer)
     complejidad= Column(db.Integer) 
-    estado_id = Column(db.SmallInteger,default=INICIAL)
+    estado_id = Column(db.SmallInteger,default=DESAPROBADO)
+
     
 # RELACIONES  ====================================================================
 
     proyecto_id = Column(db.Integer, db.ForeignKey('proyecto.id'))
-
+    
     fase_id = Column(db.Integer, db.ForeignKey('fase.id')) 
 
     solicitudes = db.relationship('Solicitud', backref='item',lazy='dynamic')
 
     lineaBase_id = Column(db.Integer, db.ForeignKey('lineaBase.id'))
     
-    def getHistorial(self):
-        todosHistoriales = HistorialItem.query.all()
-        historiales=[]
-        for historial in todosHistoriales:
-            if historial.itemId==self.id:
-                historiales.append(historial)
-        return historiales    
-    """
-    Colummnas para relaciones de versiones de items
-    """
-#    versionSuperior_id = Column(db.Integer, ForeignKey('item.id'))
-#    versionAnterior = relationship('Item')
-#    
-#    """
-#    Relacion con el item sucesor
-#    """
-#    relacionSucesor= relationship('RelacionSucesor', primaryjoin=id==RelacionSucesor.left_id, backref='items')
-#    
-#    relacionHijo= relationship('RelacionHijo', primaryjoin=id==RelacionHijo.left_id, backref='item')
-#    
-#    def tieneVersionAnterior(self):
-#        if len(self.versionAnterior) > 0:
-#            return True
-#        else:
-#            return False
-#    
-#    def getVersionAnterior(self):
-#        return self.versionAnterior[0]
-#    
-#    def tieneVersionSuperior(self):
-#        if self.versionSuperior_id == None:
-#            return False
-#        else:
-#            return True
-#    
-#    def getVersionSuperior(self, session):
-#        item= session.query(Item).filter_by(id= self.versionSuperior_id).first()
-#        return item
-#    
-#    def tienePadre(self, fase):
-#        for item in fase.items:
-#            if item.getEstado() != 'Eliminado' and item != self:
-#                for relacion in item.relacionHijo:
-#                    if relacion.hijo == self:
-#                        return True
-#        return False
-#    
-#    """
-#    note: metodo que devuelve el padre del item, devuelve None en caso de no tener
-#    """
-##    def getPadre(self, fase):
-##        for item in fase.items:
-##            if item.getEstado() != 'Eliminado' and item != self:
-##                for relacion in item.relacionHijo:
-##                    if relacion.hijo == self:
-##                        return item
-##        return None
-##    
-#    """
-#    note metodo que pregunta si un item es descendiente de otro en una fase dada
-#    """
-##    def esDescendiente(self, fase, item):
-##        lista_hijos= self.getGeneraciones(fase, self)
-##        print "\n\n\n\n\n\n\n"
-##        for aux in lista_hijos:
-##            print aux.getNombre()
-##        print "\n\n\n\n\n\n\n"
-##        return item in lista_hijos
-#
-#
-#    
-#
-#class RelacionSucesor(db.Model):
-#    __tablename__ = 'relacion_sucesor'
-#    left_id = Column(Integer, ForeignKey('item.id'), primary_key=True)
-#    right_id = Column(Integer, ForeignKey('item.id'), primary_key=True)
-#    item = relationship('Item', primaryjoin="Item.id==RelacionSucesor.right_id", backref='relacion_sucesor')
-#    
-#
-#class RelacionHijo(db.Model):
-#    __tablename__ = 'relacion_hijo'
-#    left_id = Column(db.Integer, ForeignKey('item.id'), primary_key=True)
-#    right_id = Column(db.Integer, ForeignKey('item.id'), primary_key=True)
-#    hijo = relationship('Item', primaryjoin="Item.id==RelacionHijo.right_id", backref='relacion_hijo')
-    
+
     """
     estas dos columnas son para relacionar muchos items con un tipo de item
     """
@@ -695,7 +677,7 @@ class Item(db.Model):
         return self.version
     
     def getEstado(self):
-        return self.estado
+        return ITEM_ESTADOS[self.estado_id]
     
     def getComplejidad(self):
         return self.complejidad
@@ -1081,6 +1063,14 @@ class Comite(db.Model):
     
 
 # FUNCIONES ================================================================
+    
+    def getProyecto(self):
+        proyecto = Proyecto.query.filter_by(id=self.proyecto_id).first_or_404()
+        return proyecto
+    
+    def getProyectoNombre(self):
+        proyecto = self.getProyecto()
+        return proyecto.nombre
     
     # Class methods
 

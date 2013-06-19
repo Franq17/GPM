@@ -27,9 +27,9 @@ def crearItem(proyecto_id, fase_id):
     """Funcion que permite instanciar un Item de un Proyecto"""
     proyecto = Proyecto.query.filter_by(id=proyecto_id).first_or_404()
     fase = Fase.query.filter_by(id=fase_id).first_or_404()
-    tiposItem= TipoItem.query.filter_by(proyecto_id=proyecto_id)
-
-   
+    #tiposItem= TipoItem.query.filter_by(proyecto_id=proyecto_id)
+    tiposItem= fase.tipoItemPorFase
+    
     form = CrearItemForm(next=request.args.get('next'))
     form.tipoItem_id.choices = [(h.id, h.nombre) for h in tiposItem ]
     if form.validate_on_submit():

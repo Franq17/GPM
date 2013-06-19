@@ -105,10 +105,14 @@ def desasignarMiembro(comite_id, user_id):
     """Funcion que permite desasignar a un usuario de un comite"""
     miembroDesasignar = User.query.filter_by(id=user_id).first_or_404()
     comite = Comite.query.filter_by(id=comite_id).first_or_404()
+    proyecto = comite.getProyecto()
     form = UserxComiteForm(obj=user, next=request.args.get('next'))
     miembrosAsignados = comite.usuarioPorComite
     
     for item in miembrosAsignados:
+        if miembroDesasignar.id == proyecto.lider_proyecto:
+            flash('El usuario es Lider del proyecto, no puede ser desasignado.', 'error')
+            return redirect(url_for('cambios.usuariosxcomite', comite_id=comite.id))
         if item == miembroDesasignar:
             comite.usuarioPorComite.remove(item)
             db.session.add(comite)

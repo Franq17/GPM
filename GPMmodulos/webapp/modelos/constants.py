@@ -8,6 +8,14 @@ USER_STATUS = {
     ACTIVE: 'activo',
 }
 
+# Rol estados
+NO_ASIGNADO = 0
+ASIGNADO = 1
+ROL_ESTADOS = {
+    NO_ASIGNADO: 'no asignado',
+    ASIGNADO: 'asignado',
+}
+
 #Proyecto_estados
 NO_INICIADO = 0
 INICIADO = 1
@@ -39,6 +47,20 @@ FASE_ESTADOS = {
     COMPROMETIDA: "comprometida",
 }
 
+# ITEM_estados
+DESAPROBADO=0
+APROBADO=1
+ELIMINADO=2
+BLOQUEADO=3
+
+ITEM_ESTADOS = {
+    DESAPROBADO: 'desaprobado',
+    APROBADO: 'aprobado',
+    ELIMINADO: 'eliminado',
+    BLOQUEADO: 'bloqueado',
+}
+
+
 # LineaBase_estados
 ABIERTA=0
 CERRADA=1
@@ -52,7 +74,20 @@ LINEABASE_ESTADOS = {
     COMPROMETIDA: "comprometida",
 }
 
-# Fase
+# Tipos de Roles
+NINGUNO=0
+ADMIN=1
+LIDER_PROYECTO=2
+LIDER_FASE=3
+DESARROLLADOR=4
 
+
+TIPOS_ROLES = {
+    ADMIN: "administrador",
+    LIDER_PROYECTO: "lider de Proyecto",
+    LIDER_FASE: "lider de Fase",
+    DESARROLLADOR: "desarrollador",
+    NINGUNO: "ninguno",
+}
 
 DEFAULT_USER_AVATAR = 'default.png'

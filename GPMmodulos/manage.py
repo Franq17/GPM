@@ -12,6 +12,10 @@ from webapp.modelos import User, Rol, Permiso, Proyecto, INICIADO, Comite, Atrib
 app = create_app()
 manager = Manager(app)
 project_root_path = os.path.join(os.path.dirname(app.root_path))
+NINGUNO=0
+
+NO_ASIGNADO=0
+ASIGNADO=1
 
 @manager.command
 def test():
@@ -77,7 +81,9 @@ def initdb():
 
     
     rol_admin = Rol(nombre=u'administrador',
-                    descripcion=u'rol del administrador', 
+                    descripcion=u'rol del administrador',
+                    tipo=NINGUNO,
+                    estado_id=ASIGNADO,
                     permisoPorRol=[permiso1,permiso2,permiso3,permiso4,permiso5,
                                    permiso6,permiso7,permiso8,permiso9,permiso10,
                                    permiso11,permiso12,permiso13,permiso14,permiso15,
@@ -86,16 +92,20 @@ def initdb():
                                    permiso26,permiso27,permiso28,permiso29,permiso30])
     
     rol_admin_usuarios = Rol(nombre=u'administrador Usuarios',
-                    descripcion=u'rol que solo administra usuarios', 
+                    descripcion=u'rol que solo administra usuarios',
+                    tipo=NINGUNO,
+                    estado_id=ASIGNADO,
                     permisoPorRol=[permiso1,permiso2,permiso3,permiso4])
     
     rol_admin_comites = Rol(nombre=u'administrador Comites',
-                    descripcion=u'rol que solo administra comites', 
+                    descripcion=u'rol que solo administra comites',
+                    tipo=NINGUNO,
+                    estado_id=ASIGNADO,
                     permisoPorRol=[permiso14,permiso15,permiso16,permiso17,permiso18])
     
     
-    rol_lider = Rol(nombre=u'lider',descripcion=u'rol del lider')
-    rol_usuario = Rol(nombre=u'usuario',descripcion=u'rol del usuario')
+    rol_lider = Rol(nombre=u'lider',tipo=NINGUNO, estado_id=NO_ASIGNADO, descripcion=u'rol del lider')
+    rol_usuario = Rol(nombre=u'usuario',tipo=NINGUNO, estado_id=NO_ASIGNADO, descripcion=u'rol del usuario')
     
     admin = User(
             name=u'admin',

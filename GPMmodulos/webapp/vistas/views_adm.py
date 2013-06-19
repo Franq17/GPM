@@ -6,6 +6,8 @@ from flask_login import login_required, current_user
 from ..extensions import db
 from ..decorators import *
 
+from ..modelos import TIPOS_ROLES
+from .views_gdc import *
 #from ..modelos import User, Rol, Permiso, Proyecto, Comite, Fase, HistorialItem
 
 from ..modelos import *
@@ -47,6 +49,8 @@ def createUser():
     form.rolPorUsuario.choices = [(h.id, h.nombre) for h in RolesAsignar ]
     if form.validate_on_submit():
         user = User()
+        user.nombre = form.nombre.data
+        user.apellido = form.apellido.data
         user.name = form.name.data
         user.email = form.email.data
         user.password = form.password.data
@@ -54,6 +58,7 @@ def createUser():
         listaTotal = form.rolPorUsuario.data
         for rolID in listaTotal:
             rol = Rol.query.filter_by(id=rolID).first()
+            rol.setEstado(1)
             user.rolPorUsuario.append(rol)
         
         db.session.add(user)
@@ -63,6 +68,7 @@ def createUser():
         return redirect(url_for('admin.users'))
 
     return render_template('admin/createUser.html', form=form)
+
 
 
 @admin.route('/user/<user_id>', methods=['GET', 'POST'])
@@ -163,6 +169,7 @@ def roles():
     return render_template('admin/roles.html', roles=roles)
 
 
+
 @admin.route('/crearRol', methods=['GET', 'POST'])
 @login_required
 @crearRoles_required
@@ -170,25 +177,30 @@ def crearRol():
     """Funcion que permite crear un rol en el sistema asignando uno o mas permisos"""
     permisos = Permiso.query.all()
     PermisosAsignar = [item for item in permisos]
-    form = CrearRolForm(next=request.args.get('next')) 
+
+    tipos = [0,1,2,3,4]
+    
+    form = CrearRolForm(next=request.args.get('next'))
+    form.tipo.choices = [(h, TIPOS_ROLES[h]) for h in tipos ]
     form.permisoPorRol.choices = [(h.id, h.nombre) for h in PermisosAsignar ]
-       
+     
     if form.validate_on_submit(): 
         rol = Rol()
         rol.nombre = form.nombre.data
+        rol.tipo = form.tipo.data
         rol.descripcion = form.descripcion.data
-             
+        
         listaTotal=form.permisoPorRol.data
         for permisoID in listaTotal:
             permiso = Permiso.query.filter_by(id=permisoID).first()
             rol.permisoPorRol.append(permiso)
-            
+             
         db.session.add(rol)
         db.session.commit()
-       
+        
         flash('Rol creado.', 'success')
         return redirect(url_for('admin.roles'))
-       
+        
     return render_template('admin/crearRol.html', form=form)
 
 
@@ -215,32 +227,43 @@ def rol(rol_id):
     return render_template('admin/rol.html', rol=rol, form=form)
 
 
-
-
-@admin.route('/borrarRol/<proyecto_id>/<rol_id>', methods=['GET', 'POST'])
+@admin.route('/borrarRol/<rol_id>', methods=['GET', 'POST'])
 @login_required
 #@eliminarRoles_required
-def borrarRol (proyecto_id, rol_id):
-    """Funcion que permite eliminar un rol de un proyecto"""
-    proyecto = Proyecto.query.filter_by(id=proyecto_id).first_or_404()
+def borrarRol(rol_id):
+    """Funcion que permite eliminar un rol"""
     rol = Rol.query.filter_by(id=rol_id).first_or_404()
     
-    #if (rol.tieneUsuarios(proyecto.usuarioPorProyecto)):
-     #   flash('No se puede eliminar el Rol porque esta asignado a otros usuarios dentro del Proyecto', 'error')
-      #  return redirect(url_for('admin.rolesxproyecto', proyecto_id=proyecto.id))
+    if rol.getEstado()=='asignado':
+        flash('El rol NO puede ser eliminado, esta asignado a usuario(s)', 'error')
+        return redirect(url_for('admin.roles'))
+    else:
+        db.session.delete(rol)
+        db.session.commit()
         
-    proyecto.rolPorProyecto.remove(rol)
-    db.session.add(proyecto)
-    db.session.commit()
-    
-    flash('Rol eliminado.', 'success')
-    return redirect(url_for('admin.rolesxproyecto', proyecto_id=proyecto.id))
+        flash('Rol eliminado.', 'success')
+        return redirect(url_for('admin.roles'))
+
+
+# @admin.route('/borrarRol/<proyecto_id>/<rol_id>', methods=['GET', 'POST'])
+# @login_required
+# #@eliminarRoles_required
+# def borrarRol (proyecto_id, rol_id):
+#     """Funcion que permite eliminar un rol de un proyecto"""
+#     proyecto = Proyecto.query.filter_by(id=proyecto_id).first_or_404()
+#     rol = Rol.query.filter_by(id=rol_id).first_or_404()
+#     
+#     #if (rol.tieneUsuarios(proyecto.usuarioPorProyecto)):
+#      #   flash('No se puede eliminar el Rol porque esta asignado a otros usuarios dentro del Proyecto', 'error')
+#       #  return redirect(url_for('admin.rolesxproyecto', proyecto_id=proyecto.id))
+#         
+#     proyecto.rolPorProyecto.remove(rol)
+#     db.session.add(proyecto)
+#     db.session.commit()
+#     
+#     flash('Rol eliminado.', 'success')
+#     return redirect(url_for('admin.rolesxproyecto', proyecto_id=proyecto.id))
       
-    
-    
-
-
-
 @admin.route('/rolesxusuario/User<user_id>/Rol<rol_id>', methods=['GET', 'POST'])
 @login_required
 def desasignarRol(user_id, rol_id):
@@ -372,6 +395,7 @@ def borrarProyecto(proyecto_id):
             return redirect(url_for('admin.proyectos'))
         return render_template('admin/borrarProyecto.html', proyecto=proyecto, form=form)
  
+
 @admin.route('/iniciarProyecto/<proyecto_id>', methods=['GET', 'POST'])
 @login_required
 def iniciarProyecto(proyecto_id):
@@ -387,6 +411,7 @@ def iniciarProyecto(proyecto_id):
         flash('No se puede iniciar proyecto.', 'error')    
     return redirect(url_for('admin.proyectos',proyecto_id=proyecto.id))
 
+
 @admin.route('/usuarioxproyecto/Proyecto<proyecto_id>/Usuario<user_id>', methods=['GET', 'POST'])
 @login_required
 def desasignarUsuario(proyecto_id, user_id):
@@ -395,19 +420,46 @@ def desasignarUsuario(proyecto_id, user_id):
     proyecto = Proyecto.query.filter_by(id=proyecto_id).first_or_404()
     form = UsuarioxProyectoForm(obj=user, next=request.args.get('next'))
     usuariosAsignados = proyecto.usuarioPorProyecto
-      
+    
     for item in usuariosAsignados:
-        if item == usuarioDesasignar:
-            proyecto.usuarioPorProyecto.remove(item)
-            #desasignarMiembro(proyecto.comite.id, usuarioDesasignar.id)
-#####Arreglar            desasignarMiembro(proyecto.comite.id, usuarioDesasignar.id)
-            db.session.add(proyecto)
-            db.session.commit()
-            flash('Usuario desasignado.', 'success')
+        if usuarioDesasignar.id == proyecto.lider_proyecto:
+            flash('El usuario es Lider del proyecto, no puede ser desasignado.', 'error')
             return redirect(url_for('admin.usuariosxproyecto', proyecto_id=proyecto.id))
+        elif item == usuarioDesasignar:
+                proyecto.usuarioPorProyecto.remove(item)
+#                 if usuarioDesasignar.esLiderDeFase(proyecto.id):
+#                     fase = Fase.query.filter_by(lider_fase=usuarioDesasignar.id).first_or_404()
+#                     fase.setLider(None)
+                if proyecto.comite is not None:
+                    if usuarioDesasignar.estaEnComite(proyecto.comite.id):
+                        desasignarMiembro(proyecto.comite.id, usuarioDesasignar.id)
+                db.session.add(proyecto)
+                db.session.commit()
+                flash('Usuario desasignado.', 'success')
+                return redirect(url_for('admin.usuariosxproyecto', proyecto_id=proyecto.id))
        
     return render_template('admin/usuariosxproyecto.html', proyecto=proyecto, form=form, users=usuariosAsignados)
 
+
+@admin.route('/rolesxproyecto/Proyecto<proyecto_id>/Rol<rol_id>', methods=['GET', 'POST'])
+@login_required
+#@desasignarRolProyecto_required
+def desasignarRolProyecto(proyecto_id, rol_id):
+    """Funcion que permite desasignar un rol de un proyecto"""
+    rolDesasignar = Rol.query.filter_by(id=rol_id).first_or_404()
+    proyecto = Proyecto.query.filter_by(id=proyecto_id).first_or_404()
+    form = RolxProyectoForm(obj=proyecto, next=request.args.get('next'))
+    rolesAsignados = proyecto.roles
+    
+    for item in rolesAsignados:
+        if item == rolDesasignar:
+            proyecto.roles.remove(item)
+            db.session.add(proyecto)
+            db.session.commit()
+            flash('Rol desasignado.', 'success')
+            return redirect(url_for('admin.rolesxproyecto', proyecto_id=proyecto.id))
+     
+    return render_template('admin/rolesxproyecto.html', proyecto=proyecto, form=form, roles=rolesAsignados)
 
 #FASES
 @admin.route('/crearFase/<proyecto_id>', methods=['GET', 'POST'])
@@ -417,7 +469,7 @@ def crearFase(proyecto_id):
     proyecto = Proyecto.query.filter_by(id=proyecto_id).first_or_404()
     if proyecto.fases.count() < proyecto.numero_fases:
         form = CrearFaseForm(next=request.args.get('next'))
-        form.lider_fase.choices=[(g.id, g.nombre) for g in User.query.all()]
+        form.lider_fase.choices=[(g.id, g.nombre) for g in proyecto.usuarioPorProyecto]
     
         if form.validate_on_submit():
             fase = Fase()
@@ -730,7 +782,7 @@ def rolesxproyecto(proyecto_id):
         db.session.commit()
        
         flash('Proyecto modificado.', 'success')
-        return redirect(url_for('admin.proyectos'))
+        return redirect(url_for('admin.rolesxproyecto', proyecto_id=proyecto.id))
        
     return render_template('admin/rolesxproyecto.html', proyecto=proyecto, form=form, roles=rolesActuales, active='Roles')
 

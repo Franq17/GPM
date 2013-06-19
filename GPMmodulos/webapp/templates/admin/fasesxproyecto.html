@@ -4,10 +4,9 @@
 {% set page_title = 'Proyecto_Miembro' %}
 
 {% set tabs = [
-    ("Fases",url_for('admin.fasesxproyecto', proyecto_id=proyecto.id)), 
-    ("Roles",url_for('admin.rolesxproyecto', proyecto_id=proyecto.id)),
-    ("Tipos de Item",url_for('admin.tiposItemxproyecto', proyecto_id=proyecto.id)),
-    ("Miembros",url_for('admin.usuariosxproyecto', proyecto_id=proyecto.id))
+	("Miembros",url_for('admin.usuariosxproyecto', proyecto_id=proyecto.id)),
+	("Tipos de Item",url_for('admin.tiposItemxproyecto', proyecto_id=proyecto.id)),
+    ("Fases",url_for('admin.fasesxproyecto', proyecto_id=proyecto.id))
 ]%}
 
 {% block body %}
@@ -21,6 +20,8 @@
         <thead>
             <tr>
                 <th>Nombre</th>
+				<th>Estado</th>
+				<th>Lider de Fase</th>
                 <th>Descripcion</th>
                 <th></th>
             </tr>
@@ -28,6 +29,8 @@
         {% for fase in fases %}
         <tr>
             <td>{{ fase.nombre }}</td>
+			<td>{{ fase.getEstado() }}</td>
+			<td>{{ fase.getLider() }}</td>
             <td>{{ fase.descripcion }}</td>
             <td><a  data-toggle="modal" href="#id"><i class="icon-plus"></i>Tipos de Item</a> | <a href="{{ url_for('admin.fase', fase_id=fase.id, proyecto_id=proyecto.id) }}"><i class="icon-pencil"></i>Editar</a></td>
         </tr>

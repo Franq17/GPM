@@ -1,7 +1,7 @@
 <!DOCTYPE html>
-<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
-<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
-<!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
+<!--[if lt IE 7]> <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]> <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]> <html class="no-js lt-ie9"> <![endif]-->
 <!--[if gt IE 8]><!--> <html class="no-js"> <!--<![endif]-->
 <head>
     <meta charset="utf-8">
@@ -44,76 +44,74 @@
                 <a class='brand' href='{{ url_for('frontend.index') }}'><b>GPM</b></a>
                 {% if current_user.is_authenticated() %}
                 <div class="nav-collapse collapse pull-left">
-						<ul class="nav">
-							<li class="dropdown">
-							    <a href="#" class="dropdown-toggle" data-toggle="dropdown">Administracion <b class="caret"></b></a>
+<ul class="nav">
+<li class="dropdown">
+<a href="#" class="dropdown-toggle" data-toggle="dropdown">Administracion <b class="caret"></b></a>
                                 <ul class="dropdown-menu">
-                                	<!--  {% if current_user.comprobarPermiso('verUsuarios')  %}
-                                    
-                                    {% else %}
-                                    <li><a href="#" onClick="alert('No cuenta con permisos para administar Usuarios.')">Usuarios</a></li>
-                                    {% endif %}-->
+                                 <!-- {% if current_user.comprobarPermiso('verUsuarios') %}
+{% else %}
+<li><a href="#" onClick="alert('No cuenta con permisos para administar Usuarios.')">Usuarios</a></li>
+{% endif %}-->
                                     
                                     <li><a href="{{ url_for('admin.users') }}">Usuarios</a></li>
                                     
                                     <li class="divider"></li>
-                                    {% if current_user.comprobarPermiso('verRoles')  %}
-                                   	<li><a href="{{ url_for('admin.roles') }}">Roles</a></li>
+                                    {% if current_user.comprobarPermiso('verRoles') %}
+                                    <li><a href="{{ url_for('admin.roles') }}">Roles</a></li>
                                     {% else %}
                                     <li><a href="#" onClick="alert('No cuenta con permisos para administrar Roles.')">Roles</a></li>
                                     {% endif %}
                                     
                                     <li class="divider"></li>
-                                    {% if current_user.comprobarPermiso('verPermisos')  %}
+                                    {% if current_user.comprobarPermiso('verPermisos') %}
                                     <li><a href="{{ url_for('admin.permisos') }}">Permisos</a></li>
                                     {% else %}
                                     <li><a href="#" onClick="alert('No cuenta con permisos para administar Permisos.')">Permisos</a></li>
                                     {% endif %}
                                     
                                     <li class="divider"></li>
-                                    {% if current_user.comprobarPermiso('verProyectos')  %}
+                                    {% if current_user.comprobarPermiso('verProyectos') %}
                                     <li><a href="{{ url_for('admin.proyectos') }}">Proyectos</a></li>
                                     {% else %}
                                     <li><a href="#" onClick="alert('No cuenta con permisos para administar Proyectos.')">Proyectos</a></li>
                                     {% endif %}
-                                    <li class="divider"></li>
                                     
-                                  <!--   {% if current_user.comprobarPermiso('verComites')  %}                                    
-                                    <li><a href="{{ url_for('cambios.comites') }}">Comites</a></li>
-                                    {% else %}
-                                    <li><a href="#" onClick="alert('No cuenta con permisos para administar Comites.')">Comites</a></li>
-                                    {% endif %}    -->                                      
+                                  <!-- {% if current_user.comprobarPermiso('verComites') %}
+<li><a href="{{ url_for('cambios.comites') }}">Comites</a></li>
+{% else %}
+<li><a href="#" onClick="alert('No cuenta con permisos para administar Comites.')">Comites</a></li>
+{% endif %} -->
                                 </ul>
                             </li>
-                        </ul>   
+                        </ul>
                         <ul class="nav">
-                        	<li class="dropdown">
-                            	<a href="#" class="dropdown-toggle" data-toggle="dropdown">Mis Proyectos <b class="caret"></b></a>
-                            	<ul class="dropdown-menu">
-                            	
-                            	{% if current_user.getProyectos()|default('',false) %}
-                            		{% for proyecto in current_user.getProyectos() %}
-                                	<li><a href="{{ url_for('des.itemsxproyecto', proyecto_id=proyecto.id) }}">{{ proyecto.nombre}}</a></li>
-                                	{% endfor%}
+                         <li class="dropdown">
+                             <a href="#" class="dropdown-toggle" data-toggle="dropdown">Mis Proyectos <b class="caret"></b></a>
+                             <ul class="dropdown-menu">
+                            
+                             {% if current_user.getProyectos()|default('',false) %}
+                             {% for proyecto in current_user.getProyectos() %}
+                                 <li><a href="{{ url_for('des.itemsxproyecto', proyecto_id=proyecto.id) }}">{{ proyecto.nombre}}</a></li>
+                                 {% endfor%}
                                 {% else %}
                                     <li><a href="#">< Ninguno ></a></li>
-                                {% endif%}    	
-                                </ul>    
+                                {% endif%}
+                                </ul>
                             </li>
-							<li class="dropdown">
-                            	<a href="#" class="dropdown-toggle" data-toggle="dropdown">Gestión de Cambios <b class="caret"></b></a>
-                            	<ul class="dropdown-menu">
-                                	<li><a href="#">Lineas Base</a></li>
-									<li class="divider"></li>
-                                    {% if current_user.comprobarPermiso('verComites')  %}                                    
+<li class="dropdown">
+                             <a href="#" class="dropdown-toggle" data-toggle="dropdown">Gestión de Cambios <b class="caret"></b></a>
+                             <ul class="dropdown-menu">
+                                 <li><a href="#">Lineas Base</a></li>
+<li class="divider"></li>
+                                    {% if current_user.comprobarPermiso('verComites') %}
                                     <li><a href="{{ url_for('cambios.comites') }}">Solicitud de Cambio</a></li>
                                     {% else %}
                                     <li><a href="#" onClick="alert('No cuenta con permisos para administar Comites.')">Comites</a></li>
-                                    {% endif %}                                  	
-                                </ul>    
+                                    {% endif %}
+                                </ul>
                             </li>
-                         	<li><a href='{{ url_for('frontend.about') }}'>Acerca de GPM</a></li>
-                         </ul> 
+                          <li><a href='{{ url_for('frontend.about') }}'>Acerca de GPM</a></li>
+                         </ul>
                          
                                                      
                             
@@ -122,13 +120,13 @@
                 </div>
                 <div class="nav-collapse collapse pull-right">
                     <ul class="nav">
-						<img src="{{ url_for('user.avatar', avatar_filename=current_user.avatar) }}" style="border:1px solid black" width="40" alt="" />
-						<li>
-							<td><a data-toggle="modal" href="#{{current_user.name}}2" class="text"><span  class="badge badge-info">{{current_user.getCantSolicitudes()}}</span>Solicitud de Cambio</a></td>
-						</li>
+<img src="{{ url_for('user.avatar', avatar_filename=current_user.avatar) }}" style="border:1px solid black" width="40" alt="" />
+<li>
+<td><a data-toggle="modal" href="#{{current_user.name}}2" class="text"><span class="badge badge-info">{{current_user.getCantSolicitudes()}}</span>Solicitud de Cambio</a></td>
+</li>
                         <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown">{{ current_user.name }} <b class="caret"></b></a>
-                        <ul class="dropdown-menu">                            
+                        <ul class="dropdown-menu">
                             <li class="divider"></li>
                             <li><a href="{{ url_for('settings.perfil') }}">Configuraciones</a></li>
                             <li class="divider"></li>
@@ -171,20 +169,20 @@
 
     </div>
     
-	<div class="container">
-		
-		<div class="tabbable tabs-left"> <!-- Only required for left/right tabs -->
-			<ul class="nav nav-tabs">
-				{% for faseNombre, idProyecto, idFase in cabeceraFases %}
-				<li class="{% if active1 == faseNombre %}active{% endif %}">
-					<a href="#{{faseNombre}}">{{ faseNombre}} </a>
-				</li>
-				{% endfor%}
-    		</ul>
-		</div>
-		
-	</div>
-	{% endblock %}
+<div class="container">
+
+<div class="tabbable tabs-left"> <!-- Only required for left/right tabs -->
+<ul class="nav nav-tabs">
+{% for faseNombre, idProyecto, idFase in cabeceraFases %}
+<li class="{% if active1 == faseNombre %}active{% endif %}">
+<a href="#{{faseNombre}}">{{ faseNombre}} </a>
+</li>
+{% endfor%}
+     </ul>
+</div>
+
+</div>
+{% endblock %}
 
 
 
@@ -200,3 +198,5 @@
 
 </body>
 </html>
+
+

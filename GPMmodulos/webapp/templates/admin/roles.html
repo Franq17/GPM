@@ -15,16 +15,33 @@
         <thead>
             <tr>
                 <th>Nombre</th>
+				<th>Tipo de Rol</th>
+				<th>Estado</th>
                 <th>Descripcion</th>
-                <th></th>
+				<th></th>
             </tr>
         </thead>
         {% for rol in roles %}
         <tr>
             <td>{{ rol.nombre }}</td>
+			<td>{{ rol.getTipo() }}</td>
+			<td>{{ rol.getEstado() }}</td>
             <td>{{ rol.descripcion }}</td>
+            <td><a href="{{ url_for('admin.permisosxrol', rol_id=rol.id) }}"><i class="icon-eye-open"></i>Permisos</a> | <a href="{{ url_for('admin.rol', rol_id=rol.id) }}"><i class="icon-pencil"></i>Editar</a> | <a data-toggle="modal" href="#{{rol.id}}"><i class="icon-remove"></i>Eliminar</a></td>
 
-            <td><a href="{{ url_for('admin.permisosxrol', rol_id=rol.id) }}"><i class="icon-eye-open"></i>Permisos</a> | <a href="{{ url_for('admin.rol', rol_id=rol.id) }}"><i class="icon-pencil"></i>Editar</a> | <a href="#"><i class="icon-remove"></i>Eliminar</a></td>
+				<div id="{{rol.id}}" class="modal hide fade in" style="display: none;">
+				<div class="modal-header">
+					<a data-dismiss="modal" class="close">×</a>
+					<h4>Eliminar Rol: <font color="royalblue">{{ rol.nombre }}</font></h4>
+				</div>
+				<div class="modal-body">
+					<p>Favor, confirme su respuesta</p>
+				</div>
+				<div class="modal-footer">
+					<a href="#" data-dismiss="modal" class="btn">Cancelar</a>
+					<a href="{{ url_for('admin.borrarRol', rol_id=rol.id)}}" class="btn btn-primary">Eliminar</a>
+				</div>
+				</div>
         </tr>
         {% endfor %}
     </table>

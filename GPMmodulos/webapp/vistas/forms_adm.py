@@ -4,7 +4,8 @@ from flask_wtf import Form, ValidationError
 from flask_wtf import HiddenField, SubmitField, RadioField, DateField
 from flask_wtf import AnyOf
 
-from ..modelos import USER_STATUS, PROYECTO_ESTADOS, COMITE_ESTADOS,LINEABASE_ESTADOS
+
+from ..modelos import USER_STATUS, PROYECTO_ESTADOS, COMITE_ESTADOS, LINEABASE_ESTADOS, FASE_ESTADOS, TIPOS_ROLES
 
 from flask_wtf.html5 import EmailField
 from flask_wtf import Required, Optional, Length, EqualTo, Email
@@ -33,6 +34,8 @@ class DeleteUserForm(Form):
 
 class CreateUserForm(Form):
     next = HiddenField()
+    nombre = TextField(u'Nombre', [Required(), Length(USERNAME_LEN_MIN, USERNAME_LEN_MAX)])
+    apellido = TextField(u'Apellido', [Required(), Length(USERNAME_LEN_MIN, USERNAME_LEN_MAX)])
     email = EmailField(u'Email', [Email()])
     password = PasswordField(u'Contrasenha', [Required(), Length(PASSWORD_LEN_MIN, PASSWORD_LEN_MAX)])
     name = TextField(u'Nombre de Usuario', [Required(), Length(USERNAME_LEN_MIN, USERNAME_LEN_MAX)])
@@ -107,6 +110,7 @@ class CrearProyectoForm(Form):
 class CrearRolForm(Form):
     next = HiddenField()
     nombre = TextField(u'Nombre del Rol', [Required(), Length(REALNAME_LEN_MIN, REALNAME_LEN_MAX)])
+    tipo = SelectField(u'Tipo', [Required()], coerce=int)
     descripcion = TextAreaField(u'Descripcion', [Optional(), Length(max=1024)])
     permisoPorRol = SelectMultipleField(u'Permisos', [Required()], coerce=int)
     submit = SubmitField(u'Crear')
@@ -124,6 +128,8 @@ class BorrarRolForm(Form):
 class RolForm(Form):
     next = HiddenField()
     nombre = TextField(u'Nombre del Rol', [Required(), Length(REALNAME_LEN_MIN, REALNAME_LEN_MAX)])
+    tipo = RadioField(u"Tipos", [AnyOf([str(val) for val in TIPOS_ROLES.keys()])],
+            choices=[(str(val), label) for val, label in TIPOS_ROLES.items()])
     descripcion = TextAreaField(u'Descripcion', [Optional(), Length(max=1024)])
     submit = SubmitField(u'Editar')
 
@@ -142,6 +148,8 @@ class CrearFaseForm(Form):
     
 class FaseForm(Form):
     next = HiddenField()
+    estado_id = RadioField(u"Estados", [AnyOf([str(val) for val in FASE_ESTADOS.keys()])],
+            choices=[(str(val), label) for val, label in FASE_ESTADOS.items()])
     descripcion = TextAreaField(u'Descripcion', [Optional(), Length(max=1024)])
     submit = SubmitField(u'Editar')
      

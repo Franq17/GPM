@@ -372,6 +372,20 @@ def borrarProyecto(proyecto_id):
             return redirect(url_for('admin.proyectos'))
         return render_template('admin/borrarProyecto.html', proyecto=proyecto, form=form)
  
+@admin.route('/iniciarProyecto/<proyecto_id>', methods=['GET', 'POST'])
+@login_required
+def iniciarProyecto(proyecto_id):
+    proyecto = Proyecto.query.filter_by(id=proyecto_id).first_or_404()
+    
+    if proyecto.getEstado()== 'no iniciado': #and user.esLider
+        proyecto.setEstado(INICIADO)
+        
+        db.session.add(proyecto)
+        db.session.commit()
+        flash('Proyecto Iniciado.', 'success')
+    else:
+        flash('No se puede iniciar proyecto.', 'error')    
+    return redirect(url_for('admin.proyectos',proyecto_id=proyecto.id))
 
 @admin.route('/usuarioxproyecto/Proyecto<proyecto_id>/Usuario<user_id>', methods=['GET', 'POST'])
 @login_required
@@ -403,13 +417,23 @@ def crearFase(proyecto_id):
     proyecto = Proyecto.query.filter_by(id=proyecto_id).first_or_404()
     if proyecto.fases.count() < proyecto.numero_fases:
         form = CrearFaseForm(next=request.args.get('next'))
+        form.lider_fase.choices=[(g.id, g.nombre) for g in User.query.all()]
+    
         if form.validate_on_submit():
             fase = Fase()
             fase.nombre = form.nombre.data
+            fase.lider_fase = form.lider_fase.data
+            
+            user = User.query.filter_by(id=form.lider_fase.data).first_or_404()
+            if user not in proyecto.usuarioPorProyecto:
+                proyecto.usuarioPorProyecto.append(user)
+            
             fase.descripcion = form.descripcion.data
             fase.proyecto_id = proyecto.id
             
+            
             db.session.add(fase)
+            db.session.add(proyecto)
             db.session.commit()
             
             flash('Fase creada.', 'success')
@@ -424,7 +448,7 @@ def crearFase(proyecto_id):
 @admin.route('/IdF<fase_id>/<proyecto_id>', methods=['GET', 'POST'])
 @login_required
 def fase(proyecto_id, fase_id):
-    """Funcion que permite editar un comite"""
+    """Funcion que permite editar una Fase"""
     fase = Fase.query.filter_by(id=fase_id).first_or_404()
     proyecto = Proyecto.query.filter_by(id=proyecto_id).first_or_404()
     form = FaseForm(obj=fase, next=request.args.get('next'))
@@ -439,6 +463,21 @@ def fase(proyecto_id, fase_id):
 
     return render_template('admin/fase.html', fase=fase, proyecto=proyecto, form=form)
 
+
+@admin.route('/asignarTipoItem/<fase_id>/<tipoItem_id>', methods=['GET', 'POST'])
+@login_required
+def asignarTipoItem(fase_id, tipoItem_id):
+    """Funcion que permite asignar un Tipo de Item a una Fase"""
+    fase = Fase.query.filter_by(id=fase_id).first_or_404()
+    tipoItem = TipoItem.query.filter_by(id=tipoItem_id).first_or_404()
+    proyecto_id = fase.proyecto_id
+    
+    fase.tipoItemPorFase.append(tipoItem)
+    db.session.add(fase)
+    db.session.commit()
+    flash('Tipo de Item agregado correctamente a Fase.', 'success')
+    return redirect(url_for('admin.fasesxproyecto',proyecto_id=proyecto_id))
+         
 
 # TIPO DE ITEM
 @admin.route('/crearTipoItem/<proyecto_id>', methods=['GET', 'POST'])

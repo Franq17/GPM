@@ -27,7 +27,7 @@
         <tr>
             <td><a href="{{ url_for('admin.usuariosxproyecto', proyecto_id=proyecto.id)}}">{{ proyecto.nombre }}</td>
             <td>{{ proyecto.complejidad_total }}</td>
-            <td>{{ proyecto.getEstado() }}</td>
+            <td>{{ proyecto.getEstado() }} | <a href="{{ url_for('admin.iniciarProyecto', proyecto_id=proyecto.id) }}">Iniciar</a></td>
             <td>{{ proyecto.numero_fases }}</td>
             <td>{{ proyecto.lider_proyecto }}</td>
             <td>{{ proyecto.created_time|format_date }}</td>

@@ -39,6 +39,20 @@ FASE_ESTADOS = {
     COMPROMETIDA: "comprometida",
 }
 
+# ITEM_estados
+DESAPROBADO=0
+APROBADO=1
+ELIMINADO=2
+BLOQUEADO=3
+
+ITEM_ESTADOS = {
+    DESAPROBADO: 'desaprobado',
+    APROBADO: 'aprobado',
+    ELIMINADO: 'eliminado',
+    BLOQUEADO: 'bloqueado',
+}
+
+
 # LineaBase_estados
 ABIERTA=0
 CERRADA=1

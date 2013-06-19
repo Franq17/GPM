@@ -10,8 +10,8 @@ from flask_login import UserMixin
 
 from ..extensions import db
 from ..utils import get_current_time
-from .constants import INACTIVE, USER_STATUS,NO_INICIADO, PROYECTO_ESTADOS, LINEABASE_ESTADOS, FASE_ESTADOS
-from .constants import INICIAL
+from .constants import INACTIVE, USER_STATUS,NO_INICIADO, PROYECTO_ESTADOS, LINEABASE_ESTADOS, FASE_ESTADOS, ITEM_ESTADOS
+from .constants import INICIAL, DESAPROBADO
 
 class DenormalizedText(Mutable, types.TypeDecorator):
     """
@@ -83,6 +83,10 @@ solicitudPorUsuario = db.Table('solicitudPorUsuario',
     Column('solicitud_id', db.Integer, db.ForeignKey('solicitud.id'))
 )
 
+tipoItemPorFase = db.Table ('tipoItemPorFase',
+    Column('tipoItem_id', db.Integer, db.ForeignKey('tipoItem.id')),
+    Column('fase_id', db.Integer, db.ForeignKey('fase.id'))
+)
 ############################################################################################
 #            Agregado de Adolfismo
 ############################################################################################
@@ -128,7 +132,8 @@ class User(db.Model, UserMixin):
     status_id = Column(db.SmallInteger, default=INACTIVE)
     
 # RELACIONES ==========================================================================
-
+    #esLiderFase = db.relationship('Fase', backref='users',lazy='dynamic')
+    
     # Many-to-many relationship 
     
     rolPorUsuario = db.relationship('Rol', secondary=rolPorUsuario,
@@ -371,6 +376,9 @@ class Proyecto(db.Model):
     def getEstado(self):
         return PROYECTO_ESTADOS[self.estado_id]
     
+    def setEstado(self, estado):
+        self.estado_id = estado
+            
     def getNroFases(self):
         return self.numero_fases
     
@@ -443,13 +451,18 @@ class Fase(db.Model):
     numero_fase = Column(db.Integer,nullable=True)
     numero_lb = Column(db.Integer,default=0)
     estado_id = Column(db.SmallInteger,default=INICIAL)
-    
+    lider_fase = Column(db.Integer, nullable=False)
 # RELACIONES =================================================================
     # Many-to-one relationship
     proyecto_id = Column(db.Integer, db.ForeignKey('proyecto.id'))
+    #liderFase_id = Column(db.Integer(), db.ForeignKey('users.id'))
     # One-to-many relationship
     lineaBase = db.relationship('LineaBase', backref='fase',lazy='dynamic')
     items = db.relationship('Item', backref='fase',lazy='dynamic')
+    # Many-to-many relationship
+    tipoItemPorFase = db.relationship('TipoItem', secondary=tipoItemPorFase,
+       backref=db.backref('fases', lazy='dynamic'))
+    
     
 # FUNCIONES =================================================================    
 
@@ -485,7 +498,11 @@ class Fase(db.Model):
         misItems = self.items
         return misItems
     
-    
+    def existeTipoItem (self, tipoItem_id):
+        for tipo in self.tipoItemPorFase:
+            if tipo.id == tipoItem_id:
+                return True
+        return False    
 class TipoItem(db.Model):
     
     __tablename__ = 'tipoItem'
@@ -543,7 +560,7 @@ class Item(db.Model):
     descripcion = Column(db.String(),nullable=True)
     version = Column(db.Integer)
     complejidad= Column(db.Integer) 
-    estado_id = Column(db.SmallInteger,default=INICIAL)
+    estado_id = Column(db.SmallInteger,default=DESAPROBADO)
     
 # RELACIONES  ====================================================================
 
@@ -593,7 +610,7 @@ class Item(db.Model):
         return self.version
     
     def getEstado(self):
-        return self.estado
+        return ITEM_ESTADOS[self.estado_id]
     
     def getComplejidad(self):
         return self.complejidad

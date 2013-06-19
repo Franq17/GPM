@@ -25,7 +25,6 @@
         <tr>
             <td>{{ rol.nombre }}</td>
             <td>{{ rol.descripcion }}</td>
-
             <td><a href="{{ url_for('admin.permisosxrol', rol_id=rol.id) }}"><i class="icon-eye-open"></i>Permisos</a> | <a href="{{ url_for('admin.rol', rol_id=rol.id) }}"><i class="icon-pencil"></i>Editar</a> | <a data-toggle="modal" href="#{{rol.id}}" class="text"><i class="icon-remove"></i>Quitar</a></td>
 
 			<div id="{{rol.id}}" class="modal hide fade in" style="display: none;">

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from werkzeug.urls import url_quote
-from webapp.modelos.models_adm import User, ADMIN, USER_ROLE, USER_STATUS
+from webapp.modelos.models_adm import User, USER_STATUS
 from webapp.extensions import db, mail
 
 from tests import TestCase

@@ -5,7 +5,6 @@
 
 {% block body %}
 <div class="container">
-
     <h2>Crear Item en el proyecto:  <font color="royalblue">{{proyecto.nombre}}</font></h2>
     {{ render_form(url_for('admin.crearItem', proyecto_id=proyecto.id), form)}}
 </div>

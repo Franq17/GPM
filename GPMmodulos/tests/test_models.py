@@ -19,7 +19,7 @@ class TestUser (unittest.TestCase):
             telefono="021-123-321",
             ci = 123456,
             email="pablo@email.com",
-            role_id=0,
+            #role_id=0,
             status_id=0,
             #rolPorUsuario=[self.rolTest]
             )
@@ -28,19 +28,19 @@ class TestUser (unittest.TestCase):
         unittest.TestCase.tearDown(self)
         del self.userTest
 
-    def test_getRole(self):
-        result = self.userTest.getRole()
-        self.assertEqual(result, 'admin')
-        print 'Prueba de obtencion de rol: Ok'
+#     def test_getRole(self):
+#         result = self.userTest.getRole()
+#         self.assertEqual(result, 'admin')
+#         print 'Prueba de obtencion de rol: Ok'
         
-    def test_IsAdmin(self):
-        result = self.userTest.is_admin()
-        self.assertEqual(result, 1)
-        print 'Prueba de si es un usuario admin: Ok'
+#     def test_IsAdmin(self):
+#         result = self.userTest.is_admin()
+#         self.assertEqual(result, 1)
+#         print 'Prueba de si es un usuario admin: Ok'
         
     def test_getStatus(self):
         result = self.userTest.getStatus()
-        self.assertEqual(result, 'inactive')
+        self.assertEqual(result, 'inactivo')
         print 'Prueba de obtencion de estado actual del Usuario: Ok'
     
 #     def test_getProyectos(self):
@@ -123,8 +123,8 @@ class TestProyecto (unittest.TestCase):
         unittest.TestCase.tearDown(self)
         del self.proyectotest
         
-    def test_getStatus(self):
-        result = self.proyectotest.getStatus()
+    def test_getEstado(self):
+        result = self.proyectotest.getEstado()
         self.assertEqual(result, 'no iniciado')
         print 'Prueba de estado inicial del Proyecto: Ok'
     

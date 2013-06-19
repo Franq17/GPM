@@ -28,9 +28,8 @@ def crearItem(proyecto_id, fase_id):
     proyecto = Proyecto.query.filter_by(id=proyecto_id).first_or_404()
     fase = Fase.query.filter_by(id=fase_id).first_or_404()
     tiposItem= TipoItem.query.filter_by(proyecto_id=proyecto_id)
-    print '###### Recibi numero de fase#############'
-    print fase.id
-    
+
+   
     form = CrearItemForm(next=request.args.get('next'))
     form.tipoItem_id.choices = [(h.id, h.nombre) for h in tiposItem ]
     if form.validate_on_submit():
@@ -42,8 +41,7 @@ def crearItem(proyecto_id, fase_id):
         item.fase_id = fase.id
         item.tipoItem_id = tipoItem.id
         
-        print '###### commiteo el nro de fase ##########'
-        print item.fase_id
+        
         db.session.add(item)
         db.session.commit()
         
@@ -55,8 +53,8 @@ def crearItem(proyecto_id, fase_id):
         db.session.commit()
      
         
-        flash('Item creado.', 'success')
-        return redirect(url_for('des.itemsxproyecto',proyecto_id=proyecto.id))
+        flash('Item creado correctamente.', 'success')
+        return redirect(url_for('des.fasesxproyecto', proyecto_id=proyecto.id))
         
     return render_template('des/crearItem.html', proyecto=proyecto, fase = fase, form=form)
 
@@ -70,7 +68,8 @@ def item(proyecto_id, item_id):
     form = ItemForm(obj=item, next=request.args.get('next'))
     if form.validate_on_submit():
         form.populate_obj(item)
-
+        
+        
         db.session.add(item)
         db.session.commit()
 
@@ -99,14 +98,19 @@ def historialxitem(item_id):
             historiales.append(historial)
     return render_template('des/historialxitem.html', item=item, historiales=historiales)
 
+
 @des.route('/IT<item_id>/PR<proyecto_id>', methods=['GET', 'POST'])
 @login_required
-def crearSolicitud(proyecto_id, item_id):
+def crearSolicitud(item_id, proyecto_id):
     proyecto = Proyecto.query.filter_by(id=proyecto_id).first_or_404()
     comite = proyecto.comite
     item = Item.query.filter_by(id=item_id).first_or_404()
     usuariosComite = comite.usuarioPorComite
     itemsExistentes = proyecto.items
+    
+    print "Recibi el item$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$"
+    print item_id
+        
     
     solicitud = Solicitud()
     solicitud.comite_id = comite.id
@@ -116,8 +120,9 @@ def crearSolicitud(proyecto_id, item_id):
     
     for usuario in usuariosComite:
         usuario.solicitudPorUsuario.append(solicitud)
-        print '#################usuario'
-        print usuario.nombre
+        
+        print "Guardo la solictud con id$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$"
+        print solicitud.item_id
         
         db.session.add(usuario)
         db.session.commit()
@@ -132,8 +137,11 @@ def crearSolicitud(proyecto_id, item_id):
 def fasesxproyecto(proyecto_id):
     """Funcion que lista las fases de un Proyecto"""
     proyecto = Proyecto.query.filter_by(id=proyecto_id).first_or_404()
-    fasesExistentes = proyecto.fases
-    return render_template('des/fases.html', proyecto=proyecto, fases=fasesExistentes, active='Fases')
+    fases = proyecto.fases
+    #cabeceras=[]
+    #for fase in fasesExistentes:
+    #   cabeceras.append((fase.nombre, proyecto.id, fase.id ))
+    return render_template('des/fases.html', proyecto=proyecto, fases=fases, active='Fases')
 
 @des.route('/IdF<fase_id>/<proyecto_id>', methods=['GET', 'POST'])
 @login_required
@@ -143,5 +151,4 @@ def fase(proyecto_id, fase_id):
     proyecto = Proyecto.query.filter_by(id=proyecto_id).first_or_404()
     
     return render_template('des/fase.html', fase=fase, proyecto=proyecto)
-
 

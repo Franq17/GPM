@@ -45,3 +45,4 @@ class UserxComiteForm(Form):
     # A demo of datepicker.
     usuarioPorComite = SelectMultipleField(u'Usuarios' ,coerce=int)
     submit = SubmitField(u'Agregar Miembro')
+

@@ -4,7 +4,8 @@ from flask_wtf import Form, ValidationError
 from flask_wtf import HiddenField, SubmitField, RadioField, DateField
 from flask_wtf import AnyOf
 
-from ..modelos import USER_ROLE, USER_STATUS, PROYECTO_ESTADOS, COMITE_ESTADOS,LINEABASE_ESTADOS
+
+from ..modelos import USER_STATUS, PROYECTO_ESTADOS, COMITE_ESTADOS,LINEABASE_ESTADOS
 
 from flask_wtf.html5 import EmailField
 from flask_wtf import Required, Optional, Length, EqualTo, Email

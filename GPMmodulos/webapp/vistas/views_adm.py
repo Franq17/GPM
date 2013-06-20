@@ -468,12 +468,15 @@ def crearFase(proyecto_id):
     """Funcion que permite instanciar una Fase de un Proyecto"""
     proyecto = Proyecto.query.filter_by(id=proyecto_id).first_or_404()
     if proyecto.fases.count() < proyecto.numero_fases:
+        
         form = CrearFaseForm(next=request.args.get('next'))
         form.lider_fase.choices=[(g.id, g.nombre) for g in proyecto.usuarioPorProyecto]
-    
+        list = [1,2,3]
+        form.numero_fase.choices=[(i+1,i+1) for i in range(proyecto.numero_fases)]
         if form.validate_on_submit():
             fase = Fase()
             fase.nombre = form.nombre.data
+            fase.numero_fase = form.numero_fase.data
             fase.lider_fase = form.lider_fase.data
             
             user = User.query.filter_by(id=form.lider_fase.data).first_or_404()

@@ -52,12 +52,14 @@ DESAPROBADO=0
 APROBADO=1
 ELIMINADO=2
 BLOQUEADO=3
+REVISION=4
 
 ITEM_ESTADOS = {
     DESAPROBADO: 'desaprobado',
     APROBADO: 'aprobado',
     ELIMINADO: 'eliminado',
     BLOQUEADO: 'bloqueado',
+    REVISION: 'revision',
 }
 
 

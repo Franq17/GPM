@@ -20,7 +20,8 @@
         <thead>
             <tr>
                 <th>Nombre</th>
-				<th>Estado</th>
+                <th>Orden</th>
+                <th>Estado</th>
 				<th>Lider de Fase</th>
                 <th>Descripcion</th>
                 <th></th>
@@ -29,6 +30,7 @@
         {% for fase in fases %}
         <tr>
             <td>{{ fase.nombre }}</td>
+            <td>{{ fase.numero_fase}}</td>
 			<td>{{ fase.getEstado() }}</td>
 			<td>{{ fase.getLider() }}</td>
             <td>{{ fase.descripcion }}</td>

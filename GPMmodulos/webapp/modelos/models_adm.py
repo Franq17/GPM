@@ -642,18 +642,10 @@ class Item(db.Model):
     """
     relacion con el item sucesor
     """
-    relacionSucesor= db.relationship("RelacionSucesor", primaryjoin=id==RelacionSucesor.left_id, backref='items')
-#    
-    relacionHijo = db.relationship("RelacionHijo", primaryjoin=id==RelacionHijo.left_id, backref='item')
-    
-    #hijos = db.relationship('Item')
-    #padre = db.relationship('Item', remote_side=['item.c.id'])
-    padre_id = Column('padre_id', db.Integer, db.ForeignKey('item.id')) 
-    
-    #parent_id = Column('parent_id', Integer, ForeignKey('pages.id'))
-   
-    #children = relation('Page')
-    #parent = relation('Page', remote_side=['pages.c.id'])
+    padre_id = Column(db.Integer,db.ForeignKey('item.id'))
+    hijo = db.relationship("Item",
+                backref=db.backref('padre', remote_side=[id])
+            )
 
 # FUNCIONES  ====================================================================   
     def getHistorial(self):
@@ -675,6 +667,9 @@ class Item(db.Model):
     
     def getEstado(self):
         return ITEM_ESTADOS[self.estado_id]
+    
+    def setEstado(self, estado):
+        self.estado_id = estado
     
     def getComplejidad(self):
         return self.complejidad
@@ -729,26 +724,30 @@ class Item(db.Model):
         return False
     
     """
-    note: metodo que devuelve el padre del item, devuelve None en caso de no tener
+    note: metodo que devuelve el padre del item, devuelve String en caso de no tener
     """
-    def getPadre(self, fase):
-        for item in fase.items:
-            if item.getEstado() != 'Eliminado' and item != self:
-                for relacion in item.relacionHijo:
-                    if relacion.hijo == self:
-                        return item
-        return None
-    
+    def getPadre(self):
+        padre = Item.query.filter_by(id=self.padre_id).first()
+        if padre is None:
+            return "<NO TIENE>"
+        return padre.nombre
     """
     note metodo que pregunta si un item es descendiente de otro en una fase dada
     """
     def esDescendiente(self, fase, item):
-        lista_hijos= self.getGeneraciones(fase, self)
-        print "\n\n\n\n\n\n\n"
-        for aux in lista_hijos:
-            print aux.getNombre()
-        print "\n\n\n\n\n\n\n"
-        return item in lista_hijos
+        lista_descendientes = self.getGeneraciones(fase, self)
+        return item in lista_descendientes
+    
+    """
+    note: metodo que acumula los hijos, nietos etc. de un item en una lista incluyendose al item
+    """
+    def getGeneraciones(self, fase, item):
+        lista= []
+        for hij in item.hijo:
+            if hij.getEstado() != 'Eliminado' and hij in fase.items:
+                lista= lista + item.getGeneraciones(fase, hij)
+        lista = lista + [item]
+        return lista
     
     """
     note: metodo que acumula los hijos, nietos etc. de un item en una lista incluyendose al item
@@ -761,9 +760,6 @@ class Item(db.Model):
     
     def setVersion(self, version):
         self.version= version
-    
-    def setEstado(self, estado):
-        self.estado= estado
     
     def setComplejidad(self, complejidad):
         self.complejidad= complejidad

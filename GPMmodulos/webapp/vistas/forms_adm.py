@@ -138,6 +138,7 @@ class RolForm(Form):
 class CrearFaseForm(Form):
     next = HiddenField()
     nombre = nombre = TextField(u'Nombre de Fase', [Required(), Length(REALNAME_LEN_MIN, REALNAME_LEN_MAX)])
+    numero_fase = SelectField(u'Orden de Fase',coerce=int,)
     lider_fase = SelectField(u'Lider de Fase',coerce=int,)
     descripcion = TextAreaField(u'Descripcion', [Optional(), Length(max=1024)])
     submit = SubmitField(u'Crear')

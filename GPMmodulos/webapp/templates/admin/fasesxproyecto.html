@@ -32,23 +32,23 @@
 			<td>{{ fase.getEstado() }}</td>
 			<td>{{ fase.getLider() }}</td>
             <td>{{ fase.descripcion }}</td>
-            <td><a  data-toggle="modal" href="#id"><i class="icon-plus"></i>Tipos de Item</a> | <a href="{{ url_for('admin.fase', fase_id=fase.id, proyecto_id=proyecto.id) }}"><i class="icon-pencil"></i>Editar</a></td>
+            <td><a  data-toggle="modal" href="#{{fase.id}}"><i class="icon-plus"></i>Tipos de Item</a> | <a href="{{ url_for('admin.fase', fase_id=fase.id, proyecto_id=proyecto.id) }}"><i class="icon-pencil"></i>Editar</a></td>
         </tr>
         
-        <div id="id" class="modal hide fade in" style="display: none;">
+        <div id="{{fase.id}}" class="modal hide fade in" style="display: none;">
 				<div class="modal-header">
 					<a data-dismiss="modal" class="close">×</a>
-					<h4>Asginar Tipo de Item a Fase </h4>
+					<h4>Asignar Tipo de Item a Fase </h4>
 				</div>
 				<div class="modal-body">
 					<p>Seleccione un Tipo Item </p>
 					    <ul class="nav nav-list">
 					    	<li class="nav-header">Tipos de Items disponibles de: {{proyecto.nombre}}</li>
     						{% for tipoItem in proyecto.tiposItem %}
-    							{% if  fase.existeTipoItem(tipoItem.id) %}
+    							{% if tipoItem in fase.tipoItemPorFase %}
     							   
     							{% else %}
-    								<li><a href="{{ url_for('admin.asignarTipoItem', fase_id=fase.id, tipoItem_id=tipoItem.id) }}">{{ tipoItem.nombre }}</a></li>
+    								<li><a href="{{ url_for('admin.asignarTipoItem', fase_id=fase.id, tipoItem_id=tipoItem.id) }}">{{ tipoItem.nombre }} </a></li>
     							{% endif %}
     						{% endfor %}
     				    </ul>
@@ -57,9 +57,9 @@
 					<a href="#" data-dismiss="modal" class="btn">Cancelar</a>
 				</div>
 			</div>
-        
-        
-        
         {% endfor %}
+        
+        
+        
     </table>
 {% endblock %}

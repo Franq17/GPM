@@ -230,8 +230,8 @@ class User(db.Model, UserMixin):
     def esLiderDeFase(self, proyecto_id):
         proyecto = Proyecto.query.filter_by(id=proyecto_id).first_or_404()
         fases = proyecto.fases
-        for fase_id in fases:
-            fase = Fase.query.filter_by(id=fase_id).first_or_404()
+        for fase in fases:
+            fase = Fase.query.filter_by(id=fase.id).first_or_404()
             if self.id == fase.lider_fase:
                 return True
         return False
@@ -545,7 +545,9 @@ class Fase(db.Model):
         return misItems
     
     def existeTipoItem (self, tipoItem_id):
+        
         for tipo in self.tipoItemPorFase:
+            print tipo.nombre
             if tipo.id == tipoItem_id:
                 return True
         return False
@@ -635,15 +637,23 @@ class Item(db.Model):
     """
     estas dos columnas son para relaciones de versiones de items
     """
-    versionSuperior_id = Column(db.Integer, db.ForeignKey('item.id'))
-    versionAnterior = db.relationship("Item")
+    #versionSuperior_id = Column(db.Integer, db.ForeignKey('item.id'))
+    #versionAnterior = db.relationship("Item")
     """
     relacion con el item sucesor
     """
     relacionSucesor= db.relationship("RelacionSucesor", primaryjoin=id==RelacionSucesor.left_id, backref='items')
 #    
     relacionHijo = db.relationship("RelacionHijo", primaryjoin=id==RelacionHijo.left_id, backref='item')
-
+    
+    #hijos = db.relationship('Item')
+    #padre = db.relationship('Item', remote_side=['item.c.id'])
+    padre_id = Column('padre_id', db.Integer, db.ForeignKey('item.id')) 
+    
+    #parent_id = Column('parent_id', Integer, ForeignKey('pages.id'))
+   
+    #children = relation('Page')
+    #parent = relation('Page', remote_side=['pages.c.id'])
 
 # FUNCIONES  ====================================================================   
     def getHistorial(self):

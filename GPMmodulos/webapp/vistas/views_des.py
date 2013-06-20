@@ -85,6 +85,34 @@ def item(proyecto_id, item_id):
 
     return render_template('des/item.html', item=item, proyecto=proyecto, form=form)
 
+
+@des.route('/RelacionarPadre/<itemActual_id>/<itemCandidato_id>', methods=['GET', 'POST'])
+@login_required
+def relacionarPadre(itemActual_id, itemCandidato_id):
+    itemActual = Item.query.filter_by(id=itemActual_id).first_or_404()
+    itemCandidato = Item.query.filter_by(id=itemCandidato_id).first_or_404()
+    fase = Fase.query.filter_by(id=itemActual.fase_id).first_or_404()
+        
+    #if itemCandidato.getEstado()!= 'aprobado':
+    #   flash ('No se puede relacionar. El item se encuentra en estado bloqueado', 'error')
+    #  return redirect(url_for('des.fasesxproyecto', proyecto_id=item.proyecto_id ))
+    
+    #if itemActual.esDescendiente():
+    #   flash ('No se puede relacionar. El item seleccionado es un descendiente, se formaria un ciclo', 'error')
+    #   return redirect(url_for('des.fasesxproyecto', proyecto_id=item.proyecto_id ))
+    
+    if itemActual.getEstado()== 'bloqueado':
+        flash ('No se puede relacionar. El item se encuentra en estado bloqueado', 'error')
+        return redirect(url_for('des.fasesxproyecto', proyecto_id=itemActual.proyecto_id ))
+    
+    itemActual.padre_id = itemCandidato.id
+    
+    db.session.add(itemCandidato)
+    db.session.add(itemActual)
+    db.session.commit()
+    flash ('Item relacionado correctamente', 'success')
+    return redirect(url_for('des.fasesxproyecto', proyecto_id=itemActual.proyecto_id ))
+
 @des.route('/historialxitem/<item_id>', methods=['GET', 'POST'])
 @login_required
 def historialxitem(item_id):

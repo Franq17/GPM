@@ -524,6 +524,9 @@ def asignarTipoItem(fase_id, tipoItem_id):
     tipoItem = TipoItem.query.filter_by(id=tipoItem_id).first_or_404()
     proyecto_id = fase.proyecto_id
     
+    print "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% recibi fase"
+    print fase.id, fase_id
+    
     fase.tipoItemPorFase.append(tipoItem)
     db.session.add(fase)
     db.session.commit()

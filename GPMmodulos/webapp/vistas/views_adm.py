@@ -382,7 +382,7 @@ def borrarProyecto(proyecto_id):
     if proyecto.comite is not None:
         flash('Proyecto no eliminado. Tiene asignado un comite', 'error')
         return redirect(url_for('admin.proyectos'))
-    elif proyecto.estado_id is 1:
+    elif proyecto.getEstado() == 'iniciado':
         flash('Proyecto no eliminado. Estado iniciado', 'error')
         return redirect(url_for('admin.proyectos'))
     else:
@@ -471,7 +471,7 @@ def crearFase(proyecto_id):
         
         form = CrearFaseForm(next=request.args.get('next'))
         form.lider_fase.choices=[(g.id, g.nombre) for g in proyecto.usuarioPorProyecto]
-        list = [1,2,3]
+       
         form.numero_fase.choices=[(i+1,i+1) for i in range(proyecto.numero_fases)]
         if form.validate_on_submit():
             fase = Fase()

@@ -18,6 +18,28 @@ def comites():
     comites = Comite.query.all()
     return render_template('cambios/comites.html', comites=comites, active='comites')
 
+
+@cambios.route('/ProyectosLB')
+@login_required
+#@verComites_required
+def proyectosLB():
+    """Funcion que lista los proyectos que pueden tener linea base """
+    #proyectosLB = Proyecto.query.all()
+    #Le pasamos solamente los proyectos en el que usuario actual participa
+    proyectos=current_user.getProyectos()
+    #debe filtra que sea lider en ese proyecto tambien
+    
+    return render_template('cambios/proyectosLB.html', proyectos=proyectos)
+
+@cambios.route('/lineasBasexproyecto/<proyecto_id>', methods=['GET', 'POST'])
+@login_required
+def lineasBasexproyecto(proyecto_id):
+    """Funcion que lista las fases de un Proyecto"""
+    proyecto = Proyecto.query.filter_by(id=proyecto_id).first_or_404()
+    fases = proyecto.fases
+    return render_template('cambios/lineasbasexproyecto.html', proyecto=proyecto, fases=fases)
+
+
 @cambios.route('/crearComite', methods=['GET', 'POST'])
 @login_required
 #@crearComites_required

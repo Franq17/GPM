@@ -90,24 +90,25 @@
                              <ul class="dropdown-menu">
                             
                              {% if current_user.getProyectos()|default('',false) %}
-                             {% for proyecto in current_user.getProyectos() %}
-                                 <li><a href="{{ url_for('des.itemsxproyecto', proyecto_id=proyecto.id) }}">{{ proyecto.nombre}}</a></li>
-                                 {% endfor%}
-                                {% else %}
+                             	{% for proyecto in current_user.getProyectos() %}
+                                 <li><a href="{{ url_for('des.fasesxproyecto', proyecto_id=proyecto.id) }}">{{ proyecto.nombre}}</a></li>
+                             	{% endfor%}
+                             {% else %}
                                     <li><a href="#">< Ninguno ></a></li>
-                                {% endif%}
+                             {% endif%}
                                 </ul>
                             </li>
-<li class="dropdown">
-                             <a href="#" class="dropdown-toggle" data-toggle="dropdown">Gestión de Cambios <b class="caret"></b></a>
+							<li class="dropdown">
+                             <a href="#" class="dropdown-toggle" data-toggle="dropdown">Gestion de Cambios <b class="caret"></b></a>
                              <ul class="dropdown-menu">
-                                 <li><a href="#">Lineas Base</a></li>
-<li class="divider"></li>
-                                    {% if current_user.comprobarPermiso('verComites') %}
-                                    <li><a href="{{ url_for('cambios.comites') }}">Solicitud de Cambio</a></li>
-                                    {% else %}
-                                    <li><a href="#" onClick="alert('No cuenta con permisos para administar Comites.')">Comites</a></li>
-                                    {% endif %}
+                                 
+                                 <li><a href="{{ url_for('cambios.proyectosLB') }}">Lineas Base</a></li>
+								<li class="divider"></li>
+                                 {% if current_user.comprobarPermiso('verComites') %}
+                                 <li><a href="{{ url_for('cambios.comites') }}">Solicitud de Cambio</a></li>
+                                 {% else %}
+                                 <li><a href="#" onClick="alert('No cuenta con permisos para administar Comites.')">Comites</a></li>
+                                 {% endif %}
                                 </ul>
                             </li>
                           <li><a href='{{ url_for('frontend.about') }}'>Acerca de GPM</a></li>

@@ -137,13 +137,6 @@ def initdb():
             status_id=ACTIVE
             )
     
-    atributoString = Atributo(nombre=u'String',tipo=u'1')
-    atributoInt = Atributo(nombre=u'Int',tipo=u'2')
-    atributoFecha = Atributo(nombre=u'Fecha',tipo=u'3')
-    
-    db.session.add(atributoString)
-    db.session.add(atributoInt)
-    db.session.add(atributoFecha)
     
     db.session.add(admin)
     db.session.add(lider) 

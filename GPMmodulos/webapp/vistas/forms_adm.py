@@ -143,9 +143,9 @@ class CrearFaseForm(Form):
     descripcion = TextAreaField(u'Descripcion', [Optional(), Length(max=1024)])
     submit = SubmitField(u'Crear')
     
-    def validate_nombre(self, field):
-        if Fase.query.filter_by(nombre=field.data).first() is not None:
-            raise ValidationError(u'El nombre de la Fase ya existe')
+    #def validate_nombre(self, field):
+    #    if Fase.query.filter_by(nombre=field.data).first() is not None:
+    #        raise ValidationError(u'El nombre de la Fase ya existe')
     
 class FaseForm(Form):
     next = HiddenField()
@@ -167,13 +167,14 @@ class CrearTipoItemForm(Form):
 
 class TipoItemForm(Form):
     next = HiddenField()
+    nombre = nombre = TextField(u'Nombre de Tipo de Item', [Required(), Length(REALNAME_LEN_MIN, REALNAME_LEN_MAX)])
     descripcion = TextAreaField(u'Descripcion', [Optional(), Length(max=1024)])
     submit = SubmitField(u'Editar')
 
 class CrearAtributoForm(Form):
     next = HiddenField()
     nombre = TextField(u'Nombre de Atributo', [Required(), Length(REALNAME_LEN_MIN, REALNAME_LEN_MAX)])
-    atributo_id = SelectField(u'AtributoID', [Optional()], coerce=int)
+    tipo = SelectField(u'Tipo de Atributo', [Optional()], coerce=int)
     valor = TextField(u'Valor', [Optional(), Length(max=1024)])
     submit = SubmitField(u'Crear')
     

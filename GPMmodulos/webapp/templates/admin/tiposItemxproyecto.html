@@ -60,7 +60,7 @@
             <td>{{ tipoItem.nombre }}</td>
             <td>{{ tipoItem.descripcion }}</td>
             <td><a href="{{ url_for('admin.crearAtributo', proyecto_id=proyecto.id, tipoItem_id=tipoItem.id ) }}"><i class="icon-plus"></i>Atributos</a></td>
-            <td><a href="{{ url_for('admin.tipoItem', tipoItem_id=tipoItem.id, proyecto_id=proyecto.id) }}"><i class="icon-pencil"></i>Editar</a> | <a href="#"><i class="icon-remove"></i>Eliminar</a></td>
+            <td><a href="{{ url_for('admin.tipoItem', tipoItem_id=tipoItem.id, proyecto_id=proyecto.id) }}"><i class="icon-pencil"></i>Editar</a> | <a href="{{ url_for('admin.borrarTipoItem', proyecto_id=proyecto.id, tipoItem_id=tipoItem.id) }}"><i class="icon-remove"></i>Eliminar</a></td>
         </tr>
         {% endfor %}
     </table>

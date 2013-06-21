@@ -92,4 +92,15 @@ TIPOS_ROLES = {
     NINGUNO: "ninguno",
 }
 
+# Tipos de Atributos
+STRING=1
+INTEGER=2
+DATE=3
+TIPOS_ATRIBUTOS = {
+    STRING: "String",
+    INTEGER: "Integer",
+    DATE: "Date",
+}
+
+
 DEFAULT_USER_AVATAR = 'default.png'

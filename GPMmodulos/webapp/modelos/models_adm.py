@@ -12,7 +12,7 @@ from ..extensions import db
 from ..utils import get_current_time
 
 from .constants import INACTIVE, USER_STATUS,NO_INICIADO, PROYECTO_ESTADOS, LINEABASE_ESTADOS, FASE_ESTADOS, ITEM_ESTADOS
-from .constants import INICIAL, DESAPROBADO, ROL_ESTADOS, TIPOS_ROLES, NO_ASIGNADO, ABIERTA
+from .constants import INICIAL, DESAPROBADO, ROL_ESTADOS, TIPOS_ROLES, NO_ASIGNADO, ABIERTA, TIPOS_ATRIBUTOS
 
 
 class DenormalizedText(Mutable, types.TypeDecorator):
@@ -491,7 +491,7 @@ class Fase(db.Model):
     __tablename__='fase'
     
     id = Column(db.Integer, primary_key=True)
-    nombre = Column(db.String(32), nullable=False, unique=True)
+    nombre = Column(db.String(32), nullable=False)
     descripcion = Column(db.String(),nullable=True)
     numero_fase = Column(db.Integer,nullable=True)
     numero_lb = Column(db.Integer,default=0)
@@ -570,7 +570,7 @@ class TipoItem(db.Model):
 
 # RELACIONES  ===========================================================================
     atributoPorTipoItem = db.relationship('Atributo', secondary=atributoPorTipoItem,
-        backref=db.backref('atributoPorTipoItem', lazy='dynamic'))
+        backref=db.backref('tiposItem', lazy='dynamic'))
     
 # FUNCIONES =============================================================================   
     
@@ -784,7 +784,7 @@ class Atributo(db.Model):
     id = Column(db.Integer, primary_key=True)
     nombre= Column(db.String(32), nullable=False, unique=True)
     tipo= Column(db.Integer)
-    descripcion= Column(db.String(200), nullable=True)
+    descripcion= Column(db.String(100), nullable=True)
     valorString= Column(db.String(32))
     valorInteger= Column(db.Integer)
     valorFecha=  Column(db.DateTime)
@@ -795,7 +795,7 @@ class Atributo(db.Model):
         return self.nombre
     
     def getTipo(self):
-        return self.tipo
+        return TIPOS_ATRIBUTOS[self.tipo]
     
     def getValor(self):
         if self.getTipo() == 'String':

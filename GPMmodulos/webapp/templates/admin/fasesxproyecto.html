@@ -13,14 +13,15 @@
 	<h2>Fases del Proyecto: <font color="royalblue">{{ proyecto.nombre }}</font></h2>
 	<div class="row-fluid">    
 	    <div class="span2">
-	    <a class="btn btn-primary" href="{{ url_for('admin.crearFase', proyecto_id=proyecto.id)}}"><strong>Crear Fase</strong></a><br><br></div>
+	    <a class="btn btn-primary" href="{{ url_for('admin.crearFase', proyecto_id=proyecto.id, )}}"><strong>Crear Fase</strong></a><br><br></div>
     </div>
 
 	<table class='table table-bordered table-hover table-condensed'>
         <thead>
             <tr>
                 <th>Nombre</th>
-				<th>Estado</th>
+                <th>Orden</th>
+                <th>Estado</th>
 				<th>Lider de Fase</th>
                 <th>Descripcion</th>
                 <th></th>
@@ -29,6 +30,7 @@
         {% for fase in fases %}
         <tr>
             <td>{{ fase.nombre }}</td>
+            <td>{{ fase.numero_fase}}</td>
 			<td>{{ fase.getEstado() }}</td>
 			<td>{{ fase.getLider() }}</td>
             <td>{{ fase.descripcion }}</td>
@@ -37,7 +39,6 @@
 
         </tr>
         
-
         <div id="{{fase.id}}" class="modal hide fade in" style="display: none;">
 				<div class="modal-header">
 					<a data-dismiss="modal" class="close">×</a>
@@ -61,5 +62,8 @@
 				</div>
 			</div>
         {% endfor %}
+        
+        
+        
     </table>
 {% endblock %}

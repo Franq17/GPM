@@ -51,12 +51,14 @@ DESAPROBADO=0
 APROBADO=1
 ELIMINADO=2
 BLOQUEADO=3
+REVISION=4
 
 ITEM_ESTADOS = {
     DESAPROBADO: 'desaprobado',
     APROBADO: 'aprobado',
     ELIMINADO: 'eliminado',
     BLOQUEADO: 'bloqueado',
+    REVISION: 'revision',
 }
 
 
@@ -88,19 +90,15 @@ TIPOS_ROLES = {
     NINGUNO: "ninguno",
 }
 
-# Tipos de Permisos
-NINGUNO=0
-ADMIN=1
-LIDER_PROYECTO=2
-LIDER_FASE=3
-DESARROLLADOR=4
-
-TIPOS_PERMISOS = {
-    ADMIN: "administrador",
-    LIDER_PROYECTO: "lider de Proyecto",
-    LIDER_FASE: "lider de Fase",
-    DESARROLLADOR: "desarrollador",
-    NINGUNO: "ninguno",
+# Tipos de Atributos
+STRING=1
+INTEGER=2
+DATE=3
+TIPOS_ATRIBUTOS = {
+    STRING: "String",
+    INTEGER: "Integer",
+    DATE: "Date",
 }
+
 
 DEFAULT_USER_AVATAR = 'default.png'

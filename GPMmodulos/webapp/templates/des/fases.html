@@ -7,7 +7,8 @@
 {% if current_user.comprobarPermiso('verLineaBase')  %}
 	{% set tabs = [
 		("Fases",url_for('des.fasesxproyecto', proyecto_id=proyecto.id)), 
-		("Items",url_for('des.itemsxproyecto', proyecto_id=proyecto.id))
+		("Items",url_for('des.itemsxproyecto', proyecto_id=proyecto.id)),
+		("Lineas Base",url_for('cambios.lineaBasexproyecto', proyecto_id=proyecto.id))
 	]%}
 {% else %}
 	{% set tabs = [
@@ -60,11 +61,11 @@
 							<td>{{ item.descripcion }}</td>
 							<td>{{ item.getEstado() }} | 
 							{% if item.getEstado()=='aprobado'%}
-							<a href="#">Desaprobar</a>
+							<a href="{{ url_for('des.desaprobarItem', item_id=item.id) }}"><i class="icon-remove"></i>Desaprobar</a>
 							{%else%}
-							 <a href="#">Aprobar</a>{%endif%}</td>
-							<td><a data-toggle="modal" href="#{{item.id}}"><i class="icon-calendar"></i> Ver Historial</a></td>
-							<td><a href="#"><i class="icon-eye-open"></i> Antecesor</a> | <a data-toggle="modal" href="#padre{{item.id}}"><i class="icon-eye-open"></i> Padre</a> | <a href="#"><i class="icon-eye-open"></i> Sucesor</a> | <a href="#"><i class="icon-eye-open"></i> Hijos</a></td>
+							 <a href="{{ url_for('des.aprobarItem', item_id=item.id) }}"><i class="icon-ok"></i>Aprobar</a>{%endif%}</td>
+							<td><a data-toggle="modal" href="#{{item.id}}"><i class="icon-calendar"></i>Historial</a></td>
+							<td><a href="#"><i class="icon-plus"></i> Antecesor</a> | <a data-toggle="modal" href="#padre{{item.id}}"><i class="icon-plus"></i> Padre</a> | <a href="#"><i class="icon-eye-open"></i> Sucesor</a> | <a data-toggle="modal" href="#hijos{{item.id}}"><i class="icon-eye-open"></i> Hijos</a></td>
 							<td><a href="{{ url_for('des.item', item_id=item.id, proyecto_id=proyecto.id) }}"><i class="icon-pencil"></i>Editar</a>
 							{%if proyecto.comite is none%}
 							<a href="#" onClick="alert('El proyecto aun no cuenta con un Comite de cambios.')"><i class="icon-remove"></i>Eliminar</a></td>
@@ -87,20 +88,44 @@
 								<a href="{{ url_for('des.crearSolicitud', item_id=item.id, proyecto_id=proyecto.id)  }}" class="btn btn-primary">Enviar Solicitud</a>
 							</div>
 						</div>
+						
 						<!--******************** MODAL ASIGNAR PADRE ***************-->
 						<div id="padre{{item.id}}" class="modal hide fade in" style="display: none;">
 							<div class="modal-header">
 								<a data-dismiss="modal" class="close">×</a>
-								<h4>Asignar Padre al Item:<font color="royalblue">{{item.nombre}}</font></h4>
+								<h4>Asignar Padre al Item:<font color="royalblue"> {{item.nombre}}</font></h4>
 							</div>
 							<div class="modal-body">
-								<p>Padre Actual: {{item.getPadre(fase).nombre}}</p>
-								<p>Seleccione un Padre </p>
+								<p>Padre Actual: <font color="royalblue">{{item.getPadre()}} {%if item.padre_id > 0%}| <a href="{{ url_for('des.quitarPadre', itemActual_id=item.id, itemCandidato_id=item.padre_id) }}"><i class="icon-remove"></i>Quitar</a>{%endif%}</font></p>
+								<p>Seleccione un nuevo Padre: </p>
 								    <ul class="nav nav-list">
 								    	<li class="nav-header">Items disponibles de: {{fase.nombre}}</li>
 			    							{% for itemCandidato in fase.items %}
-
+			    								{% if itemCandidato != item %}
 			    								<li><a href="{{ url_for('des.relacionarPadre', itemActual_id=item.id, itemCandidato_id=itemCandidato.id) }}">{{ itemCandidato.nombre }} </a></li>
+			    								{% endif %}
+			    							{% endfor%}	
+			    						</ul>
+							</div>
+							<div class="modal-footer">
+								<a href="#" data-dismiss="modal" class="btn">Cancelar</a>
+							</div>
+						</div>
+						
+						<!--******************** MODAL VER HIJOS ***************-->
+						<div id="hijos{{item.id}}" class="modal hide fade in" style="display: none;">
+							<div class="modal-header">
+								<a data-dismiss="modal" class="close">×</a>
+								<h4>Hijos actuales de Item:<font color="royalblue"> {{item.nombre}}</font></h4>
+							</div>
+							<div class="modal-body">
+								<p></p>
+								    <ul class="nav nav-list">
+								    	<li class="nav-header">Hijos en fase: {{fase.nombre}}</li>
+			    							{% for itemHijo in item.hijo %}
+			    								{% if itemHijo != item %}
+			    								<li><a href="#">{{ itemHijo.nombre }}</a></li>
+			    								{% endif %}
 			    							{% endfor%}	
 			    						</ul>
 							</div>

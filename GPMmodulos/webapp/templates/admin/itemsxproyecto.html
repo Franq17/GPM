@@ -7,7 +7,7 @@
 	{% set tabs = [
 		("Fases",url_for('admin.fasesxproyecto', proyecto_id=proyecto.id)), 
 		("Items",url_for('admin.itemsxproyecto', proyecto_id=proyecto.id)),
-		("Lineas Base",url_for('admin.lineaBasexproyecto', proyecto_id=proyecto.id))
+		("Lineas Base",url_for('cambios.lineasBasexproyecto', proyecto_id=proyecto.id))
 	]%}
 {% else %}
 	{% set tabs = [

@@ -12,7 +12,9 @@ from ..extensions import db
 from ..utils import get_current_time
 
 from .constants import INACTIVE, USER_STATUS,NO_INICIADO, PROYECTO_ESTADOS, LINEABASE_ESTADOS, FASE_ESTADOS, ITEM_ESTADOS
-from .constants import INICIAL, DESAPROBADO, ROL_ESTADOS, TIPOS_ROLES, NO_ASIGNADO
+
+from .constants import INICIAL, DESAPROBADO, ROL_ESTADOS, TIPOS_ROLES, NO_ASIGNADO, ABIERTA, TIPOS_ATRIBUTOS
+
 
 
 class DenormalizedText(Mutable, types.TypeDecorator):
@@ -575,7 +577,7 @@ class Fase(db.Model):
     __tablename__='fase'
     
     id = Column(db.Integer, primary_key=True)
-    nombre = Column(db.String(32), nullable=False, unique=True)
+    nombre = Column(db.String(32), nullable=False)
     descripcion = Column(db.String(),nullable=True)
     numero_fase = Column(db.Integer,nullable=True)
     numero_lb = Column(db.Integer,default=0)
@@ -654,7 +656,7 @@ class TipoItem(db.Model):
 
 # RELACIONES  ===========================================================================
     atributoPorTipoItem = db.relationship('Atributo', secondary=atributoPorTipoItem,
-        backref=db.backref('atributoPorTipoItem', lazy='dynamic'))
+        backref=db.backref('tiposItem', lazy='dynamic'))
     
 # FUNCIONES =============================================================================   
     
@@ -691,7 +693,6 @@ class TipoItem(db.Model):
         return cls.query.filter(q)
 
 
-
 class Item(db.Model):
     __tablename__='item'
     
@@ -701,16 +702,13 @@ class Item(db.Model):
     version = Column(db.Integer)
     complejidad= Column(db.Integer) 
     estado_id = Column(db.SmallInteger,default=DESAPROBADO)
-
     
 # RELACIONES  ====================================================================
 
     proyecto_id = Column(db.Integer, db.ForeignKey('proyecto.id'))
-
     fase_id = Column(db.Integer, db.ForeignKey('fase.id')) 
 
     solicitudes = db.relationship('Solicitud', backref='item',lazy='dynamic')
-
     lineaBase_id = Column(db.Integer, db.ForeignKey('lineaBase.id'))
     
     """
@@ -729,19 +727,10 @@ class Item(db.Model):
     """
     relacion con el item sucesor
     """
-    relacionSucesor= db.relationship("RelacionSucesor", primaryjoin=id==RelacionSucesor.left_id, backref='items')
-#    
-    relacionHijo = db.relationship("RelacionHijo", primaryjoin=id==RelacionHijo.left_id, backref='item')
-    
-    #hijos = db.relationship('Item')
-    #padre = db.relationship('Item', remote_side=['item.c.id'])
-    padre_id = Column('padre_id', db.Integer, db.ForeignKey('item.id')) 
-    
-    #parent_id = Column('parent_id', Integer, ForeignKey('pages.id'))
-   
-    #children = relation('Page')
-    #parent = relation('Page', remote_side=['pages.c.id'])
-
+    padre_id = Column(db.Integer,db.ForeignKey('item.id'))
+    hijo = db.relationship("Item",
+                backref=db.backref('padre', remote_side=[id])
+            )
 
 # FUNCIONES  ====================================================================   
     def getHistorial(self):
@@ -763,6 +752,9 @@ class Item(db.Model):
     
     def getEstado(self):
         return ITEM_ESTADOS[self.estado_id]
+    
+    def setEstado(self, estado):
+        self.estado_id = estado
     
     def getComplejidad(self):
         return self.complejidad
@@ -817,26 +809,30 @@ class Item(db.Model):
         return False
     
     """
-    note: metodo que devuelve el padre del item, devuelve None en caso de no tener
+    note: metodo que devuelve el padre del item, devuelve String en caso de no tener
     """
-    def getPadre(self, fase):
-        for item in fase.items:
-            if item.getEstado() != 'Eliminado' and item != self:
-                for relacion in item.relacionHijo:
-                    if relacion.hijo == self:
-                        return item
-        return None
-    
+    def getPadre(self):
+        padre = Item.query.filter_by(id=self.padre_id).first()
+        if padre is None:
+            return "<NO TIENE>"
+        return padre.nombre
     """
     note metodo que pregunta si un item es descendiente de otro en una fase dada
     """
     def esDescendiente(self, fase, item):
-        lista_hijos= self.getGeneraciones(fase, self)
-        print "\n\n\n\n\n\n\n"
-        for aux in lista_hijos:
-            print aux.getNombre()
-        print "\n\n\n\n\n\n\n"
-        return item in lista_hijos
+        lista_descendientes = self.getGeneraciones(fase, self)
+        return item in lista_descendientes
+    
+    """
+    note: metodo que acumula los hijos, nietos etc. de un item en una lista incluyendose al item
+    """
+    def getGeneraciones(self, fase, item):
+        lista= []
+        for hij in item.hijo:
+            if hij.getEstado() != 'Eliminado' and hij in fase.items:
+                lista= lista + item.getGeneraciones(fase, hij)
+        lista = lista + [item]
+        return lista
     
     """
     note: metodo que acumula los hijos, nietos etc. de un item en una lista incluyendose al item
@@ -849,9 +845,6 @@ class Item(db.Model):
     
     def setVersion(self, version):
         self.version= version
-    
-    def setEstado(self, estado):
-        self.estado= estado
     
     def setComplejidad(self, complejidad):
         self.complejidad= complejidad
@@ -876,7 +869,7 @@ class Atributo(db.Model):
     id = Column(db.Integer, primary_key=True)
     nombre= Column(db.String(32), nullable=False, unique=True)
     tipo= Column(db.Integer)
-    descripcion= Column(db.String(200), nullable=True)
+    descripcion= Column(db.String(100), nullable=True)
     valorString= Column(db.String(32))
     valorInteger= Column(db.Integer)
     valorFecha=  Column(db.DateTime)
@@ -887,7 +880,7 @@ class Atributo(db.Model):
         return self.nombre
     
     def getTipo(self):
-        return self.tipo
+        return TIPOS_ATRIBUTOS[self.tipo]
     
     def getValor(self):
         if self.getTipo() == 'String':
@@ -972,22 +965,21 @@ class Archivo(db.Model):
     
     
 class HistorialItem(db.Model):
-
     __tablename__ = 'historialItem'
 
     id = Column(db.Integer, primary_key=True)
     itemId= Column(db.Integer, nullable=False)
     descripcion = Column(db.String)
     fecha= Column(db.DateTime, default=get_current_time)
-    
+
     
 class LineaBase(db.Model):
     __tablename__='lineaBase'
     
     id = Column(db.Integer, primary_key=True)
-    numero_lb = Column(db.Integer, nullable=False)
-    descripcion = Column(db.String(),nullable=True)
-    estado_id = Column(db.SmallInteger,default=INICIAL)   
+    numero_lb = Column(db.Integer)
+    nombre = Column(db.String(25), nullable=False)
+    estado_id = Column(db.SmallInteger,default=ABIERTA)   
     complejidad = Column(db.Integer)
     
 # RELACIONES ===================================================================
@@ -996,13 +988,13 @@ class LineaBase(db.Model):
     # One-to-many relationship 
     items = db.relationship('Item', backref='lineaBase',lazy='dynamic')
     
+ # FUNCIONES =====================================================================    
 
-# FUNCIONES =====================================================================    
     def getNombre(self):
         return self.nombre
     
     def getNumero(self):
-        return self.numero
+        return self.numero_lb
     
     def getEstado(self):
         return LINEABASE_ESTADOS[self.estado_id]
@@ -1014,7 +1006,10 @@ class LineaBase(db.Model):
         return cont
     
     def getNroItems(self):
-        return len(self.items)
+        cant = 0
+        for item in self.items:
+            cant=cant + 1
+        return  cant#len(self.items)
     
     def getItems(self):
         lista= []
@@ -1026,7 +1021,7 @@ class LineaBase(db.Model):
         self.nombre= nombre
     
     def setNumero(self, numero):
-        self.numero= numero
+        self.numero_lb = numero
     
     def setEstado(self, estado_id):
         self.estado_id = estado_id
@@ -1034,17 +1029,17 @@ class LineaBase(db.Model):
     def romper(self):
         self.estado_id = 'Abierta'
         for item in self.items:
-            item.setEstado('Revision')
+            item.setEstado('para revision')
     
     def comprometer(self, session):
-        self.estado_id = 'Comprometida'
+        self.estado_id = 'comprometida'
         for item in self.items:
-            item.setEstado('Revision')
+            item.setEstado('revision')
         session.add(self)
     
     def removerItemsEliminados(self, session):
         for item in self.items:
-            if item.getEstado() == 'Eliminado':
+            if item.getEstado() == 'eliminado':
                 self.items.remove(item)
         session.add(self)
     
@@ -1102,7 +1097,6 @@ class LineaBase(db.Model):
                 print "\n"
                 print "Es None..."
                 print "\n"
-
 
 class HistorialLineaBase(db.Model):
 

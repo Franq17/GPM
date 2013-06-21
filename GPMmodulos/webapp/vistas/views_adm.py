@@ -98,17 +98,22 @@ def deleteUser(user_id):
     """Funcion encargada de eliminar un usuario del sistema"""
     user = User.query.filter_by(id=user_id).first_or_404()
     form = DeleteUserForm(obj=user, next=request.args.get('next'))
-
-    if form.validate_on_submit():
-        form.populate_obj(user)
-
-        db.session.delete(user)
-        db.session.commit()
-
-        flash('Usuario eliminado.', 'success')
+    
+    if user == current_user:
+        flash ('Usuario no eliminado. Logueado en este momento', 'error')
         return redirect(url_for('admin.users'))
+    else:
+        if form.validate_on_submit():
+            form.populate_obj(user)
+    
+            db.session.delete(user)
+            db.session.commit()
+    
+            flash('Usuario eliminado.', 'success')
+            return redirect(url_for('admin.users'))
+    
+        return render_template('admin/deleteUser.html', user=user, form=form)
 
-    return render_template('admin/deleteUser.html', user=user, form=form)
 
 
 @admin.route('/searchUser')
@@ -381,6 +386,7 @@ def proyecto(proyecto_id):
     return render_template('admin/proyecto.html', proyecto=proyecto, form=form)
 
 
+
 @admin.route('/borrarProyecto/<proyecto_id>', methods=['GET', 'POST'])
 @login_required
 @eliminarProyectos_required
@@ -392,7 +398,7 @@ def borrarProyecto(proyecto_id):
     if proyecto.comite is not None:
         flash('Proyecto no eliminado. Tiene asignado un comite', 'error')
         return redirect(url_for('admin.proyectos'))
-    elif proyecto.estado_id is 1:
+    elif proyecto.getEstado() == 'iniciado':
         flash('Proyecto no eliminado. Estado iniciado', 'error')
         return redirect(url_for('admin.proyectos'))
     else:
@@ -432,6 +438,11 @@ def desasignarUsuario(proyecto_id, user_id):
     usuariosAsignados = proyecto.usuarioPorProyecto
     
     for item in usuariosAsignados:
+        for fase in proyecto.fases:
+            if usuarioDesasignar.id == fase.lider_fase:
+                flash('El usuario es Lider de una fase, no puede ser desasignado.', 'error')
+                return redirect(url_for('admin.usuariosxproyecto', proyecto_id=proyecto.id))
+        
         if usuarioDesasignar.id == proyecto.lider_proyecto:
             flash('El usuario es Lider del proyecto, no puede ser desasignado.', 'error')
             return redirect(url_for('admin.usuariosxproyecto', proyecto_id=proyecto.id))
@@ -482,10 +493,23 @@ def crearFase(proyecto_id):
     if proyecto.fases.count() < proyecto.numero_fases:
         form = CrearFaseForm(next=request.args.get('next'))
         form.lider_fase.choices=[(g.id, g.nombre) for g in proyecto.getUsuariosLideresFase()]
-    
+
+        ordenesNoExistentes = []
+        ordenesExistentes = []
+        for fase in proyecto.fases:
+            ordenesExistentes.append(fase.numero_fase)
+            
+        for i in range(proyecto.numero_fases):
+            if i+1 not in ordenesExistentes:    
+                    ordenesNoExistentes.append((i+1, i+1))
+  
+        form.numero_fase.choices=[(i,i) for i,i in ordenesNoExistentes]
+        ordenesNoExistentes = None
+
         if form.validate_on_submit():
             fase = Fase()
             fase.nombre = form.nombre.data
+            fase.numero_fase = form.numero_fase.data
             fase.lider_fase = form.lider_fase.data
             
             user = User.query.filter_by(id=form.lider_fase.data).first_or_404()
@@ -536,11 +560,6 @@ def asignarTipoItem(fase_id, tipoItem_id):
     tipoItem = TipoItem.query.filter_by(id=tipoItem_id).first_or_404()
     proyecto_id = fase.proyecto_id
     
-
-    print "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% recibi fase"
-    print fase.id, fase_id
-    
-
     fase.tipoItemPorFase.append(tipoItem)
     db.session.add(fase)
     db.session.commit()
@@ -578,14 +597,18 @@ def crearAtributo(proyecto_id, tipoItem_id):
     proyecto = Proyecto.query.filter_by(id=proyecto_id).first_or_404()
     tipoItem = TipoItem.query.filter_by(id=tipoItem_id).first_or_404()
     
-    atributos = Atributo.query.all()
+    
     form = CrearAtributoForm(next=request.args.get('next'))
-    form.atributo_id.choices=[(h.id, h.nombre) for h in atributos]
+    atributos = [(1,'String'), (2,'Integer'),(3,'Date')]
+    form.tipo.choices=[(id, nombre) for id, nombre in atributos]
    
     if form.validate_on_submit():
         atributo = Atributo()
         atributo.nombre = form.nombre.data
-        atributo.valorString = form.valor.data
+        atributo.tipo = form.tipo.data
+        #if atributo.getTipo() == 'String' form.valor.data  
+            
+        atributo.setValor(form.valor.data)  
                 
         db.session.add(atributo)
         db.session.commit()
@@ -649,6 +672,25 @@ def buscarTipoItem():
     else:
         flash('Por favor, ingrese dato a buscar','error')
     return render_template('index/buscarTipoItem.html', pagination=pagination , keywords=keywords)
+
+
+@admin.route('/borrarTipoItem/<proyecto_id>/<tipoItem_id>', methods=['GET', 'POST'])
+@login_required
+def borrarTipoItem(proyecto_id, tipoItem_id):
+    """Funcion que permite editar un comite"""
+    tipoItem = TipoItem.query.filter_by(id=tipoItem_id).first_or_404()
+    proyecto = Proyecto.query.filter_by(id=proyecto_id).first_or_404()
+    fases = proyecto.fases
+    
+    for fase in fases:
+        if tipoItem in fase.tipoItemPorFase:
+            flash('El tipo de item se encuentra asignado a una fase.', 'error')
+            return redirect(url_for('admin.tiposItemxproyecto',proyecto_id=proyecto.id))
+    
+    db.session.delete(tipoItem)
+    db.session.commit()
+    flash('Tipo de Item eliminado.', 'success')
+    return redirect(url_for('admin.tiposItemxproyecto',proyecto_id=proyecto.id))
 
 
 ##########################################################################        

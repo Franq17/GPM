@@ -46,3 +46,8 @@ class UserxComiteForm(Form):
     usuarioPorComite = SelectMultipleField(u'Usuarios' ,coerce=int)
     submit = SubmitField(u'Agregar Miembro')
 
+class CrearLBForm(Form):
+    next = HiddenField()
+    nombre = TextField(u'Nombre de Linea de Base', [Required(), Length(REALNAME_LEN_MIN, REALNAME_LEN_MAX)])
+    submit = SubmitField(u'Crear')
+    

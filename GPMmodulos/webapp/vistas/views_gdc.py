@@ -31,14 +31,6 @@ def proyectosLB():
     
     return render_template('cambios/proyectosLB.html', proyectos=proyectos)
 
-@cambios.route('/lineasBasexproyecto/<proyecto_id>', methods=['GET', 'POST'])
-@login_required
-def lineasBasexproyecto(proyecto_id):
-    """Funcion que lista las fases de un Proyecto"""
-    proyecto = Proyecto.query.filter_by(id=proyecto_id).first_or_404()
-    fases = proyecto.fases
-    return render_template('cambios/lineasbasexproyecto.html', proyecto=proyecto, fases=fases)
-
 @cambios.route('/crearLB/<proyecto_id>/<fase_id>', methods=['GET', 'POST'])
 @login_required
 def crearLB(proyecto_id, fase_id):
@@ -46,28 +38,22 @@ def crearLB(proyecto_id, fase_id):
     fase = Fase.query.filter_by(id=fase_id).first_or_404()
     proyecto = Proyecto.query.filter_by(id=proyecto_id).first_or_404()
     
-    if fase.lineaBase.count() < 3:
-        form = CrearLBForm(next=request.args.get('next'))
-        form.numero_lb.choices=[(i+1,i+1) for i in range(3)]
+    form = CrearLBForm(next=request.args.get('next'))
+    
+    
+    if form.validate_on_submit():
+        lineaBase = LineaBase()
+        lineaBase.nombre = form.nombre.data
+        lineaBase.fase_id = fase.id
         
-        if form.validate_on_submit():
-                lineaBase = LineaBase()
-                lineaBase.nombre = form.nombre.data
-                lineaBase.numero_lb = form.numero_lb.data
-                lineaBase.fase_id = fase.id
-                
-                db.session.add(lineaBase)
-                db.session.commit()
-                
-                flash('Linea Base creada.', 'success')
-                return redirect(url_for('cambios.lineasBasexproyecto',proyecto_id=proyecto_id))
-        return render_template('cambios/crearLineaBase.html', proyecto=proyecto, fase=fase, form=form)
-    else:
-        flash('Se alcanzo el numero maximo de Lineas Base para esta fase.', 'error')
-        return redirect(url_for('cambios.lineasBasexproyecto',proyecto_id=proyecto_id))
+        db.session.add(lineaBase)
+        db.session.commit()
+        
+        flash('Linea Base creada.', 'success')
+        return redirect(url_for('cambios.lineaBasexproyecto',proyecto_id=proyecto_id))
+    return render_template('cambios/crearLineaBase.html', proyecto=proyecto, fase=fase, form=form)
        
     
-
 @cambios.route('/crearComite', methods=['GET', 'POST'])
 @login_required
 #@crearComites_required
@@ -224,38 +210,8 @@ def lineaBasexproyecto(proyecto_id):
             lineaBase = LineaBase.query.filter_by(id=linea.id).first_or_404()
             listaDeLB.append(lineaBase)
     
-    return render_template('cambios/lineaBasexproyecto.html', proyecto=proyecto, fases=fases, lineasBases=listaDeLB, active='Lineas Base')
+    return render_template('cambios/lineasbasexproyecto.html', proyecto=proyecto, fases=fases, lineasBases=listaDeLB, active='Lineas Base')
 
-@cambios.route('/crearLineaBase/<proyecto_id>', methods=['GET', 'POST'])
-@login_required
-def crearLineaBase(proyecto_id):
-    """Funcion que permite instanciar una Linea Base de una Fase"""
-    proyecto = Proyecto.query.filter_by(id=proyecto_id).first_or_404()
-    fases = Fase.query.filter_by(proyecto_id=proyecto_id)
-    form = CrearLineaBaseForm(next=request.args.get('next'))
-    form.fase_id.choices = [(h.id, h.nombre) for h in fases ]
-    
-    if form.validate_on_submit():
-        lineabase = LineaBase()
-        fase = Fase.query.filter_by(id=form.fase_id.data).first_or_404()
-        lineabase.numero_lb = form.numero_lb.data
-        lineabase.descripcion = form.descripcion.data
-        lineabase.fase_id = fase.id
-        
-        db.session.add(lineabase)
-        db.session.commit()
-        
-        historial = HistorialLineaBase()
-        historial.lineaBase_id = lineabase.id
-        historial.descripcion= current_user.nombre+" creo la Linea Base " +str(lineabase.numero_lb)+ " de la Fase " +str(lineabase.fase_id)
-        
-        db.session.add(historial)
-        db.session.commit()
-        
-        flash('Linea Base creada.', 'success')
-        return redirect(url_for('cambios.lineaBasexproyecto',proyecto_id=proyecto.id))
-    
-    return render_template('cambios/crearLineaBase.html', proyecto=proyecto, form=form)
 
 @cambios.route('/historialxlineabase/<lineabase_id>', methods=['GET', 'POST'])
 @login_required
@@ -269,6 +225,7 @@ def historialxlineabase(lineabase_id):
         if historial.lineaBase_id==lineabase.id:
             historiales.append(historial)
     return render_template('cambios/historialxlineabase.html', lineabase=lineabase, historiales=historiales)
+
 
 @cambios.route('/lineaBasexproyecto/<proyecto_id>/<lineabase_id>', methods=['GET', 'POST'])
 @login_required

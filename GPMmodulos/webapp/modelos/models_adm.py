@@ -12,7 +12,9 @@ from ..extensions import db
 from ..utils import get_current_time
 
 from .constants import INACTIVE, USER_STATUS,NO_INICIADO, PROYECTO_ESTADOS, LINEABASE_ESTADOS, FASE_ESTADOS, ITEM_ESTADOS
+
 from .constants import INICIAL, DESAPROBADO, ROL_ESTADOS, TIPOS_ROLES, NO_ASIGNADO, ABIERTA, TIPOS_ATRIBUTOS
+
 
 
 class DenormalizedText(Mutable, types.TypeDecorator):
@@ -197,6 +199,15 @@ class User(db.Model, UserMixin):
                 if self.id==miembro.id:
                     misProyectos.append(unProyecto)
         return misProyectos
+    
+    def getProyectosDeLider(self):
+        todosProyectos = Proyecto.query.all()
+        
+        misProyectos=[]
+        for proyecto in todosProyectos:
+            if self.id == proyecto.lider_proyecto:
+                misProyectos.append(proyecto)
+        return misProyectos
         
     def getCantSolicitudes (self):
         listaSolicitudes = self.solicitudPorUsuario
@@ -221,9 +232,25 @@ class User(db.Model, UserMixin):
     ## Falta arreglar para el caso de desasignar el rol de un usuario en un Proyecto
     def puedeSerLiderFase(self):
         roles = self.rolPorUsuario
-        for rol_id in roles:
-            rol = Rol.query.filter_by(id=rol_id).first_or_404()
-            if rol.getTipo() == 'lider de Fase':
+        for rol in roles:
+            unRol = Rol.query.filter_by(id=rol.id).first_or_404()
+            if unRol.getTipo() == 'lider de Fase':
+                return True
+        return False
+    
+    def puedeSerLiderProyecto(self):
+        roles = self.rolPorUsuario
+        for rol in roles:
+            unRol = Rol.query.filter_by(id=rol.id).first_or_404()
+            if unRol.getTipo() == 'lider de Proyecto':
+                return True
+        return False
+    
+    def puedeSerDesarrollador(self):
+        roles = self.rolPorUsuario
+        for rol in roles:
+            unRol = Rol.query.filter_by(id=rol.id).first_or_404()
+            if unRol.getTipo() == 'desarrollador':
                 return True
         return False
      
@@ -235,6 +262,7 @@ class User(db.Model, UserMixin):
             if self.id == fase.lider_fase:
                 return True
         return False
+
     def getStatus(self):
         return USER_STATUS[self.status_id]
     
@@ -356,8 +384,48 @@ class Rol(db.Model):
     
     def setEstado(self, estado):
         self.estado_id = estado
+    
+    def getUsuarios(self):
+        users = User.query.all()
+        userList = []
+        for user in users:
+            roles = user.rolPorUsuario
+            if self in roles:
+                userList.append(user)
+        return userList
 
-
+    def comprobarAsignacion(self):
+        users = self.getUsuarios()
+        if len(users)==0:
+            self.setEstado(0)
+    
+    def cargarPermisos(self):
+        if self.getTipo()=="administrador":
+            for pid in range(1,32):
+                permiso = Permiso.query.filter_by(id=pid).first_or_404()
+                self.permisoPorRol.append(permiso)
+        elif self.getTipo()=="lider de Proyecto":
+            perLider = Permiso.query.filter_by(id=32).first_or_404()
+            self.permisoPorRol.append(perLider)
+            for pid in range(10,19):
+                permiso = Permiso.query.filter_by(id=pid).first_or_404()
+                self.permisoPorRol.append(permiso)
+        elif self.getTipo()=="lider de Fase":
+            perLider = Permiso.query.filter_by(id=33).first_or_404()
+            self.permisoPorRol.append(perLider)
+            for pid in range(19,27):
+                permiso = Permiso.query.filter_by(id=pid).first_or_404()
+                self.permisoPorRol.append(permiso)
+        elif self.getTipo()=="desarrollador":
+            perDesarrollador = Permiso.query.filter_by(id=34).first_or_404()
+            self.permisoPorRol.append(perDesarrollador)
+            for pid in range(19,23):
+                permiso = Permiso.query.filter_by(id=pid).first_or_404()
+                self.permisoPorRol.append(permiso)
+            for pid in range(27,31):
+                permiso = Permiso.query.filter_by(id=pid).first_or_404()
+                self.permisoPorRol.append(permiso)
+    
     # Class methods
 
     @classmethod
@@ -439,6 +507,24 @@ class Proyecto(db.Model):
     def getLider(self):
         lider = User.query.filter_by(id=self.lider_proyecto).first_or_404()
         return lider.nombre+' '+lider.apellido
+    
+    def getUsuariosLideresFase(self):
+        users = self.usuarioPorProyecto
+        usuariosLideres=[]
+        for user in users:
+            usuario = User.query.filter_by(id=user.id).first_or_404()
+            if usuario.puedeSerLiderFase():
+                usuariosLideres.append(usuario)
+        return usuariosLideres
+    
+    def getUsuariosLideresProyecto(self):
+        users = self.usuarioPorProyecto
+        usuariosLideres=[]
+        for user in users:
+            usuario = User.query.filter_by(id=user.id).first_or_404()
+            if usuario.puedeSerLiderProyecto():
+                usuariosLideres.append(usuario)
+        return usuariosLideres
     
     # ================================================================
     # Follow / Following
@@ -605,7 +691,6 @@ class TipoItem(db.Model):
             )
         q = reduce(db.and_, criteria)
         return cls.query.filter(q)
-
 
 
 class Item(db.Model):
@@ -880,20 +965,19 @@ class Archivo(db.Model):
     
     
 class HistorialItem(db.Model):
-
     __tablename__ = 'historialItem'
 
     id = Column(db.Integer, primary_key=True)
     itemId= Column(db.Integer, nullable=False)
     descripcion = Column(db.String)
     fecha= Column(db.DateTime, default=get_current_time)
-    
+
     
 class LineaBase(db.Model):
     __tablename__='lineaBase'
     
     id = Column(db.Integer, primary_key=True)
-    numero_lb = Column(db.Integer, nullable=False)
+    numero_lb = Column(db.Integer)
     nombre = Column(db.String(25), nullable=False)
     estado_id = Column(db.SmallInteger,default=ABIERTA)   
     complejidad = Column(db.Integer)
@@ -905,6 +989,7 @@ class LineaBase(db.Model):
     items = db.relationship('Item', backref='lineaBase',lazy='dynamic')
     
  # FUNCIONES =====================================================================    
+
     def getNombre(self):
         return self.nombre
     

@@ -70,7 +70,6 @@ def createUser():
     return render_template('admin/createUser.html', form=form)
 
 
-
 @admin.route('/user/<user_id>', methods=['GET', 'POST'])
 @login_required
 @login_required
@@ -114,6 +113,7 @@ def deleteUser(user_id):
             return redirect(url_for('admin.users'))
     
         return render_template('admin/deleteUser.html', user=user, form=form)
+
 
 
 @admin.route('/searchUser')
@@ -173,7 +173,6 @@ def roles():
     return render_template('admin/roles.html', roles=roles)
 
 
-
 @admin.route('/crearRol', methods=['GET', 'POST'])
 @login_required
 @crearRoles_required
@@ -193,12 +192,16 @@ def crearRol():
         rol.nombre = form.nombre.data
         rol.tipo = form.tipo.data
         rol.descripcion = form.descripcion.data
+        rol.cargarPermisos()
         
-        listaTotal=form.permisoPorRol.data
-        for permisoID in listaTotal:
-            permiso = Permiso.query.filter_by(id=permisoID).first()
-            rol.permisoPorRol.append(permiso)
-             
+        perSeleccionados=form.permisoPorRol.data
+        perActuales=rol.permisoPorRol
+        for permisoActual in perActuales:
+            for ps_id in perSeleccionados:
+                permiso = Permiso.query.filter_by(id=ps_id).first_or_404()
+                if permisoActual != permiso:
+                    rol.permisoPorRol.append(permiso)
+        
         db.session.add(rol)
         db.session.commit()
         
@@ -280,6 +283,7 @@ def desasignarRol(user_id, rol_id):
     for item in rolesAsignados:
         if item == rolDesasignar:
             user.rolPorUsuario.remove(item)
+            rolDesasignar.comprobarAsignacion()
             db.session.add(user)
             db.session.commit()
             flash('Rol desasignado.', 'success')
@@ -319,7 +323,14 @@ def proyectos():
 def crearProyecto():
     """Funcion que permite la creacion de un Proyecto"""
     form = CrearProyectoForm(next=request.args.get('next'))
-    form.lider_proyecto.choices=[(g.id, g.nombre) for g in User.query.all()]
+    
+    users = User.query.all()
+    lideres = []
+    for user in users:
+        if user.puedeSerLiderProyecto():
+            lideres.append(user)
+    
+    form.lider_proyecto.choices=[(g.id, g.nombre) for g in lideres]
     
     if form.validate_on_submit():
         proyecto = Proyecto()
@@ -373,6 +384,7 @@ def proyecto(proyecto_id):
         return redirect(url_for('admin.proyectos'))
 
     return render_template('admin/proyecto.html', proyecto=proyecto, form=form)
+
 
 
 @admin.route('/borrarProyecto/<proyecto_id>', methods=['GET', 'POST'])
@@ -434,7 +446,6 @@ def desasignarUsuario(proyecto_id, user_id):
         if usuarioDesasignar.id == proyecto.lider_proyecto:
             flash('El usuario es Lider del proyecto, no puede ser desasignado.', 'error')
             return redirect(url_for('admin.usuariosxproyecto', proyecto_id=proyecto.id))
-        
         elif item == usuarioDesasignar:
                 proyecto.usuarioPorProyecto.remove(item)
 #                 if usuarioDesasignar.esLiderDeFase(proyecto.id):
@@ -471,17 +482,18 @@ def desasignarRolProyecto(proyecto_id, rol_id):
      
     return render_template('admin/rolesxproyecto.html', proyecto=proyecto, form=form, roles=rolesAsignados)
 
+
 #FASES
 @admin.route('/crearFase/<proyecto_id>', methods=['GET', 'POST'])
 @login_required
 def crearFase(proyecto_id):
     """Funcion que permite instanciar una Fase de un Proyecto"""
     proyecto = Proyecto.query.filter_by(id=proyecto_id).first_or_404()
+
     if proyecto.fases.count() < proyecto.numero_fases:
         form = CrearFaseForm(next=request.args.get('next'))
-        form.lider_fase.choices=[(g.id, g.nombre) for g in proyecto.usuarioPorProyecto]
-        
-        
+        form.lider_fase.choices=[(g.id, g.nombre) for g in proyecto.getUsuariosLideresFase()]
+
         ordenesNoExistentes = []
         ordenesExistentes = []
         for fase in proyecto.fases:
@@ -490,11 +502,10 @@ def crearFase(proyecto_id):
         for i in range(proyecto.numero_fases):
             if i+1 not in ordenesExistentes:    
                     ordenesNoExistentes.append((i+1, i+1))
-
-         
-        
+  
         form.numero_fase.choices=[(i,i) for i,i in ordenesNoExistentes]
         ordenesNoExistentes = None
+
         if form.validate_on_submit():
             fase = Fase()
             fase.nombre = form.nombre.data
@@ -548,9 +559,6 @@ def asignarTipoItem(fase_id, tipoItem_id):
     fase = Fase.query.filter_by(id=fase_id).first_or_404()
     tipoItem = TipoItem.query.filter_by(id=tipoItem_id).first_or_404()
     proyecto_id = fase.proyecto_id
-    
-    print "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% recibi fase"
-    print fase.id, fase_id
     
     fase.tipoItemPorFase.append(tipoItem)
     db.session.add(fase)
@@ -665,6 +673,7 @@ def buscarTipoItem():
         flash('Por favor, ingrese dato a buscar','error')
     return render_template('index/buscarTipoItem.html', pagination=pagination , keywords=keywords)
 
+
 @admin.route('/borrarTipoItem/<proyecto_id>/<tipoItem_id>', methods=['GET', 'POST'])
 @login_required
 def borrarTipoItem(proyecto_id, tipoItem_id):
@@ -752,13 +761,14 @@ def rolesxusuario(user_id):
                      
         for rolID in listaRolesSeleccionados:
             role=Rol.query.filter_by(id=rolID).first_or_404()
+            role.setEstado(1) #El rol ha sido asignado
             user.rolPorUsuario.append(role)
             
         db.session.add(user)
         db.session.commit()
        
         flash('Usuario modificado.', 'success')
-        return redirect(url_for('admin.users'))
+        return redirect(url_for('admin.rolesxusuario', user_id=user.id))
        
     return render_template('admin/rolesxusuario.html', user=user, form=form, roles=listaRolesActuales)
 

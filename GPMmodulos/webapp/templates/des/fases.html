@@ -7,7 +7,8 @@
 {% if current_user.comprobarPermiso('verLineaBase')  %}
 	{% set tabs = [
 		("Fases",url_for('des.fasesxproyecto', proyecto_id=proyecto.id)), 
-		("Items",url_for('des.itemsxproyecto', proyecto_id=proyecto.id))
+		("Items",url_for('des.itemsxproyecto', proyecto_id=proyecto.id)),
+		("Lineas Base",url_for('cambios.lineaBasexproyecto', proyecto_id=proyecto.id))
 	]%}
 {% else %}
 	{% set tabs = [
@@ -132,9 +133,6 @@
 								<a href="#" data-dismiss="modal" class="btn">Cancelar</a>
 							</div>
 						</div>
-						
-						
-						
 						{% endfor %}
 	     			</table>	
 				</div>

@@ -34,7 +34,9 @@
 			<td>{{ fase.getEstado() }}</td>
 			<td>{{ fase.getLider() }}</td>
             <td>{{ fase.descripcion }}</td>
+
             <td><a  data-toggle="modal" href="#{{fase.id}}"><i class="icon-plus"></i>Tipos de Item</a> | <a href="{{ url_for('admin.fase', fase_id=fase.id, proyecto_id=proyecto.id) }}"><i class="icon-pencil"></i>Editar</a></td>
+
         </tr>
         
         <div id="{{fase.id}}" class="modal hide fade in" style="display: none;">

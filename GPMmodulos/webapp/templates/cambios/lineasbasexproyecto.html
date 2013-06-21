@@ -3,10 +3,21 @@
 {% set page_header = _(active|capitalize) %}
 {% set page_title = 'Proyecto_LineaBase' %}
 
-{% block body %}
-<h2>Fases del Proyecto: <font color="royalblue">{{ proyecto.nombre }}</font></h2>
+{% if current_user.comprobarPermiso('verLineaBase')  %}
+	{% set tabs = [
+		("Fases",url_for('des.fasesxproyecto', proyecto_id=proyecto.id)), 
+		("Items",url_for('des.itemsxproyecto', proyecto_id=proyecto.id)),
+		("Lineas Base",url_for('cambios.lineaBasexproyecto', proyecto_id=proyecto.id))
+	]%}
+{% else %}
+	{% set tabs = [
+		("Fases",url_for('des.fasesxproyecto', proyecto_id=proyecto.id)), 
+		("Items",url_for('des.itemsxproyecto', proyecto_id=proyecto.id))
+	]%}
+{% endif%}
 
-<h3>Lineas Base </h3>
+{% block body %}
+<h2>Lineas Base del Proyecto: <font color="royalblue">{{ proyecto.nombre }}</font></h2>
 
 <div class="tabbable tabs-left"> <!-- Only required for left/right tabs -->
 	<ul class="nav nav-tabs">

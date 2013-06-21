@@ -49,6 +49,5 @@ class UserxComiteForm(Form):
 class CrearLBForm(Form):
     next = HiddenField()
     nombre = TextField(u'Nombre de Linea de Base', [Required(), Length(REALNAME_LEN_MIN, REALNAME_LEN_MAX)])
-    numero_lb = SelectField(u'Orden de Linea Base',coerce=int,)
     submit = SubmitField(u'Crear')
     

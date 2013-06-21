@@ -85,6 +85,7 @@ def item(proyecto_id, item_id):
 
     return render_template('des/item.html', item=item, proyecto=proyecto, form=form)
 
+
 @des.route('/AprobarItem/<item_id>', methods=['GET', 'POST'])
 @login_required
 def aprobarItem(item_id):
@@ -206,7 +207,6 @@ def crearSolicitud(item_id, proyecto_id):
     
     for usuario in usuariosComite:
         usuario.solicitudPorUsuario.append(solicitud)
-        
         
         db.session.add(usuario)
         db.session.commit()

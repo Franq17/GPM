@@ -94,10 +94,6 @@ tipoItemPorFase = db.Table ('tipoItemPorFase',
 #            Agregado de Adolfismo
 ############################################################################################
 
-archivoPorItem = db.Table('asociacion_item_archivo',
-    Column('item_id', db.Integer, db.ForeignKey('item.id')),
-    Column('archivo_id', db.Integer, db.ForeignKey('archivo.id'))
-)
 
 class RelacionSucesor(db.Model):
     __tablename__ = 'relacion_sucesor'
@@ -111,10 +107,10 @@ class RelacionHijo(db.Model):
     right_id = Column(db.Integer, db.ForeignKey('item.id'), primary_key=True)
     hijo = db.relationship('Item', primaryjoin="Item.id==RelacionHijo.right_id", backref='relacion_hijo')
 
-
-
-##############################################################################################
-##############################################################################################
+archivoPorItem = db.Table('asociacion_item_archivo',
+    Column('item_id', db.Integer, db.ForeignKey('item.id')),
+    Column('archivo_id', db.Integer, db.ForeignKey('archivo.id'))
+)
 
     
 class User(db.Model, UserMixin):
@@ -137,8 +133,6 @@ class User(db.Model, UserMixin):
 # RELACIONES ==========================================================================
 
     #esLiderFase = db.relationship('Fase', backref='users',lazy='dynamic')
-    
-
     # Many-to-many relationship    
     rolPorUsuario = db.relationship('Rol', secondary=rolPorUsuario,
        backref=db.backref('users', lazy='dynamic'))
@@ -203,6 +197,15 @@ class User(db.Model, UserMixin):
                 if self.id==miembro.id:
                     misProyectos.append(unProyecto)
         return misProyectos
+    
+    def getProyectosDeLider(self):
+        todosProyectos = Proyecto.query.all()
+        
+        misProyectos=[]
+        for proyecto in todosProyectos:
+            if self.id == proyecto.lider_proyecto:
+                misProyectos.append(proyecto)
+        return misProyectos
         
     def getCantSolicitudes (self):
         listaSolicitudes = self.solicitudPorUsuario
@@ -227,22 +230,37 @@ class User(db.Model, UserMixin):
     ## Falta arreglar para el caso de desasignar el rol de un usuario en un Proyecto
     def puedeSerLiderFase(self):
         roles = self.rolPorUsuario
-        for rol_id in roles:
-            rol = Rol.query.filter_by(id=rol_id).first_or_404()
-            if rol.getTipo() == 'lider de Fase':
+        for rol in roles:
+            unRol = Rol.query.filter_by(id=rol.id).first_or_404()
+            if unRol.getTipo() == 'lider de Fase':
+                return True
+        return False
+    
+    def puedeSerLiderProyecto(self):
+        roles = self.rolPorUsuario
+        for rol in roles:
+            unRol = Rol.query.filter_by(id=rol.id).first_or_404()
+            if unRol.getTipo() == 'lider de Proyecto':
+                return True
+        return False
+    
+    def puedeSerDesarrollador(self):
+        roles = self.rolPorUsuario
+        for rol in roles:
+            unRol = Rol.query.filter_by(id=rol.id).first_or_404()
+            if unRol.getTipo() == 'desarrollador':
                 return True
         return False
      
     def esLiderDeFase(self, proyecto_id):
         proyecto = Proyecto.query.filter_by(id=proyecto_id).first_or_404()
         fases = proyecto.fases
-        for fase_id in fases:
-            fase = Fase.query.filter_by(id=fase_id).first_or_404()
+        for fase in fases:
+            fase = Fase.query.filter_by(id=fase.id).first_or_404()
             if self.id == fase.lider_fase:
                 return True
         return False
-    ##
-    
+
     def getStatus(self):
         return USER_STATUS[self.status_id]
     
@@ -364,7 +382,47 @@ class Rol(db.Model):
     
     def setEstado(self, estado):
         self.estado_id = estado
+    
+    def getUsuarios(self):
+        users = User.query.all()
+        userList = []
+        for user in users:
+            roles = user.rolPorUsuario
+            if self in roles:
+                userList.append(user)
+        return userList
 
+    def comprobarAsignacion(self):
+        users = self.getUsuarios()
+        if len(users)==0:
+            self.setEstado(0)
+    
+    def cargarPermisos(self):
+        if self.getTipo()=="administrador":
+            for pid in range(1,32):
+                permiso = Permiso.query.filter_by(id=pid).first_or_404()
+                self.permisoPorRol.append(permiso)
+        elif self.getTipo()=="lider de Proyecto":
+            perLider = Permiso.query.filter_by(id=32).first_or_404()
+            self.permisoPorRol.append(perLider)
+            for pid in range(10,19):
+                permiso = Permiso.query.filter_by(id=pid).first_or_404()
+                self.permisoPorRol.append(permiso)
+        elif self.getTipo()=="lider de Fase":
+            perLider = Permiso.query.filter_by(id=33).first_or_404()
+            self.permisoPorRol.append(perLider)
+            for pid in range(19,27):
+                permiso = Permiso.query.filter_by(id=pid).first_or_404()
+                self.permisoPorRol.append(permiso)
+        elif self.getTipo()=="desarrollador":
+            perDesarrollador = Permiso.query.filter_by(id=34).first_or_404()
+            self.permisoPorRol.append(perDesarrollador)
+            for pid in range(19,23):
+                permiso = Permiso.query.filter_by(id=pid).first_or_404()
+                self.permisoPorRol.append(permiso)
+            for pid in range(27,31):
+                permiso = Permiso.query.filter_by(id=pid).first_or_404()
+                self.permisoPorRol.append(permiso)
     
     # Class methods
 
@@ -448,6 +506,24 @@ class Proyecto(db.Model):
         lider = User.query.filter_by(id=self.lider_proyecto).first_or_404()
         return lider.nombre+' '+lider.apellido
     
+    def getUsuariosLideresFase(self):
+        users = self.usuarioPorProyecto
+        usuariosLideres=[]
+        for user in users:
+            usuario = User.query.filter_by(id=user.id).first_or_404()
+            if usuario.puedeSerLiderFase():
+                usuariosLideres.append(usuario)
+        return usuariosLideres
+    
+    def getUsuariosLideresProyecto(self):
+        users = self.usuarioPorProyecto
+        usuariosLideres=[]
+        for user in users:
+            usuario = User.query.filter_by(id=user.id).first_or_404()
+            if usuario.puedeSerLiderProyecto():
+                usuariosLideres.append(usuario)
+        return usuariosLideres
+    
     # ================================================================
     # Follow / Following
     followers = Column(DenormalizedText)
@@ -493,7 +569,6 @@ class Proyecto(db.Model):
             ))
         q = reduce(db.and_, criteria)
         return cls.query.filter(q)
-
 
     
 class Fase(db.Model):
@@ -554,7 +629,9 @@ class Fase(db.Model):
         return misItems
     
     def existeTipoItem (self, tipoItem_id):
+        
         for tipo in self.tipoItemPorFase:
+            print tipo.nombre
             if tipo.id == tipoItem_id:
                 return True
         return False
@@ -629,14 +706,13 @@ class Item(db.Model):
 # RELACIONES  ====================================================================
 
     proyecto_id = Column(db.Integer, db.ForeignKey('proyecto.id'))
-    
+
     fase_id = Column(db.Integer, db.ForeignKey('fase.id')) 
 
     solicitudes = db.relationship('Solicitud', backref='item',lazy='dynamic')
 
     lineaBase_id = Column(db.Integer, db.ForeignKey('lineaBase.id'))
     
-
     """
     estas dos columnas son para relacionar muchos items con un tipo de item
     """
@@ -648,14 +724,23 @@ class Item(db.Model):
     """
     estas dos columnas son para relaciones de versiones de items
     """
-    versionSuperior_id = Column(db.Integer, db.ForeignKey('item.id'))
-    versionAnterior = db.relationship("Item")
+    #versionSuperior_id = Column(db.Integer, db.ForeignKey('item.id'))
+    #versionAnterior = db.relationship("Item")
     """
     relacion con el item sucesor
     """
     relacionSucesor= db.relationship("RelacionSucesor", primaryjoin=id==RelacionSucesor.left_id, backref='items')
 #    
     relacionHijo = db.relationship("RelacionHijo", primaryjoin=id==RelacionHijo.left_id, backref='item')
+    
+    #hijos = db.relationship('Item')
+    #padre = db.relationship('Item', remote_side=['item.c.id'])
+    padre_id = Column('padre_id', db.Integer, db.ForeignKey('item.id')) 
+    
+    #parent_id = Column('parent_id', Integer, ForeignKey('pages.id'))
+   
+    #children = relation('Page')
+    #parent = relation('Page', remote_side=['pages.c.id'])
 
 
 # FUNCIONES  ====================================================================   
@@ -1071,7 +1156,7 @@ class Comite(db.Model):
     def getProyectoNombre(self):
         proyecto = self.getProyecto()
         return proyecto.nombre
-    
+
     # Class methods
 
     @classmethod

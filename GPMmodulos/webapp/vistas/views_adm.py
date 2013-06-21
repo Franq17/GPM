@@ -8,7 +8,6 @@ from ..decorators import *
 
 from ..modelos import TIPOS_ROLES
 from .views_gdc import *
-
 #from ..modelos import User, Rol, Permiso, Proyecto, Comite, Fase, HistorialItem
 
 from ..modelos import *
@@ -188,12 +187,16 @@ def crearRol():
         rol.nombre = form.nombre.data
         rol.tipo = form.tipo.data
         rol.descripcion = form.descripcion.data
+        rol.cargarPermisos()
         
-        listaTotal=form.permisoPorRol.data
-        for permisoID in listaTotal:
-            permiso = Permiso.query.filter_by(id=permisoID).first()
-            rol.permisoPorRol.append(permiso)
-             
+        perSeleccionados=form.permisoPorRol.data
+        perActuales=rol.permisoPorRol
+        for permisoActual in perActuales:
+            for ps_id in perSeleccionados:
+                permiso = Permiso.query.filter_by(id=ps_id).first_or_404()
+                if permisoActual != permiso:
+                    rol.permisoPorRol.append(permiso)
+        
         db.session.add(rol)
         db.session.commit()
         
@@ -275,6 +278,7 @@ def desasignarRol(user_id, rol_id):
     for item in rolesAsignados:
         if item == rolDesasignar:
             user.rolPorUsuario.remove(item)
+            rolDesasignar.comprobarAsignacion()
             db.session.add(user)
             db.session.commit()
             flash('Rol desasignado.', 'success')
@@ -314,7 +318,14 @@ def proyectos():
 def crearProyecto():
     """Funcion que permite la creacion de un Proyecto"""
     form = CrearProyectoForm(next=request.args.get('next'))
-    form.lider_proyecto.choices=[(g.id, g.nombre) for g in User.query.all()]
+    
+    users = User.query.all()
+    lideres = []
+    for user in users:
+        if user.puedeSerLiderProyecto():
+            lideres.append(user)
+    
+    form.lider_proyecto.choices=[(g.id, g.nombre) for g in lideres]
     
     if form.validate_on_submit():
         proyecto = Proyecto()
@@ -467,9 +478,10 @@ def desasignarRolProyecto(proyecto_id, rol_id):
 def crearFase(proyecto_id):
     """Funcion que permite instanciar una Fase de un Proyecto"""
     proyecto = Proyecto.query.filter_by(id=proyecto_id).first_or_404()
+
     if proyecto.fases.count() < proyecto.numero_fases:
         form = CrearFaseForm(next=request.args.get('next'))
-        form.lider_fase.choices=[(g.id, g.nombre) for g in proyecto.usuarioPorProyecto]
+        form.lider_fase.choices=[(g.id, g.nombre) for g in proyecto.getUsuariosLideresFase()]
     
         if form.validate_on_submit():
             fase = Fase()
@@ -524,6 +536,11 @@ def asignarTipoItem(fase_id, tipoItem_id):
     tipoItem = TipoItem.query.filter_by(id=tipoItem_id).first_or_404()
     proyecto_id = fase.proyecto_id
     
+
+    print "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% recibi fase"
+    print fase.id, fase_id
+    
+
     fase.tipoItemPorFase.append(tipoItem)
     db.session.add(fase)
     db.session.commit()
@@ -702,13 +719,14 @@ def rolesxusuario(user_id):
                      
         for rolID in listaRolesSeleccionados:
             role=Rol.query.filter_by(id=rolID).first_or_404()
+            role.setEstado(1) #El rol ha sido asignado
             user.rolPorUsuario.append(role)
             
         db.session.add(user)
         db.session.commit()
        
         flash('Usuario modificado.', 'success')
-        return redirect(url_for('admin.users'))
+        return redirect(url_for('admin.rolesxusuario', user_id=user.id))
        
     return render_template('admin/rolesxusuario.html', user=user, form=form, roles=listaRolesActuales)
 

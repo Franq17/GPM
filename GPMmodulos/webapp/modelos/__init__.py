@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-#from .models_adm import User, Rol, Permiso, Fase, permisoPorRol, Proyecto, Comite, rolPorUsuario, TipoItem, HistorialItem, Item, Atributo, LineaBase, HistorialLineaBase, Solicitud
 
 from .models_adm import User, Rol, Permiso, Fase, Proyecto, Comite, TipoItem, HistorialItem, Item, Atributo, LineaBase, HistorialLineaBase, Solicitud
 

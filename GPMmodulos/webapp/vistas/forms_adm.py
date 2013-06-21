@@ -110,9 +110,9 @@ class CrearProyectoForm(Form):
 class CrearRolForm(Form):
     next = HiddenField()
     nombre = TextField(u'Nombre del Rol', [Required(), Length(REALNAME_LEN_MIN, REALNAME_LEN_MAX)])
-    tipo = SelectField(u'Tipo', [Required()], coerce=int)
+    tipo = SelectField(u'Tipo', coerce=int)
     descripcion = TextAreaField(u'Descripcion', [Optional(), Length(max=1024)])
-    permisoPorRol = SelectMultipleField(u'Permisos', [Required()], coerce=int)
+    permisoPorRol = SelectMultipleField(u'Permisos', coerce=int)
     submit = SubmitField(u'Crear')
     
     def validate_nombre(self, field):

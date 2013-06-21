@@ -28,7 +28,6 @@ PROYECTO_ESTADOS = {
 }
 
 # Comite_estados
-
 COMITE_ESTADOS = {
     NO_INICIADO: 'no iniciado',
     INICIADO: 'iniciado',
@@ -81,8 +80,22 @@ LIDER_PROYECTO=2
 LIDER_FASE=3
 DESARROLLADOR=4
 
-
 TIPOS_ROLES = {
+    ADMIN: "administrador",
+    LIDER_PROYECTO: "lider de Proyecto",
+    LIDER_FASE: "lider de Fase",
+    DESARROLLADOR: "desarrollador",
+    NINGUNO: "ninguno",
+}
+
+# Tipos de Permisos
+NINGUNO=0
+ADMIN=1
+LIDER_PROYECTO=2
+LIDER_FASE=3
+DESARROLLADOR=4
+
+TIPOS_PERMISOS = {
     ADMIN: "administrador",
     LIDER_PROYECTO: "lider de Proyecto",
     LIDER_FASE: "lider de Fase",

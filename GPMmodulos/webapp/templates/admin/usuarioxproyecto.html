@@ -29,6 +29,7 @@
             <td>{{ user.getStatus() }}</td>
             <td>{{ user.created_time|format_date }}</td>
             <td><a href="{{ url_for('admin.rolesxusuario', user_id=user.id)}}"><i class="icon-eye-open"></i>Roles</a> | <a data-toggle="modal" href="#{{user.id}}"><i class="icon-remove"></i>Eliminar</a></td>
+
 			<div id="{{user.id}}" class="modal hide fade in" style="display: none;">
 				<div class="modal-header">
 					<a data-dismiss="modal" class="close">×</a>

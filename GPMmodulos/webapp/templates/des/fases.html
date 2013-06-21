@@ -30,7 +30,7 @@
     	{% for fase in fases %}
      	<div class="tab-pane" id="nombre{{fase.id}}">
      		<ul class="thumbnails">
-				<li class="span9">
+				<li class="span10">
 				<div class="thumbnail">
 
 					<h3>Items de: <font color="royalblue">{{ fase.nombre }}</font></h3>	
@@ -64,7 +64,7 @@
 							{%else%}
 							 <a href="#">Aprobar</a>{%endif%}</td>
 							<td><a data-toggle="modal" href="#{{item.id}}"><i class="icon-calendar"></i> Ver Historial</a></td>
-							<td><a href="#"><i class="icon-eye-open"></i> Padre</a> | <a href="#"><i class="icon-eye-open"></i> Sucesor</a> | <a href="#"><i class="icon-eye-open"></i> Hijos</a></td>
+							<td><a href="#"><i class="icon-eye-open"></i> Antecesor</a> | <a data-toggle="modal" href="#padre{{item.id}}"><i class="icon-eye-open"></i> Padre</a> | <a href="#"><i class="icon-eye-open"></i> Sucesor</a> | <a href="#"><i class="icon-eye-open"></i> Hijos</a></td>
 							<td><a href="{{ url_for('des.item', item_id=item.id, proyecto_id=proyecto.id) }}"><i class="icon-pencil"></i>Editar</a>
 							{%if proyecto.comite is none%}
 							<a href="#" onClick="alert('El proyecto aun no cuenta con un Comite de cambios.')"><i class="icon-remove"></i>Eliminar</a></td>
@@ -73,10 +73,11 @@
 							{% endif %}
 						</tr>
 						
-						<div id="modalSolicitud" class="modal hide fade in" style="display: none;">
-							<div class="modal-header">
+						<!--******************** MODAL SOLICITUD ***************-->	
+						<div id="modalSolicitud" class="modal hide fade in" style="display: none;"> 
+ 							<div class="modal-header"> 
 								<a data-dismiss="modal" class="close">×</a>
-								<h4>Solicitud de Cambio</h4>
+								<h4>Solicitud de Cambio</h4>	
 							</div>
 							<div class="modal-body">
 								<p>Para eliminar un item debe enviar una <font color="royalblue">Solicitud de Cambio</font> y esperar aprobacion. </p>
@@ -86,9 +87,27 @@
 								<a href="{{ url_for('des.crearSolicitud', item_id=item.id, proyecto_id=proyecto.id)  }}" class="btn btn-primary">Enviar Solicitud</a>
 							</div>
 						</div>
-						
-						
-						
+						<!--******************** MODAL ASIGNAR PADRE ***************-->
+						<div id="padre{{item.id}}" class="modal hide fade in" style="display: none;">
+							<div class="modal-header">
+								<a data-dismiss="modal" class="close">×</a>
+								<h4>Asignar Padre al Item:<font color="royalblue">{{item.nombre}}</font></h4>
+							</div>
+							<div class="modal-body">
+								<p>Padre Actual: {{item.getPadre(fase).nombre}}</p>
+								<p>Seleccione un Padre </p>
+								    <ul class="nav nav-list">
+								    	<li class="nav-header">Items disponibles de: {{fase.nombre}}</li>
+			    							{% for itemCandidato in fase.items %}
+
+			    								<li><a href="{{ url_for('des.relacionarPadre', itemActual_id=item.id, itemCandidato_id=itemCandidato.id) }}">{{ itemCandidato.nombre }} </a></li>
+			    							{% endfor%}	
+			    						</ul>
+							</div>
+							<div class="modal-footer">
+								<a href="#" data-dismiss="modal" class="btn">Cancelar</a>
+							</div>
+						</div>
 						{% endfor %}
 	     			</table>	
 				</div>

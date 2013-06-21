@@ -12,7 +12,7 @@ from ..extensions import db
 from ..utils import get_current_time
 
 from .constants import INACTIVE, USER_STATUS,NO_INICIADO, PROYECTO_ESTADOS, LINEABASE_ESTADOS, FASE_ESTADOS, ITEM_ESTADOS
-from .constants import INICIAL, DESAPROBADO, ROL_ESTADOS, TIPOS_ROLES, NO_ASIGNADO
+from .constants import INICIAL, DESAPROBADO, ROL_ESTADOS, TIPOS_ROLES, NO_ASIGNADO, ABIERTA
 
 
 class DenormalizedText(Mutable, types.TypeDecorator):
@@ -894,8 +894,8 @@ class LineaBase(db.Model):
     
     id = Column(db.Integer, primary_key=True)
     numero_lb = Column(db.Integer, nullable=False)
-    descripcion = Column(db.String(),nullable=True)
-    estado_id = Column(db.SmallInteger,default=INICIAL)   
+    nombre = Column(db.String(25), nullable=False)
+    estado_id = Column(db.SmallInteger,default=ABIERTA)   
     complejidad = Column(db.Integer)
     
 # RELACIONES ===================================================================
@@ -904,13 +904,12 @@ class LineaBase(db.Model):
     # One-to-many relationship 
     items = db.relationship('Item', backref='lineaBase',lazy='dynamic')
     
-
-# FUNCIONES =====================================================================    
+ # FUNCIONES =====================================================================    
     def getNombre(self):
         return self.nombre
     
     def getNumero(self):
-        return self.numero
+        return self.numero_lb
     
     def getEstado(self):
         return LINEABASE_ESTADOS[self.estado_id]
@@ -922,7 +921,10 @@ class LineaBase(db.Model):
         return cont
     
     def getNroItems(self):
-        return len(self.items)
+        cant = 0
+        for item in self.items:
+            cant=cant + 1
+        return  cant#len(self.items)
     
     def getItems(self):
         lista= []
@@ -934,7 +936,7 @@ class LineaBase(db.Model):
         self.nombre= nombre
     
     def setNumero(self, numero):
-        self.numero= numero
+        self.numero_lb = numero
     
     def setEstado(self, estado_id):
         self.estado_id = estado_id
@@ -942,17 +944,17 @@ class LineaBase(db.Model):
     def romper(self):
         self.estado_id = 'Abierta'
         for item in self.items:
-            item.setEstado('Revision')
+            item.setEstado('para revision')
     
     def comprometer(self, session):
-        self.estado_id = 'Comprometida'
+        self.estado_id = 'comprometida'
         for item in self.items:
-            item.setEstado('Revision')
+            item.setEstado('revision')
         session.add(self)
     
     def removerItemsEliminados(self, session):
         for item in self.items:
-            if item.getEstado() == 'Eliminado':
+            if item.getEstado() == 'eliminado':
                 self.items.remove(item)
         session.add(self)
     

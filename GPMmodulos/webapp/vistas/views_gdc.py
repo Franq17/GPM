@@ -39,6 +39,34 @@ def lineasBasexproyecto(proyecto_id):
     fases = proyecto.fases
     return render_template('cambios/lineasbasexproyecto.html', proyecto=proyecto, fases=fases)
 
+@cambios.route('/crearLB/<proyecto_id>/<fase_id>', methods=['GET', 'POST'])
+@login_required
+def crearLB(proyecto_id, fase_id):
+    """Funcion que permite crear una Linea Base"""
+    fase = Fase.query.filter_by(id=fase_id).first_or_404()
+    proyecto = Proyecto.query.filter_by(id=proyecto_id).first_or_404()
+    
+    if fase.lineaBase.count() < 3:
+        form = CrearLBForm(next=request.args.get('next'))
+        form.numero_lb.choices=[(i+1,i+1) for i in range(3)]
+        
+        if form.validate_on_submit():
+                lineaBase = LineaBase()
+                lineaBase.nombre = form.nombre.data
+                lineaBase.numero_lb = form.numero_lb.data
+                lineaBase.fase_id = fase.id
+                
+                db.session.add(lineaBase)
+                db.session.commit()
+                
+                flash('Linea Base creada.', 'success')
+                return redirect(url_for('cambios.lineasBasexproyecto',proyecto_id=proyecto_id))
+        return render_template('cambios/crearLineaBase.html', proyecto=proyecto, fase=fase, form=form)
+    else:
+        flash('Se alcanzo el numero maximo de Lineas Base para esta fase.', 'error')
+        return redirect(url_for('cambios.lineasBasexproyecto',proyecto_id=proyecto_id))
+       
+    
 
 @cambios.route('/crearComite', methods=['GET', 'POST'])
 @login_required
@@ -81,6 +109,7 @@ def buscarComite():
     else:
         flash('Por favor, ingrese dato a buscar','error')
     return render_template('index/buscarComite.html', pagination=pagination , keywords=keywords)
+
 
 @cambios.route('/comite/<comite_id>', methods=['GET', 'POST'])
 @login_required

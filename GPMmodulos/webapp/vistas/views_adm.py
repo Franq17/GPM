@@ -4,20 +4,20 @@ from flask import Blueprint, render_template, request, flash, url_for, redirect
 from flask_login import login_required, current_user
 
 from ..extensions import db
-from ..decorators import *
+from ..decorators import crearUsuarios_required, modificarUsuarios_required,eliminarUsuarios_required, verUsuarios_required, crearRoles_required, modificarRoles_required, eliminarRoles_required, verRoles_required, verPermisos_required, crearProyectos_required, verItems_required, crearFases_required, modificarFases_required, eliminarFases_required
+from ..decorators import crearComites_required,modificarProyectos_required, eliminarProyectos_required, verProyectos_required, crearComites_required, modificarComites_required, eliminarComites_required, verComites_required, verMiembrosComites_required, crearItems_required, modificarItems_required,eliminarItems_required, verFases_required
 
-from ..modelos import TIPOS_ROLES
-from .views_gdc import *
-#from ..modelos import User, Rol, Permiso, Proyecto, Comite, Fase, HistorialItem
+from .views_gdc import desasignarMiembro
+from ..modelos import User,Rol,Permiso, Proyecto,Fase,HistorialItem,TipoItem
 
-from ..modelos import *
-from .forms_adm import *
-#from .forms_adm import UserForm, DeleteUserForm, CreateUserForm
-#from .forms_adm import ComiteForm, BorrarComiteForm, CrearComiteForm
-#from .forms_adm import ProyectoForm, BorrarProyectoForm, CrearProyectoForm
-#from .forms_adm import RolForm, CrearRolForm , BorrarRolForm 
-#from .forms_adm import PermisoxRolForm, RolxUsuarioForm, UserxComiteForm, UsuarioxProyectoForm, RolxProyectoForm
-#from .forms_adm import CrearFaseForm
+from ..modelos import TIPOS_ROLES, INICIADO
+from .forms_adm import UserForm, DeleteUserForm, CreateUserForm
+from .forms_adm import ProyectoForm, BorrarProyectoForm, CrearProyectoForm
+from .forms_adm import RolForm, CrearRolForm , BorrarRolForm 
+from .forms_adm import PermisoxRolForm, RolxUsuarioForm, UserxComiteForm, UsuarioxProyectoForm, RolxProyectoForm
+from .forms_adm import CrearFaseForm,FaseForm
+from .forms_adm import TipoItemForm, CrearTipoItemForm, CrearAtributoForm
+
 
 admin = Blueprint('admin', __name__, url_prefix='/admin')
 
@@ -660,7 +660,6 @@ def importarTipoItem(proyecto_id, tipoItem_id):
 
 @admin.route('/buscarTipoItem')
 @login_required
-@admin_required
 def buscarTipoItem():
     """FUncion que busca un Tipo de Item por nombre"""
     keywords = request.args.get('keywords', '').strip()

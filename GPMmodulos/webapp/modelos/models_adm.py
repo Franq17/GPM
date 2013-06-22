@@ -97,6 +97,7 @@ tipoItemPorFase = db.Table ('tipoItemPorFase',
 ############################################################################################
 
 
+
 archivoPorItem = db.Table('asociacion_item_archivo',
     Column('item_id', db.Integer, db.ForeignKey('item.id')),
     Column('archivo_id', db.Integer, db.ForeignKey('archivo.id'))
@@ -261,7 +262,7 @@ class User(db.Model, UserMixin):
         return USER_STATUS[self.status_id]
     
     def setStatus(self, estado):
-        self.estado = estado
+        self.status_id = estado
 
     def setNombre(self, nombre):
         self.nombre= nombre
@@ -493,6 +494,12 @@ class Proyecto(db.Model):
     
     def setDescripcion(self, descripcion):
         self.descripcion= descripcion
+    
+    def setComplejidad(self, complejidad):
+        self.complejidad_total= complejidad
+    
+    def setNroFases(self, numero):
+        self.numero_fases= numero
 
     def getTodosProyectos(self):
         todosProyectos = Proyecto.query.filter(Proyecto.id != self.id)
@@ -666,8 +673,7 @@ class Fase(db.Model):
             if fase.numero_fase == self.numero_fase+1:
                 return True
         return False
-            
-            
+
     
 class TipoItem(db.Model):
     
@@ -726,6 +732,8 @@ class Item(db.Model):
     version = Column(db.Integer)
     complejidad= Column(db.Integer) 
     estado_id = Column(db.SmallInteger,default=DESAPROBADO)
+    marcado = Column(db.String(2),nullable=True)
+
     
 # RELACIONES  ====================================================================
 

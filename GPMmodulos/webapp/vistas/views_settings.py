@@ -20,7 +20,7 @@ def perfil():
     user = User.query.filter_by(name=current_user.name).first_or_404()
     form = ProfileForm(#obj=user.user_detail, 
             name=current_user.name,
-            email=current_user.email, role_id=current_user.role_id,
+            email=current_user.email,
             status_id=current_user.status_id, nombre=current_user.nombre,
             apellido=current_user.apellido, telefono=current_user.telefono,
             ci=current_user.ci, next=request.args.get('next'))

@@ -232,11 +232,5 @@ class CrearLineaBaseForm(Form):
     descripcion = TextAreaField(u'Descripcion', [Optional(), Length(max=1024)])
     submit = SubmitField(u'Crear')
 
-class LineaBaseForm(Form):
-    next = HiddenField()
-    numero_lb = IntegerField(u'Numero de Linea Base',[Required()])
-    estado = RadioField(u"Estados", [AnyOf([str(val) for val in LINEABASE_ESTADOS.keys()])],
-            choices=[(str(val), label) for val, label in LINEABASE_ESTADOS.items()])
-    descripcion = TextAreaField(u'Descripcion', [Optional(), Length(max=1024)])
-    submit = SubmitField(u'Editar')
+
 

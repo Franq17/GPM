@@ -1,3 +1,5 @@
-*.pyc
-*~
-*.bak*
+/__init__.pyc
+/app.pyc
+/decorators.pyc
+/extensions.pyc
+/utils.pyc

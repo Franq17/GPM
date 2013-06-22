@@ -3,7 +3,7 @@
 import unittest
 #from webapp.extensions import db
 from webapp.modelos.models_adm import User, Permiso, Rol, Proyecto, Comite, Fase
-from webapp.modelos.models_adm import TipoItem, Item, Atributo, LineaBase
+from webapp.modelos.models_adm import TipoItem, Item, Atributo, LineaBase, Archivo
 
 class TestUser (unittest.TestCase):
     """Unit test case for the ``User`` model."""
@@ -35,7 +35,12 @@ class TestUser (unittest.TestCase):
         self.assertEqual(instance.name, 'Usertest')
         self.assertEqual(instance.email, 'usertest@email.com')
         print 'Prueba de crear Usuario: Ok'
-        
+    
+    def test_getPassword(self):
+        result = self.userTest._get_password()
+        self.assertEqual(result, '123456')
+        print 'Prueba de obtencion del password del Usuario: Ok'
+      
     def test_getNombreUsuario(self):
         result = self.userTest.getNombreUsuario()
         self.assertEqual(result, 'usuario')
@@ -336,6 +341,18 @@ class TestFase(unittest.TestCase):
     def setUp(self):
         unittest.TestCase.setUp(self)
         
+        self.userTest = User(
+            id=1,
+            name="usuario",
+            _password='123456',
+            nombre="Pablo",
+            apellido="Sanchez",
+            telefono="021-123-321",
+            ci = 123456,
+            email="pablo@email.com",
+            status_id=0,
+            )
+        
         self.tipoItem = TipoItem(
             nombre='tipo',
             descripcion='descripcion',
@@ -370,7 +387,7 @@ class TestFase(unittest.TestCase):
      
     def tearDown(self):
         unittest.TestCase.tearDown(self)
-        del self.faseTest, self.item1, self.item2, self.tipoItem
+        del self.faseTest, self.item1, self.item2, self.tipoItem, self.userTest
         
     def _makeOne(self, nombre= 'FaseTest', descripcion= 'Description'):
         fase = Fase(nombre= nombre, descripcion= descripcion)
@@ -445,6 +462,11 @@ class TestFase(unittest.TestCase):
         result = self.faseTest.getEstado()
         self.assertEqual(result, 'comprometida')
         print 'Prueba de cambio del estado de una fase del Proyecto: Ok'
+    
+    def test_setLider(self):
+        self.faseTest.setLider(self.userTest.id)
+        self.assertEqual(self.faseTest.lider_fase, 1)
+        print 'Prueba de cambio de lider de una fase del Proyecto: Ok'
 
 class TestTipoItem(unittest.TestCase):
     """Unit test case for the ``Tipo de Item`` model."""
@@ -498,12 +520,15 @@ class TestItem(unittest.TestCase):
     
     def setUp(self):
         unittest.TestCase.setUp(self)
+        
         self.itemTest = Item(
             nombre='item',
             descripcion='descripcion',
             version=1,
             complejidad=4,
             estado_id=0,
+            lineaBase_id=1,
+            marcado='No'
             )
      
     def tearDown(self):
@@ -574,6 +599,32 @@ class TestItem(unittest.TestCase):
         result = self.itemTest.getEstado()
         self.assertEqual(result, 'bloqueado')
         print 'Prueba de obtencion del estado del Item: Ok'
+        
+    def test_tieneLineaBase(self):
+        self.assertTrue(self.itemTest.tieneLineaBase())
+        print 'Prueba de comprobacion de si el item esta en una LB: Ok'
+        
+    def test_marcarRevision(self):
+        self.itemTest.marcarRevision()
+        result = self.itemTest.getEstado()
+        self.assertEqual(result, 'revision')
+        print 'Prueba de marcacion de revision de el item: Ok'
+    
+    def test_getMarcado(self):
+        result = self.itemTest.getMarcado()
+        self.assertEqual(result, 'No')
+        print 'Prueba de obtencion del marcado del Item: Ok'
+    
+    def test_setMarcar(self):
+        self.itemTest.setMarcar()
+        self.assertEqual(self.itemTest.getMarcado(),'Si')
+        print 'Prueba de marcado del item: Ok'
+    
+    def test_setDesMarcar(self):
+        self.itemTest.setMarcar()
+        self.itemTest.setDesMarcar()
+        self.assertEqual(self.itemTest.getMarcado(),'No')
+        print 'Prueba de desmarcado del item: Ok'
 
 class TestAtributo(unittest.TestCase):
     """Unit test case for the ``Atributo`` model."""
@@ -597,11 +648,88 @@ class TestAtributo(unittest.TestCase):
         self.assertEqual(instance.descripcion, 'Description')
         print 'Prueba de crear Atributo: Ok'
 
+class TestArchivo(unittest.TestCase):
+    """Unit test case for the ``Archivo`` model."""
+    
+    def setUp(self):
+        unittest.TestCase.setUp(self)
+        self.archivoTest = Archivo(
+            valor= 'RjO6p3LZ1S',
+            tipoArchivo= 'jpg',
+            nombreArchivo= 'imagen10',
+            )
+     
+    def tearDown(self):
+        unittest.TestCase.tearDown(self)
+        del self.archivoTest
+        
+    def _makeOne(self, valor= 'asdf1234',
+                 tipo= 123456, nombre= 'imagen'):
+        archivo = Archivo(valor= valor, tipoArchivo= tipo, nombreArchivo= nombre)
+        return archivo
+
+    def test_constructor(self):
+        instance = self._makeOne()
+        self.assertEqual(instance.valor, 'asdf1234')
+        self.assertEqual(instance.tipoArchivo, 123456)
+        self.assertEqual(instance.nombreArchivo, 'imagen')
+        print 'Prueba de crear Atributo: Ok'
+    
+    def test_getArchivo(self):
+        result = self.archivoTest.getArchivo()
+        self.assertEqual(result, 'RjO6p3LZ1S')
+        print 'Prueba de obtener el valor del archivo externo: Ok'
+    
+    def test_getTipoArchivo(self):
+        result = self.archivoTest.getTipoArchivo()
+        self.assertEqual(result, 'jpg')
+        print 'Prueba de obtener el tipo de archivo externo: Ok'
+    
+    def test_getNombreArchivo(self):
+        result = self.archivoTest.getNombreArchivo()
+        self.assertEqual(result, 'imagen10')
+        print 'Prueba de obtener el nombre archivo externo: Ok'
+    
+    def test_setArchivo(self):
+        self.archivoTest.setArchivo('Psanz10')
+        result = self.archivoTest.getArchivo()
+        self.assertEqual(result, 'Psanz10')
+        print 'Prueba de cambio de archivo externo: Ok'
+    
+    def test_setTipoArchivo(self):
+        self.archivoTest.setTipoArchivo(654321)
+        result = self.archivoTest.getTipoArchivo()
+        self.assertEqual(result, 654321)
+        print 'Prueba de obtener archivo externo: Ok'
+    
+    def test_setNombreArchivo(self):
+        self.archivoTest.setNombreArchivo('documento')
+        result = self.archivoTest.getNombreArchivo()
+        self.assertEqual(result, 'documento')
+        print 'Prueba de edicion del nombre archivo externo: Ok'
+
 class TestLineaBase(unittest.TestCase):
     """Unit test case for the ``Linea Base`` model."""
     
     def setUp(self):
         unittest.TestCase.setUp(self)
+        
+        self.item1 = Item(
+            nombre='item1',
+            descripcion='descripcion',
+            version=1,
+            complejidad=4,
+            estado_id=0,
+            )
+        
+        self.item2 = Item(
+            nombre='item2',
+            descripcion='descripcion',
+            version=1,
+            complejidad=3,
+            estado_id=0,
+            )
+        
         self.lineaBase = LineaBase()
      
     def tearDown(self):

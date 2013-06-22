@@ -714,6 +714,7 @@ class Item(db.Model):
     version = Column(db.Integer)
     complejidad= Column(db.Integer) 
     estado_id = Column(db.SmallInteger,default=DESAPROBADO)
+    marcado = Column(db.String(2),nullable=True)
     
 # RELACIONES  ====================================================================
 
@@ -774,8 +775,11 @@ class Item(db.Model):
     def getDescripcion(self):
         return self.descripcion
     
+    def getMarcado(self):
+        return self.marcado
+    
     def marcarRevision(self):
-        self.estado= 'Revision'
+        self.estado_id= 4
     
     def tieneLineaBase(self):
         if self.lineaBase_id != None:

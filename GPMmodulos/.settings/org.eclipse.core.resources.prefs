@@ -12,7 +12,6 @@ encoding//webapp/extensions.py=utf-8
 encoding//webapp/modelos/__init__.py=utf-8
 encoding//webapp/modelos/constants.py=utf-8
 encoding//webapp/modelos/models_adm.py=utf-8
-encoding//webapp/modelos/models_des.py=utf-8
 encoding//webapp/modelos/views.py=utf-8
 encoding//webapp/utils.py=utf-8
 encoding//webapp/vistas/__init__.py=utf-8

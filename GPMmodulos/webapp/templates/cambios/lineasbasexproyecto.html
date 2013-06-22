@@ -57,7 +57,7 @@
 							<td>{{ lb.getEstado() }}</td>
 							<td>{{ lb.getNroItems() }}</td>
 							<td>{{ lb.numero_lb }}</td>
-							<th></th>
+							<th><a href="{{ url_for('cambios.asignarItemsLB', lineaBase_id=lb.id)}}">asignar Items</a></th>
 						</tr>
 						
 						{% endfor %}

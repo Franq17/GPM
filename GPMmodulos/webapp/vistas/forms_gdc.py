@@ -50,4 +50,9 @@ class CrearLBForm(Form):
     next = HiddenField()
     nombre = TextField(u'Nombre de Linea de Base', [Required(), Length(REALNAME_LEN_MIN, REALNAME_LEN_MAX)])
     submit = SubmitField(u'Crear')
+
+class AsignarItemsLBForm(Form):
+    next = HiddenField()
+    items = SelectMultipleField(u'Seleccione Items' ,coerce=int)
+    submit = SubmitField(u'Agregar')
     

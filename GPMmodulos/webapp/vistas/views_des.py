@@ -90,19 +90,43 @@ def item(proyecto_id, item_id):
 @login_required
 def aprobarItem(item_id):
     item= Item.query.filter_by(id=item_id).first_or_404()
-    
-    if item.getEstado() == 'desaprobado' or item.getEstado()== 'revision': #and user.esLiderFAse
-        
-        item.estado_id = APROBADO
-        db.session.add(item)
-        db.session.commit()
-        
-        flash('Item aprobado correctamente.', 'success')
-        return redirect(url_for('des.fasesxproyecto', proyecto_id=item.proyecto_id ))
-    else:
-        flash ('No se puede aprobar el item.', 'error')
-        return redirect(url_for('des.fasesxproyecto', proyecto_id=item.proyecto_id ))
-    
+    fase = Fase.query.filter_by(id=item.fase_id).first_or_404()
+    if fase.numero_fase:# == 1:    
+        if item.getEstado() == 'desaprobado' or item.getEstado()== 'revision': #and user.esLiderFAse
+            
+            item.estado_id = APROBADO
+            db.session.add(item)
+            db.session.commit()
+            
+            flash('Item aprobado correctamente.', 'success')
+            return redirect(url_for('des.fasesxproyecto', proyecto_id=item.proyecto_id ))
+        else:
+            flash ('No se puede aprobar el item.', 'error')
+            return redirect(url_for('des.fasesxproyecto', proyecto_id=item.proyecto_id ))
+#    else:
+#        antecesores = item.getAntecesores(fase, item)
+#        for item_aux in antecesores:
+#            print "/////////////////////////////////////////////////////7"
+#            print item_aux.nombre
+#            print "/////////////////////////////////////////////////////7"
+#            
+#            if item_aux.getEstado()!= 'bloqueado':
+#                flash ('No se puede aprobar el item. Existe antecesor que no esta en una linea base cerrada', 'error')
+#                return redirect(url_for('des.fasesxproyecto', proyecto_id=item.proyecto_id ))
+#        if antecesores == [] and not item.tienePadre(fase):
+#            flash ('No se puede aprobar. El item no esta en la primera fase y no posee ninguna relacion valida', 'error')
+#            return redirect(url_for('des.fasesxproyecto', proyecto_id=item.proyecto_id ))
+#        if item.getEstado() == 'bloqueado':
+#            flash ('No se puede aprobar el item. Item en estado bloqueado', 'error')
+#            return redirect(url_for('des.fasesxproyecto', proyecto_id=item.proyecto_id ))
+#        
+#        item.estado_id = APROBADO
+#        db.session.add(item)
+#        db.session.commit()
+#        
+#        flash('Item aprobado correctamente.', 'success')
+#        return redirect(url_for('des.fasesxproyecto', proyecto_id=item.proyecto_id ))
+#    
 
 @des.route('/Desaprobar/<item_id>', methods=['GET', 'POST'])
 @login_required
@@ -147,6 +171,33 @@ def relacionarPadre(itemActual_id, itemCandidato_id):
         
     db.session.add(itemCandidato)
     db.session.add(itemActual)
+    db.session.commit()
+    flash ('Item relacionado correctamente', 'success')
+    return redirect(url_for('des.fasesxproyecto', proyecto_id=itemActual.proyecto_id ))
+
+@des.route('/RelacionarSucesor/<itemActual_id>/<itemCandidato_id>', methods=['GET', 'POST'])
+@login_required
+def relacionarSucesor(itemActual_id, itemCandidato_id):
+    itemActual = Item.query.filter_by(id=itemActual_id).first_or_404()
+    itemCandidato = Item.query.filter_by(id=itemCandidato_id).first_or_404()
+    fase = Fase.query.filter_by(id=itemActual.fase_id).first_or_404()
+   
+    if itemActual.getEstado()== 'bloqueado':
+        flash ('No se puede relacionar. El item se encuentra en estado bloqueado', 'error')
+        return redirect(url_for('des.fasesxproyecto', proyecto_id=itemActual.proyecto_id ))
+    
+    if itemCandidato.getEstado() != 'aprobado':
+        flash ('No se puede relacionar. El item que se quiere asignar como Sucesor no esta Aprobado', 'error')
+        return redirect(url_for('des.fasesxproyecto', proyecto_id=itemActual.proyecto_id ))
+    
+    itemActual.sucesor_id = itemCandidato.id
+    antecesor = Antecesores()
+    antecesor.item_id = itemCandidato.id
+    antecesor.antecesor_id = itemActual.id
+    
+    db.session.add(itemCandidato)
+    db.session.add(itemActual)
+    db.session.add(antecesor)
     db.session.commit()
     flash ('Item relacionado correctamente', 'success')
     return redirect(url_for('des.fasesxproyecto', proyecto_id=itemActual.proyecto_id ))

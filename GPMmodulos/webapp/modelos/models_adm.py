@@ -13,7 +13,7 @@ from ..utils import get_current_time
 
 from .constants import INACTIVE, USER_STATUS,NO_INICIADO, PROYECTO_ESTADOS, LINEABASE_ESTADOS, FASE_ESTADOS, ITEM_ESTADOS
 
-from .constants import INICIAL, DESAPROBADO, ROL_ESTADOS, TIPOS_ROLES, NO_ASIGNADO, ABIERTA, TIPOS_ATRIBUTOS
+from .constants import INICIAL, DESARROLLO, COMPLETA, DESAPROBADO, ROL_ESTADOS, TIPOS_ROLES, NO_ASIGNADO, ABIERTA, TIPOS_ATRIBUTOS
 
 
 
@@ -97,23 +97,17 @@ tipoItemPorFase = db.Table ('tipoItemPorFase',
 ############################################################################################
 
 
-class RelacionSucesor(db.Model):
-    __tablename__ = 'relacion_sucesor'
-    left_id = Column(db.Integer, db.ForeignKey('item.id'), primary_key=True)
-    right_id = Column(db.Integer, db.ForeignKey('item.id'), primary_key=True)
-    item = db.relationship('Item', primaryjoin="Item.id==RelacionSucesor.right_id", backref='relacion_sucesor')
-    
-class RelacionHijo(db.Model):
-    __tablename__ = 'relacion_hijo'
-    left_id = Column(db.Integer, db.ForeignKey('item.id'), primary_key=True)
-    right_id = Column(db.Integer, db.ForeignKey('item.id'), primary_key=True)
-    hijo = db.relationship('Item', primaryjoin="Item.id==RelacionHijo.right_id", backref='relacion_hijo')
-
 archivoPorItem = db.Table('asociacion_item_archivo',
     Column('item_id', db.Integer, db.ForeignKey('item.id')),
     Column('archivo_id', db.Integer, db.ForeignKey('archivo.id'))
 )
 
+class Antecesores(db.Model):
+    __tablename__ = 'sucesores'
+    id = Column(db.Integer, primary_key=True)
+    item_id = Column(db.Integer)
+    antecesor_id = Column (db.Integer)
+    
     
 class User(db.Model, UserMixin):
 
@@ -645,6 +639,36 @@ class Fase(db.Model):
     def setLider(self, lider):
         self.lider_fase = lider
     
+    def actualizarEstado(self):
+        inicial= True
+        completo= False
+        desarrollo= False
+        for item in self.items:
+            if item.getEstado() != 'eliminado':
+                completo= True
+                if item.getEstado() != 'bloqueado' :
+                    desarrollo= True
+        if inicial and (not completo) and not(desarrollo):
+            self.estado_id = INICIAL
+        if inicial and completo and not(desarrollo):
+            self.estado_id= COMPLETA
+        if inicial and completo and desarrollo:
+            self.estado_id= DESARROLLO
+        
+    def getFaseSiguiente(self, proyecto):
+        for fase in proyecto.fases:
+            if fase.numero_fase == self.numero_fase+1:
+                faseSiguiente = fase
+        return faseSiguiente
+    
+    def tieneSiguiente(self, proyecto):
+        for fase in proyecto.fases:
+            if fase.numero_fase == self.numero_fase+1:
+                return True
+        return False
+            
+            
+    
 class TipoItem(db.Model):
     
     __tablename__ = 'tipoItem'
@@ -724,14 +748,29 @@ class Item(db.Model):
     """
     #versionSuperior_id = Column(db.Integer, db.ForeignKey('item.id'))
     #versionAnterior = db.relationship("Item")
-    """
-    relacion con el item sucesor
-    """
+    
     padre_id = Column(db.Integer,db.ForeignKey('item.id'))
     hijo = db.relationship("Item",
                 backref=db.backref('padre', remote_side=[id])
             )
-
+    sucesor_id = Column(db.Integer)
+    """
+    relacion con el item sucesor
+    """
+    #sucesores = db.relationship('Item', secondary=sucesorPorItem,
+    #                            backref=db.backref('antecesor', lazy='dynamic'))
+    def getAntecesores(self):
+        todosAntecesores = Antecesores.query.all()
+        misAntecesores = []
+        for relacion in todosAntecesores:
+            if relacion.item_id == self.id and relacion.antecesor_id != self.id:
+                item = Item.query.filter_by(id=relacion.antecesor_id).first()
+                misAntecesores.append(item)
+        return misAntecesores
+    
+    def getSucesor(self):
+        sucesor = Item.query.filter_by(id=self.sucesor_id).first()
+        return sucesor
 # FUNCIONES  ====================================================================   
     def getHistorial(self):
         todosHistoriales = HistorialItem.query.all()
@@ -763,7 +802,7 @@ class Item(db.Model):
         return self.descripcion
     
     def marcarRevision(self):
-        self.estado= 'Revision'
+        self.estado= 'revision'
     
     def tieneLineaBase(self):
         if self.lineaBase_id != None:
@@ -802,10 +841,9 @@ class Item(db.Model):
     
     def tienePadre(self, fase):
         for item in fase.items:
-            if item.getEstado() != 'Eliminado' and item != self:
-                for relacion in item.relacionHijo:
-                    if relacion.hijo == self:
-                        return True
+            if item.getEstado() != 'eliminado' and item != self:
+                if self.padre_id is not None:
+                    return True
         return False
     
     """
@@ -814,7 +852,7 @@ class Item(db.Model):
     def getPadre(self):
         padre = Item.query.filter_by(id=self.padre_id).first()
         if padre is None:
-            return "<NO TIENE>"
+            return None
         return padre.nombre
     """
     note metodo que pregunta si un item es descendiente de otro en una fase dada
@@ -860,7 +898,49 @@ class Item(db.Model):
     
     def getRelacionArchivos(self):
         return self.relacionArchivo
-
+    """
+    note: metodo que acumula en una lista los padres, abuelos etc de un item incluyendose a el
+    """
+    def getAscendientes(self, fase):
+        lista= []
+        item_aux= self
+        while item_aux.tienePadre(fase):
+            lista.append(item_aux.getPadre(fase))
+            item_aux= item_aux.getPadre(fase)
+        lista = lista + [self]
+        return lista
+    
+#    def getAntecesores(self, fase, item):
+#        lista = []
+#        proyecto= Proyecto.query.filter_by(id=fase.proyecto_id).first()
+#      #  proyecto.fases.sort(comparaFase)
+#        ubicacion = fase.numero_fase
+#        lista = item.getAscendientes(fase)
+#        if ubicacion > 1:
+#            listaAdd= []
+#            faseAnterior = proyecto.fases[ubicacion-1]
+#            for aux in lista:
+#                for candidato in faseAnterior.items:
+#                    for suce in candidato.getSucesores():
+#                        if suce == aux and candidato.getEstado() != 'eliminado':
+#                            listaAdd= listaAdd + item.getAntecesores(faseAnterior, candidato)
+#            lista = lista + listaAdd
+#        return lista
+#    
+    def getAntecesoresParaLb(self, fase):
+        proyecto= Proyecto.query.filter_by(id=fase.proyecto_id).first()
+        #proyecto.fases.sort(comparaFase)
+        ubicacion= fase.numero_fase
+        lista= []
+        if ubicacion > 1:
+            """ note: copia las relaciones que estan en la fase anterior """
+            faseAnterior= proyecto.fases[ubicacion-1]
+            for candidato in faseAnterior.items:
+                for relacion in candidato.relacionSucesor:
+                    if relacion.item == self and candidato.getEstado() != 'eliminado':
+                        lista.append(candidato)
+        return lista
+    
  
 class Atributo(db.Model):
     

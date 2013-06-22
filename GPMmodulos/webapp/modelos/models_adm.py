@@ -267,7 +267,7 @@ class User(db.Model, UserMixin):
         return USER_STATUS[self.status_id]
     
     def setStatus(self, estado):
-        self.estado = estado
+        self.status_id = estado
 
     def setNombre(self, nombre):
         self.nombre= nombre
@@ -499,6 +499,12 @@ class Proyecto(db.Model):
     
     def setDescripcion(self, descripcion):
         self.descripcion= descripcion
+    
+    def setComplejidad(self, complejidad):
+        self.complejidad_total= complejidad
+    
+    def setNroFases(self, numero):
+        self.numero_fases= numero
 
     def getTodosProyectos(self):
         todosProyectos = Proyecto.query.filter(Proyecto.id != self.id)
@@ -615,7 +621,10 @@ class Fase(db.Model):
         return FASE_ESTADOS[self.estado_id]
     
     def getNroLB(self):
-        return len(self.numero_lb)
+        return self.numero_lb
+    
+    def getNroFase(self):
+        return self.numero_fase
     
     def setNombre(self, nombre):
         self.nombre= nombre
@@ -626,7 +635,10 @@ class Fase(db.Model):
     def setNroLB(self, cantidad):
         self.numero_lb= cantidad
     
-    def getItems (self, proyecto_id):
+    def setEstado(self, estado):
+        self.estado_id= estado
+    
+    def getItems (self):
         misItems = self.items
         return misItems
     

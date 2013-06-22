@@ -4,7 +4,7 @@ from flask_wtf import Form, ValidationError
 from flask_wtf import HiddenField, SubmitField, RadioField, DateField
 from flask_wtf import AnyOf
 
-from ..modelos import COMITE_ESTADOS
+from ..modelos import COMITE_ESTADOS, LINEABASE_ESTADOS
 
 from flask_wtf.html5 import EmailField
 from flask_wtf import Required, Optional, Length, EqualTo, Email
@@ -51,3 +51,10 @@ class CrearLBForm(Form):
     nombre = TextField(u'Nombre de Linea de Base', [Required(), Length(REALNAME_LEN_MIN, REALNAME_LEN_MAX)])
     submit = SubmitField(u'Crear')
     
+class LineaBaseForm(Form):
+    next = HiddenField()
+    numero_lb = IntegerField(u'Numero de Linea Base',[Required()])
+    estado = RadioField(u"Estados", [AnyOf([str(val) for val in LINEABASE_ESTADOS.keys()])],
+            choices=[(str(val), label) for val, label in LINEABASE_ESTADOS.items()])
+    descripcion = TextAreaField(u'Descripcion', [Optional(), Length(max=1024)])
+    submit = SubmitField(u'Editar')

@@ -24,7 +24,7 @@ def comites():
 @login_required
 #@verComites_required
 def proyectosLB():
-    """Funcion que lista los proyectos que pueden tener linea base """
+    """Funcion que lista los proyectositem.estado_id = BLOQUEADO  que pueden tener linea base """
     #proyectosLB = Proyecto.query.all()
     #Le pasamos solamente los proyectos en el que usuario actual participa
     proyectos=current_user.getProyectos()
@@ -51,9 +51,46 @@ def crearLB(proyecto_id, fase_id):
         db.session.commit()
         
         flash('Linea Base creada.', 'success')
-        return redirect(url_for('cambios.lineasBasexproyecto',proyecto_id=proyecto_id))
+        return redirect(url_for('cambios.lineaBasexproyecto',proyecto_id=proyecto_id))
     return render_template('cambios/crearLineaBase.html', proyecto=proyecto, fase=fase, form=form)
        
+@cambios.route('/asignarItemsLB/<lineaBase_id>/', methods=['GET', 'POST'])
+@login_required
+def asignarItemsLB(lineaBase_id):
+    """Funcion que permite asignar un item a una Linea Base"""
+    lineaBase = LineaBase.query.filter_by(id=lineaBase_id).first_or_404()
+    fase = Fase.query.filter_by(id=lineaBase.fase_id).first_or_404()
+    
+    form = AsignarItemsLBForm(obj=fase, next=request.args.get('next'))
+    itemsDisponibles=[]
+    itemsActuales = lineaBase.items
+    for item in fase.items:
+        if item not in itemsActuales and item.getEstado()!='bloqueado' and item.getEstado() != 'desaprobado':
+            itemsDisponibles.append(item) #aca filtrar que el item debe estar aprobado
+          
+    form.items.choices = [(h.id, h.nombre) for h in itemsDisponibles ]
+    
+    if form.validate_on_submit():       
+        listaItemsSeleccionados=form.items.data  # trae el id de los item que selecciono
+                    
+        for itemAsig in itemsActuales:    # a la lista de roles que ya tiene, le agrega lo que selecciono
+            listaItemsSeleccionados.append(itemAsig.id)
+                     
+        for itemID in listaItemsSeleccionados:
+            item=Item.query.filter_by(id=itemID).first_or_404()
+            item.setEstado(BLOQUEADO) #Se bloquea el item
+            lineaBase.items.append(item)
+        lineaBase.estado_id = CERRADA
+        fase.actualizarEstado()
+        db.session.add(fase)    
+        db.session.add(lineaBase)
+        db.session.commit()
+       
+        flash('Items agregados.', 'success')
+        return redirect(url_for('cambios.lineaBasexproyecto', proyecto_id=fase.proyecto_id))
+       
+    return render_template('cambios/asignarItemsLB.html', lineaBase=lineaBase, form=form)
+
     
 @cambios.route('/crearComite', methods=['GET', 'POST'])
 @login_required

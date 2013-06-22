@@ -15,6 +15,7 @@ from ..modelos import Comite
 from ..utils import (PASSWORD_LEN_MIN, PASSWORD_LEN_MAX, 
         USERNAME_LEN_MIN, USERNAME_LEN_MAX, REALNAME_LEN_MIN, REALNAME_LEN_MAX)      
 
+
 #LINEA BASE
 
 #COMITE
@@ -50,6 +51,11 @@ class CrearLBForm(Form):
     next = HiddenField()
     nombre = TextField(u'Nombre de Linea de Base', [Required(), Length(REALNAME_LEN_MIN, REALNAME_LEN_MAX)])
     submit = SubmitField(u'Crear')
+
+class AsignarItemsLBForm(Form):
+    next = HiddenField()
+    items = SelectMultipleField(u'Seleccione Items' ,coerce=int)
+    submit = SubmitField(u'Agregar')
     
 class LineaBaseForm(Form):
     next = HiddenField()

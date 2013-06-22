@@ -1,0 +1,39 @@
+{% from "macros/_form.html" import render_form %}
+{% extends "layouts/base.html" %}
+{% set page_header = _(active|capitalize) %}
+{% set page_title = 'Linea Base' %}
+
+
+{% block body %}
+	<h2><center>Gestion de Lineas Base</center></h2>
+	
+	<h3>Seleccione un proyecto:</h3>
+	<form class="navbar-search pull-left" action="{{ url_for('admin.buscarProyecto') }}">
+			<input type='text' class="search-query" name='keywords' value='{{ keywords|default('') }}' placeholder='Buscar' />
+	</form>
+	<br></br>
+	<br></br>
+	<table class='table table-bordered table-hover table-condensed'>
+        <thead>
+            <tr>
+                <th>Nombre</th>
+                <th>Complejidad</th>
+                <th>Estado</th>
+                <th>Fases</th>
+                <th>Lider de Proyecto</th>
+                <th>Fecha de Creacion</th>
+            </tr>
+        </thead>
+        {% for proyecto in proyectos %}
+        <tr>
+            <td><a href="{{ url_for('cambios.lineasBasexproyecto', proyecto_id=proyecto.id) }}">{{ proyecto.nombre }}</td>
+            <td>{{ proyecto.complejidad_total }}</td>
+            <td>{{ proyecto.getEstado() }}</td>
+            <td>{{ proyecto.numero_fases }}</td>
+            <td>{{ proyecto.getLider() }}</td>
+            <td>{{ proyecto.created_time|format_date }}</td>
+         </tr>
+        {% endfor %}
+    </table>
+    
+{% endblock %}

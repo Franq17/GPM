@@ -1,0 +1,13 @@
+{% from "macros/_form.html" import render_form %}
+
+{% extends "layouts/base.html" %}
+{% set page_title = 'Asignar Items a Linea Base' %}
+
+{% block body %}
+<div class="container">
+
+    <h2>Asignar Items a Linea Base: {{lineaBase.nombre}}</h2>
+
+    {{ render_form(url_for('cambios.asignarItemsLB',lineaBase_id=lineaBase.id), form) }}
+</div>
+{% endblock %}

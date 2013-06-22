@@ -18,6 +18,7 @@ from .forms_adm import PermisoxRolForm, RolxUsuarioForm, UserxComiteForm, Usuari
 from .forms_adm import CrearFaseForm,FaseForm
 from .forms_adm import TipoItemForm, CrearTipoItemForm, CrearAtributoForm
 
+
 admin = Blueprint('admin', __name__, url_prefix='/admin')
 
 

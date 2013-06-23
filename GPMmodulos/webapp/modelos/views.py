@@ -13,13 +13,14 @@ comite = Blueprint('comite', __name__, url_prefix='/comite')
 tipoItem = Blueprint('tipoItem', __name__, url_prefix='/tipoItem')
 
 @user.route('/')
+@user.route('/<numSolicitud>')
 @login_required
-def index(id_solicitud=None):
+def index(id_solicitud=None, numSolicitud=None):
     if id_solicitud is not None:
         solicitud = Solicitud.query.filter_by(id=id_solicitud).first_or_404()
     else:
         solicitud = None
-    return render_template('index/indexUser.html', current_user=current_user, solicitud=solicitud)
+    return render_template('index/indexUser.html', current_user=current_user, solicitud=solicitud, numSolicitud=numSolicitud)
 
 @user.route('/<name>')
 def pub(name):

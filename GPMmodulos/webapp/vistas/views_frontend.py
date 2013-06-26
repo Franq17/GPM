@@ -17,13 +17,18 @@ frontend = Blueprint('frontend', __name__)
 
 
 @frontend.route('/')
-def index():
+@frontend.route('/<solicitud>')
+def index(solicitud=None):
+   
     if current_user.is_authenticated():
-        return redirect(url_for('user.index'))
+        return redirect(url_for('user.index', numSolicitud=solicitud))
 
     page = int(request.args.get('page', 1))
     pagination = User.query.paginate(page=page, per_page=10)
-    return render_template('index.html', pagination=pagination, current_user=current_user)
+    #if solicitud is not None:
+    #    print "SOLICITUD!!!!!"+ solicitud
+    return render_template('index.html', pagination=pagination, current_user=current_user, solicitud=solicitud)
+    #return render_template('index.html', pagination=pagination, current_user=current_user)
 
 
 @frontend.route('/login', methods=['GET', 'POST'])

@@ -1209,6 +1209,9 @@ class Solicitud(db.Model):
     # one-to-many relationship
     comite_id = Column(db.Integer, db.ForeignKey('comite.id'))
     item_id = Column(db.Integer, db.ForeignKey('item.id'))
+    
+    def getItem(self):
+        return Item.query.filter_by(id=self.item_id).first_or_404()
 
 
 class Comite(db.Model):

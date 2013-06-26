@@ -409,21 +409,21 @@ class TestFase(unittest.TestCase):
         self.assertEqual(result, 'Fase de Analisis del proyecto de desarrollo de SW')
         print 'Prueba de obtencion de la descripcion de una Fase: Ok'
     
-    def test_getNroFase(self):
-        result = self.faseTest.getNroFase()
-        self.assertEqual(result, 1)
-        print 'Prueba de obtencion del numero fase del Proyecto: Ok'
-        
-    def test_getNroLB(self):
-        result = self.faseTest.getNroLB()
-        self.assertEqual(result, 1)
-        print 'Prueba de obtencion de la cantidad de LB de una fase del Proyecto: Ok'
-    
-    def test_getItems(self):
-        result = self.faseTest.getItems()
-        self.assertEqual(result[0], self.item1)
-        self.assertEqual(result[1], self.item2)
-        print 'Prueba de obtencion de la cantidad de LB del Proyecto: Ok'
+#     def test_getNroFase(self):
+#         result = self.faseTest.getNroFase()
+#         self.assertEqual(result, 1)
+#         print 'Prueba de obtencion del numero fase del Proyecto: Ok'
+#      
+#     def test_getNroLB(self):
+#         result = self.faseTest.getNroLB()
+#         self.assertEqual(result, 1)
+#         print 'Prueba de obtencion de la cantidad de LB de una fase del Proyecto: Ok'
+#  
+#     def test_getItems(self):
+#         result = self.faseTest.getItems()
+#         self.assertEqual(result[0], self.item1)
+#         self.assertEqual(result[1], self.item2)
+#         print 'Prueba de obtencion de la cantidad de LB del Proyecto: Ok'
     
     def test_getNroItems(self):
         result = self.faseTest.getNroItems()
@@ -451,17 +451,17 @@ class TestFase(unittest.TestCase):
         self.assertEqual(result, 'Fase de Diseño del proyecto de desarrollo de SW')
         print 'Prueba de cambio de la descripcion de una Fase: Ok'
         
-    def test_setNroLB(self):
-        self.faseTest.setNroLB(3)
-        result = self.faseTest.getNroLB()
-        self.assertEqual(result, 3)
-        print 'Prueba de cambio de la cantidad de LB del Proyecto: Ok'
-    
-    def test_setEstado(self):
-        self.faseTest.setEstado(3)
-        result = self.faseTest.getEstado()
-        self.assertEqual(result, 'comprometida')
-        print 'Prueba de cambio del estado de una fase del Proyecto: Ok'
+#     def test_setNroLB(self):
+#         self.faseTest.setNroLB(3)
+#         result = self.faseTest.getNroLB()
+#         self.assertEqual(result, 3)
+#         print 'Prueba de cambio de la cantidad de LB del Proyecto: Ok'
+# 
+#     def test_setEstado(self):
+#         self.faseTest.setEstado(3)
+#         result = self.faseTest.getEstado()
+#         self.assertEqual(result, 'comprometida')
+#         print 'Prueba de cambio del estado de una fase del Proyecto: Ok'
     
     def test_setLider(self):
         self.faseTest.setLider(self.userTest.id)
@@ -604,27 +604,27 @@ class TestItem(unittest.TestCase):
         self.assertTrue(self.itemTest.tieneLineaBase())
         print 'Prueba de comprobacion de si el item esta en una LB: Ok'
         
-    def test_marcarRevision(self):
-        self.itemTest.marcarRevision()
-        result = self.itemTest.getEstado()
-        self.assertEqual(result, 'revision')
-        print 'Prueba de marcacion de revision de el item: Ok'
-    
-    def test_getMarcado(self):
-        result = self.itemTest.getMarcado()
-        self.assertEqual(result, 'No')
-        print 'Prueba de obtencion del marcado del Item: Ok'
-    
-    def test_setMarcar(self):
-        self.itemTest.setMarcar()
-        self.assertEqual(self.itemTest.getMarcado(),'Si')
-        print 'Prueba de marcado del item: Ok'
-    
-    def test_setDesMarcar(self):
-        self.itemTest.setMarcar()
-        self.itemTest.setDesMarcar()
-        self.assertEqual(self.itemTest.getMarcado(),'No')
-        print 'Prueba de desmarcado del item: Ok'
+#     def test_marcarRevision(self):
+#         self.itemTest.marcarRevision()
+#         result = self.itemTest.getEstado()
+#         self.assertEqual(result, 'revision')
+#         print 'Prueba de marcacion de revision de el item: Ok'
+#
+#     def test_getMarcado(self):
+#         result = self.itemTest.getMarcado()
+#         self.assertEqual(result, 'No')
+#         print 'Prueba de obtencion del marcado del Item: Ok'
+#
+#     def test_setMarcar(self):
+#         self.itemTest.setMarcar()
+#         self.assertEqual(self.itemTest.getMarcado(),'Si')
+#         print 'Prueba de marcado del item: Ok'
+#
+#     def test_setDesMarcar(self):
+#         self.itemTest.setMarcar()
+#         self.itemTest.setDesMarcar()
+#         self.assertEqual(self.itemTest.getMarcado(),'No')
+#         print 'Prueba de desmarcado del item: Ok'
 
 class TestAtributo(unittest.TestCase):
     """Unit test case for the ``Atributo`` model."""

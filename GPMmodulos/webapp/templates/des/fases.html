@@ -55,7 +55,7 @@
 							<th></th>
 						</tr>
 						</thead>
-						{% for item in fase.getItems(proyecto.id) %}
+						{% for item in fase.getItems() %}
 						<tr>
 							<td>{{ item.nombre }}</td>
 							<td>{{ item.descripcion }}</td>

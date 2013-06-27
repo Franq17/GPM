@@ -18,8 +18,7 @@ frontend = Blueprint('frontend', __name__)
 
 @frontend.route('/')
 @frontend.route('/<solicitud>')
-def index(solicitud=None):
-   
+def index(solicitud = None):
     if current_user.is_authenticated():
         return redirect(url_for('user.index', numSolicitud=solicitud))
 

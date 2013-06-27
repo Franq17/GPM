@@ -20,8 +20,7 @@ def index(id_solicitud=None, numSolicitud=None):
         solicitud = Solicitud.query.filter_by(id=id_solicitud).first_or_404()
     else:
         solicitud = None
-    if numSolicitud is not None:
-        flash("NUM SOLICITUD" + numSolicitud)
+
     return render_template('index/indexUser.html', current_user=current_user, solicitud=solicitud, numSolicitud=numSolicitud)
 
 @user.route('/<name>')

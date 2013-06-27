@@ -5,8 +5,9 @@ from ..extensions import db
 from ..decorators import crearUsuarios_required, modificarUsuarios_required,eliminarUsuarios_required, verUsuarios_required, crearRoles_required, modificarRoles_required, eliminarRoles_required, verRoles_required, verPermisos_required, crearProyectos_required, verItems_required, crearFases_required, modificarFases_required, eliminarFases_required
 from ..decorators import crearComites_required,modificarProyectos_required, eliminarProyectos_required, verProyectos_required, crearComites_required, modificarComites_required, eliminarComites_required, verComites_required, verMiembrosComites_required, crearItems_required, modificarItems_required,eliminarItems_required, verFases_required
 
-from ..modelos import LineaBase, HistorialLineaBase,Proyecto, Fase, Comite, User
-from .forms_gdc import CrearLBForm, ComiteForm, LineaBaseForm, UserxComiteForm, BorrarComiteForm, CrearComiteForm
+from ..modelos import BLOQUEADO, CERRADA, Item, LineaBase, HistorialLineaBase,Proyecto, Fase, Comite, User
+from .forms_gdc import AsignarItemsLBForm, CrearLBForm, ComiteForm, LineaBaseForm, UserxComiteForm, BorrarComiteForm, CrearComiteForm
+
 
 cambios = Blueprint('cambios', __name__, url_prefix='/cambios')
 #COMITE
@@ -181,7 +182,7 @@ def desasignarMiembro(comite_id, user_id):
     miembroDesasignar = User.query.filter_by(id=user_id).first_or_404()
     comite = Comite.query.filter_by(id=comite_id).first_or_404()
     proyecto = comite.getProyecto()
-    form = UserxComiteForm(obj=user, next=request.args.get('next'))
+    form = UserxComiteForm(obj=miembroDesasignar, next=request.args.get('next'))
     miembrosAsignados = comite.usuarioPorComite
     
     for item in miembrosAsignados:

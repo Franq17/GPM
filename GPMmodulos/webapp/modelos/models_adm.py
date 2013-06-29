@@ -618,7 +618,10 @@ class Fase(db.Model):
         return FASE_ESTADOS[self.estado_id]
     
     def getNroLB(self):
-        return len(self.numero_lb)
+        return self.numero_lb
+    
+    def getNroFase(self):
+        return self.numero_fase
     
     def setNombre(self, nombre):
         self.nombre= nombre
@@ -629,7 +632,10 @@ class Fase(db.Model):
     def setNroLB(self, cantidad):
         self.numero_lb= cantidad
     
-    def getItems (self, proyecto_id):
+    def setEstado(self, estado):
+        self.estado_id = estado
+    
+    def getItems (self):
         misItems = self.items
         return misItems
     
@@ -811,8 +817,12 @@ class Item(db.Model):
     def getDescripcion(self):
         return self.descripcion
     
+    def getMarcado(self):
+        return self.marcado
+    
     def marcarRevision(self):
-        self.estado= 'revision'
+        self.estado_id = 4 #Estado: 'revision'
+
     
     def tieneLineaBase(self):
         if self.lineaBase_id != None:
@@ -1212,6 +1222,8 @@ class Solicitud(db.Model):
     comite_id = Column(db.Integer, db.ForeignKey('comite.id'))
     item_id = Column(db.Integer, db.ForeignKey('item.id'))
 
+    def getItem(self):
+        return Item.query.filter_by(id=self.item_id).first_or_404()
 
 class Comite(db.Model):
     

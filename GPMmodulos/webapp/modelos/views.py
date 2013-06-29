@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from flask import Blueprint, render_template, current_app, redirect, url_for, send_from_directory
+from flask import Blueprint, render_template, current_app, redirect, url_for, send_from_directory, flash
 from flask_login import login_required, current_user
 
 from .models_adm import User, Rol, Proyecto, Comite, TipoItem, Solicitud

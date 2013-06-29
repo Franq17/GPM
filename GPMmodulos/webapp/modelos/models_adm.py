@@ -822,7 +822,6 @@ class Item(db.Model):
     
     def marcarRevision(self):
         self.estado_id = 4 #Estado: 'revision'
-
     
     def tieneLineaBase(self):
         if self.lineaBase_id != None:

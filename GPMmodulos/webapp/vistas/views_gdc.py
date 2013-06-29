@@ -2,10 +2,12 @@ from flask import Blueprint, render_template, request, flash, url_for, redirect
 from flask_login import login_required, current_user
 
 from ..extensions import db
-from ..decorators import *
+from ..decorators import crearUsuarios_required, modificarUsuarios_required,eliminarUsuarios_required, verUsuarios_required, crearRoles_required, modificarRoles_required, eliminarRoles_required, verRoles_required, verPermisos_required, crearProyectos_required, verItems_required, crearFases_required, modificarFases_required, eliminarFases_required
+from ..decorators import crearComites_required,modificarProyectos_required, eliminarProyectos_required, verProyectos_required, crearComites_required, modificarComites_required, eliminarComites_required, verComites_required, verMiembrosComites_required, crearItems_required, modificarItems_required,eliminarItems_required, verFases_required
 
-from ..modelos import *
-from .forms_gdc import *
+from ..modelos import BLOQUEADO, CERRADA, Item, LineaBase, HistorialLineaBase,Proyecto, Fase, Comite, User
+from .forms_gdc import AsignarItemsLBForm, CrearLBForm, ComiteForm, LineaBaseForm, UserxComiteForm, BorrarComiteForm, CrearComiteForm
+
 
 cambios = Blueprint('cambios', __name__, url_prefix='/cambios')
 #COMITE
@@ -18,6 +20,79 @@ def comites():
     comites = Comite.query.all()
     return render_template('cambios/comites.html', comites=comites, active='comites')
 
+
+@cambios.route('/ProyectosLB')
+@login_required
+#@verComites_required
+def proyectosLB():
+    """Funcion que lista los proyectositem.estado_id = BLOQUEADO  que pueden tener linea base """
+    #proyectosLB = Proyecto.query.all()
+    #Le pasamos solamente los proyectos en el que usuario actual participa
+    proyectos=current_user.getProyectos()
+    #debe filtra que sea lider en ese proyecto tambien
+    
+    return render_template('cambios/proyectosLB.html', proyectos=proyectos)
+
+@cambios.route('/crearLB/<proyecto_id>/<fase_id>', methods=['GET', 'POST'])
+@login_required
+def crearLB(proyecto_id, fase_id):
+    """Funcion que permite crear una Linea Base"""
+    fase = Fase.query.filter_by(id=fase_id).first_or_404()
+    proyecto = Proyecto.query.filter_by(id=proyecto_id).first_or_404()
+    
+    form = CrearLBForm(next=request.args.get('next'))
+    
+    
+    if form.validate_on_submit():
+        lineaBase = LineaBase()
+        lineaBase.nombre = form.nombre.data
+        lineaBase.fase_id = fase.id
+        
+        db.session.add(lineaBase)
+        db.session.commit()
+        
+        flash('Linea Base creada.', 'success')
+        return redirect(url_for('cambios.lineaBasexproyecto',proyecto_id=proyecto_id))
+    return render_template('cambios/crearLineaBase.html', proyecto=proyecto, fase=fase, form=form)
+       
+@cambios.route('/asignarItemsLB/<lineaBase_id>/', methods=['GET', 'POST'])
+@login_required
+def asignarItemsLB(lineaBase_id):
+    """Funcion que permite asignar un item a una Linea Base"""
+    lineaBase = LineaBase.query.filter_by(id=lineaBase_id).first_or_404()
+    fase = Fase.query.filter_by(id=lineaBase.fase_id).first_or_404()
+    
+    form = AsignarItemsLBForm(obj=fase, next=request.args.get('next'))
+    itemsDisponibles=[]
+    itemsActuales = lineaBase.items
+    for item in fase.items:
+        if item not in itemsActuales and item.getEstado()!='bloqueado' and item.getEstado() != 'desaprobado':
+            itemsDisponibles.append(item) #aca filtrar que el item debe estar aprobado
+          
+    form.items.choices = [(h.id, h.nombre) for h in itemsDisponibles ]
+    
+    if form.validate_on_submit():       
+        listaItemsSeleccionados=form.items.data  # trae el id de los item que selecciono
+                    
+        for itemAsig in itemsActuales:    # a la lista de roles que ya tiene, le agrega lo que selecciono
+            listaItemsSeleccionados.append(itemAsig.id)
+                     
+        for itemID in listaItemsSeleccionados:
+            item=Item.query.filter_by(id=itemID).first_or_404()
+            item.setEstado(BLOQUEADO) #Se bloquea el item
+            lineaBase.items.append(item)
+        lineaBase.estado_id = CERRADA
+        fase.actualizarEstado()
+        db.session.add(fase)    
+        db.session.add(lineaBase)
+        db.session.commit()
+       
+        flash('Items agregados.', 'success')
+        return redirect(url_for('cambios.lineaBasexproyecto', proyecto_id=fase.proyecto_id))
+       
+    return render_template('cambios/asignarItemsLB.html', lineaBase=lineaBase, form=form)
+
+    
 @cambios.route('/crearComite', methods=['GET', 'POST'])
 @login_required
 #@crearComites_required
@@ -59,6 +134,7 @@ def buscarComite():
     else:
         flash('Por favor, ingrese dato a buscar','error')
     return render_template('index/buscarComite.html', pagination=pagination , keywords=keywords)
+
 
 @cambios.route('/comite/<comite_id>', methods=['GET', 'POST'])
 @login_required
@@ -105,10 +181,14 @@ def desasignarMiembro(comite_id, user_id):
     """Funcion que permite desasignar a un usuario de un comite"""
     miembroDesasignar = User.query.filter_by(id=user_id).first_or_404()
     comite = Comite.query.filter_by(id=comite_id).first_or_404()
-    form = UserxComiteForm(obj=user, next=request.args.get('next'))
+    proyecto = comite.getProyecto()
+    form = UserxComiteForm(obj=miembroDesasignar, next=request.args.get('next'))
     miembrosAsignados = comite.usuarioPorComite
     
     for item in miembrosAsignados:
+        if miembroDesasignar.id == proyecto.lider_proyecto:
+            flash('El usuario es Lider del proyecto, no puede ser desasignado.', 'error')
+            return redirect(url_for('cambios.usuariosxcomite', comite_id=comite.id))
         if item == miembroDesasignar:
             comite.usuarioPorComite.remove(item)
             db.session.add(comite)
@@ -169,38 +249,8 @@ def lineaBasexproyecto(proyecto_id):
             lineaBase = LineaBase.query.filter_by(id=linea.id).first_or_404()
             listaDeLB.append(lineaBase)
     
-    return render_template('cambios/lineaBasexproyecto.html', proyecto=proyecto, fases=fases, lineasBases=listaDeLB, active='Lineas Base')
+    return render_template('cambios/lineasbasexproyecto.html', proyecto=proyecto, fases=fases, lineasBases=listaDeLB, active='Lineas Base')
 
-@cambios.route('/crearLineaBase/<proyecto_id>', methods=['GET', 'POST'])
-@login_required
-def crearLineaBase(proyecto_id):
-    """Funcion que permite instanciar una Linea Base de una Fase"""
-    proyecto = Proyecto.query.filter_by(id=proyecto_id).first_or_404()
-    fases = Fase.query.filter_by(proyecto_id=proyecto_id)
-    form = CrearLineaBaseForm(next=request.args.get('next'))
-    form.fase_id.choices = [(h.id, h.nombre) for h in fases ]
-    
-    if form.validate_on_submit():
-        lineabase = LineaBase()
-        fase = Fase.query.filter_by(id=form.fase_id.data).first_or_404()
-        lineabase.numero_lb = form.numero_lb.data
-        lineabase.descripcion = form.descripcion.data
-        lineabase.fase_id = fase.id
-        
-        db.session.add(lineabase)
-        db.session.commit()
-        
-        historial = HistorialLineaBase()
-        historial.lineaBase_id = lineabase.id
-        historial.descripcion= current_user.nombre+" creo la Linea Base " +str(lineabase.numero_lb)+ " de la Fase " +str(lineabase.fase_id)
-        
-        db.session.add(historial)
-        db.session.commit()
-        
-        flash('Linea Base creada.', 'success')
-        return redirect(url_for('cambios.lineaBasexproyecto',proyecto_id=proyecto.id))
-    
-    return render_template('cambios/crearLineaBase.html', proyecto=proyecto, form=form)
 
 @cambios.route('/historialxlineabase/<lineabase_id>', methods=['GET', 'POST'])
 @login_required
@@ -214,6 +264,7 @@ def historialxlineabase(lineabase_id):
         if historial.lineaBase_id==lineabase.id:
             historiales.append(historial)
     return render_template('cambios/historialxlineabase.html', lineabase=lineabase, historiales=historiales)
+
 
 @cambios.route('/lineaBasexproyecto/<proyecto_id>/<lineabase_id>', methods=['GET', 'POST'])
 @login_required

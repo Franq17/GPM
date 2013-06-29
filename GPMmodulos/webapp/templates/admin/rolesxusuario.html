@@ -11,11 +11,13 @@
         <thead>
             <tr>
                 <th>Nombre</th>
+				<th>Tipo de Rol</th>
             </tr>
         </thead>
 		{% for rol in roles%}
 		<tr>
             <td>{{ rol.nombre }}</td>
+			<td>{{ rol.getTipo() }}</td>
 
 			<td><a data-toggle="modal" href="#{{rol.id}}" class="text">Quitar</a></td>
 			<div id="{{rol.id}}" class="modal hide fade in" style="display: none;">

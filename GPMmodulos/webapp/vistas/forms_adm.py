@@ -4,7 +4,8 @@ from flask_wtf import Form, ValidationError
 from flask_wtf import HiddenField, SubmitField, RadioField, DateField
 from flask_wtf import AnyOf
 
-from ..modelos import USER_STATUS, PROYECTO_ESTADOS, COMITE_ESTADOS,LINEABASE_ESTADOS
+
+from ..modelos import USER_STATUS, PROYECTO_ESTADOS, COMITE_ESTADOS, LINEABASE_ESTADOS, FASE_ESTADOS, TIPOS_ROLES
 
 from flask_wtf.html5 import EmailField
 from flask_wtf import Required, Optional, Length, EqualTo, Email
@@ -33,6 +34,8 @@ class DeleteUserForm(Form):
 
 class CreateUserForm(Form):
     next = HiddenField()
+    nombre = TextField(u'Nombre', [Required(), Length(USERNAME_LEN_MIN, USERNAME_LEN_MAX)])
+    apellido = TextField(u'Apellido', [Required(), Length(USERNAME_LEN_MIN, USERNAME_LEN_MAX)])
     email = EmailField(u'Email', [Email()])
     password = PasswordField(u'Contrasenha', [Required(), Length(PASSWORD_LEN_MIN, PASSWORD_LEN_MAX)])
     name = TextField(u'Nombre de Usuario', [Required(), Length(USERNAME_LEN_MIN, USERNAME_LEN_MAX)])
@@ -107,8 +110,9 @@ class CrearProyectoForm(Form):
 class CrearRolForm(Form):
     next = HiddenField()
     nombre = TextField(u'Nombre del Rol', [Required(), Length(REALNAME_LEN_MIN, REALNAME_LEN_MAX)])
+    tipo = SelectField(u'Tipo', coerce=int)
     descripcion = TextAreaField(u'Descripcion', [Optional(), Length(max=1024)])
-    permisoPorRol = SelectMultipleField(u'Permisos', [Required()], coerce=int)
+    permisoPorRol = SelectMultipleField(u'Permisos', coerce=int)
     submit = SubmitField(u'Crear')
     
     def validate_nombre(self, field):
@@ -124,6 +128,8 @@ class BorrarRolForm(Form):
 class RolForm(Form):
     next = HiddenField()
     nombre = TextField(u'Nombre del Rol', [Required(), Length(REALNAME_LEN_MIN, REALNAME_LEN_MAX)])
+    tipo = RadioField(u"Tipos", [AnyOf([str(val) for val in TIPOS_ROLES.keys()])],
+            choices=[(str(val), label) for val, label in TIPOS_ROLES.items()])
     descripcion = TextAreaField(u'Descripcion', [Optional(), Length(max=1024)])
     submit = SubmitField(u'Editar')
 
@@ -132,15 +138,19 @@ class RolForm(Form):
 class CrearFaseForm(Form):
     next = HiddenField()
     nombre = nombre = TextField(u'Nombre de Fase', [Required(), Length(REALNAME_LEN_MIN, REALNAME_LEN_MAX)])
+    numero_fase = SelectField(u'Orden de Fase',coerce=int,)
+    lider_fase = SelectField(u'Lider de Fase',coerce=int,)
     descripcion = TextAreaField(u'Descripcion', [Optional(), Length(max=1024)])
     submit = SubmitField(u'Crear')
     
-    def validate_nombre(self, field):
-        if Fase.query.filter_by(nombre=field.data).first() is not None:
-            raise ValidationError(u'El nombre de la Fase ya existe')
+    #def validate_nombre(self, field):
+    #    if Fase.query.filter_by(nombre=field.data).first() is not None:
+    #        raise ValidationError(u'El nombre de la Fase ya existe')
     
 class FaseForm(Form):
     next = HiddenField()
+    estado_id = RadioField(u"Estados", [AnyOf([str(val) for val in FASE_ESTADOS.keys()])],
+            choices=[(str(val), label) for val, label in FASE_ESTADOS.items()])
     descripcion = TextAreaField(u'Descripcion', [Optional(), Length(max=1024)])
     submit = SubmitField(u'Editar')
      
@@ -157,13 +167,14 @@ class CrearTipoItemForm(Form):
 
 class TipoItemForm(Form):
     next = HiddenField()
+    nombre = nombre = TextField(u'Nombre de Tipo de Item', [Required(), Length(REALNAME_LEN_MIN, REALNAME_LEN_MAX)])
     descripcion = TextAreaField(u'Descripcion', [Optional(), Length(max=1024)])
     submit = SubmitField(u'Editar')
 
 class CrearAtributoForm(Form):
     next = HiddenField()
     nombre = TextField(u'Nombre de Atributo', [Required(), Length(REALNAME_LEN_MIN, REALNAME_LEN_MAX)])
-    atributo_id = SelectField(u'AtributoID', [Optional()], coerce=int)
+    tipo = SelectField(u'Tipo de Atributo', [Optional()], coerce=int)
     valor = TextField(u'Valor', [Optional(), Length(max=1024)])
     submit = SubmitField(u'Crear')
     
@@ -221,11 +232,5 @@ class CrearLineaBaseForm(Form):
     descripcion = TextAreaField(u'Descripcion', [Optional(), Length(max=1024)])
     submit = SubmitField(u'Crear')
 
-class LineaBaseForm(Form):
-    next = HiddenField()
-    numero_lb = IntegerField(u'Numero de Linea Base',[Required()])
-    estado = RadioField(u"Estados", [AnyOf([str(val) for val in LINEABASE_ESTADOS.keys()])],
-            choices=[(str(val), label) for val, label in LINEABASE_ESTADOS.items()])
-    descripcion = TextAreaField(u'Descripcion', [Optional(), Length(max=1024)])
-    submit = SubmitField(u'Editar')
+
 

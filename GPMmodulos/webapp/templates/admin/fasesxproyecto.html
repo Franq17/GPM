@@ -4,23 +4,25 @@
 {% set page_title = 'Proyecto_Miembro' %}
 
 {% set tabs = [
-    ("Fases",url_for('admin.fasesxproyecto', proyecto_id=proyecto.id)), 
-    ("Roles",url_for('admin.rolesxproyecto', proyecto_id=proyecto.id)),
-    ("Tipos de Item",url_for('admin.tiposItemxproyecto', proyecto_id=proyecto.id)),
-    ("Miembros",url_for('admin.usuariosxproyecto', proyecto_id=proyecto.id))
+	("Miembros",url_for('admin.usuariosxproyecto', proyecto_id=proyecto.id)),
+	("Tipos de Item",url_for('admin.tiposItemxproyecto', proyecto_id=proyecto.id)),
+    ("Fases",url_for('admin.fasesxproyecto', proyecto_id=proyecto.id))
 ]%}
 
 {% block body %}
 	<h2>Fases del Proyecto: <font color="royalblue">{{ proyecto.nombre }}</font></h2>
 	<div class="row-fluid">    
 	    <div class="span2">
-	    <a class="btn btn-primary" href="{{ url_for('admin.crearFase', proyecto_id=proyecto.id)}}"><strong>Crear Fase</strong></a><br><br></div>
+	    <a class="btn btn-primary" href="{{ url_for('admin.crearFase', proyecto_id=proyecto.id, )}}"><strong>Crear Fase</strong></a><br><br></div>
     </div>
 
 	<table class='table table-bordered table-hover table-condensed'>
         <thead>
             <tr>
                 <th>Nombre</th>
+                <th>Orden</th>
+                <th>Estado</th>
+				<th>Lider de Fase</th>
                 <th>Descripcion</th>
                 <th></th>
             </tr>
@@ -28,9 +30,40 @@
         {% for fase in fases %}
         <tr>
             <td>{{ fase.nombre }}</td>
+            <td>{{ fase.numero_fase}}</td>
+			<td>{{ fase.getEstado() }}</td>
+			<td>{{ fase.getLider() }}</td>
             <td>{{ fase.descripcion }}</td>
-            <td><a href="{{ url_for('admin.fase', fase_id=fase.id, proyecto_id=proyecto.id) }}"><i class="icon-pencil"></i>Editar</a></td>
+
+            <td><a  data-toggle="modal" href="#{{fase.id}}"><i class="icon-plus"></i>Tipos de Item</a> | <a href="{{ url_for('admin.fase', fase_id=fase.id, proyecto_id=proyecto.id) }}"><i class="icon-pencil"></i>Editar</a></td>
+
         </tr>
+        
+        <div id="{{fase.id}}" class="modal hide fade in" style="display: none;">
+				<div class="modal-header">
+					<a data-dismiss="modal" class="close">×</a>
+					<h4>Asignar Tipo de Item a Fase </h4>
+				</div>
+				<div class="modal-body">
+					<p>Seleccione un Tipo Item </p>
+					    <ul class="nav nav-list">
+					    	<li class="nav-header">Tipos de Items disponibles de: {{proyecto.nombre}}</li>
+    						{% for tipoItem in proyecto.tiposItem %}
+    							{% if tipoItem in fase.tipoItemPorFase %}
+    							   
+    							{% else %}
+    								<li><a href="{{ url_for('admin.asignarTipoItem', fase_id=fase.id, tipoItem_id=tipoItem.id) }}">{{ tipoItem.nombre }} </a></li>
+    							{% endif %}
+    						{% endfor %}
+    				    </ul>
+				</div>
+				<div class="modal-footer">
+					<a href="#" data-dismiss="modal" class="btn">Cancelar</a>
+				</div>
+			</div>
         {% endfor %}
+        
+        
+        
     </table>
 {% endblock %}

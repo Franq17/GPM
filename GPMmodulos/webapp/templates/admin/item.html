@@ -5,7 +5,9 @@
 
 {% block body %}
 <div class="container">
-    <h2>Editar Item: {{item.nombre}}</h2>
+    <h2>Editar Item: <font color="royalblue">{{item.nombre}}</font></h2>
     {{ render_form(url_for('admin.item',item_id=item.id, proyecto_id=proyecto.id), form) }}
 </div>
+
 {% endblock %}
+

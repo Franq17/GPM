@@ -23,17 +23,34 @@
                 <th></th>
             </tr>
         </thead>
-        {% for proyecto in proyectos %}
-        <tr>
-            <td><a href="{{ url_for('admin.usuariosxproyecto', proyecto_id=proyecto.id)}}">{{ proyecto.nombre }}</td>
-            <td>{{ proyecto.complejidad_total }}</td>
-            <td>{{ proyecto.getEstado() }}</td>
-            <td>{{ proyecto.numero_fases }}</td>
-            <td>{{ proyecto.lider_proyecto }}</td>
-            <td>{{ proyecto.created_time|format_date }}</td>
-            <td><a href="{{ url_for('admin.proyecto', proyecto_id=proyecto.id) }}"><i class="icon-pencil"></i>Editar</a> | <a href="{{ url_for('admin.borrarProyecto', proyecto_id=proyecto.id) }}"><i class="icon-remove"></i>Eliminar</a></td>
-        </tr>
-        {% endfor %}
+		{% if current_user.comprobarPermiso('administrador') %}
+			{% for proyecto in proyectos %}
+				<tr>
+				    <td><a href="{{ url_for('admin.usuariosxproyecto', proyecto_id=proyecto.id)}}">{{ proyecto.nombre }}</td>
+				    <td>{{ proyecto.complejidad_total }}</td>
+				    <td>{{ proyecto.getEstado() }} | <a href="{{ url_for('admin.iniciarProyecto', proyecto_id=proyecto.id) }}">Iniciar</a></td>
+				    <td>{{ proyecto.numero_fases }}</td>
+				    <td>{{ proyecto.getLider() }}</td>
+				    <td>{{ proyecto.created_time|format_date }}</td>
+				    <td><a href="{{ url_for('admin.proyecto', proyecto_id=proyecto.id) }}"><i class="icon-pencil"></i>Editar</a> | <a href="{{ url_for('admin.borrarProyecto', proyecto_id=proyecto.id) }}"><i class="icon-remove"></i>Eliminar</a></td>
+				</tr>
+		    	{% endfor %}
+		{% else %}
+			{% if current_user.comprobarPermiso('liderProyecto') %}
+				{% set proyectosLider = current_user.getProyectosDeLider() %}
+					{% for proyecto in proyectosLider %}
+					<tr>
+						<td><a href="{{ url_for('admin.usuariosxproyecto', proyecto_id=proyecto.id)}}">{{ proyecto.nombre }}</td>
+						<td>{{ proyecto.complejidad_total }}</td>
+						<td>{{ proyecto.getEstado() }} | <a href="{{ url_for('admin.iniciarProyecto', proyecto_id=proyecto.id) }}">Iniciar</a></td>
+						<td>{{ proyecto.numero_fases }}</td>
+						<td>{{ proyecto.getLider() }}</td>
+						<td>{{ proyecto.created_time|format_date }}</td>
+						<td><a href="{{ url_for('admin.proyecto', proyecto_id=proyecto.id) }}"><i class="icon-pencil"></i>Editar</a> | <a href="{{ url_for('admin.borrarProyecto', proyecto_id=proyecto.id) }}"><i class="icon-remove"></i>Eliminar</a></td>
+					</tr>
+					{% endfor %}
+			{% endif %}
+		{% endif %}
     </table>
 </div>
 {% endblock %}

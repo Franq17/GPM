@@ -68,7 +68,6 @@
 								</div>
 								<div class="modal-footer">
 									<a href="#" data-dismiss="modal" class="btn">Cancelar</a>
-
 									{% set numSolicitud = current_user.getCantSolicitudes() -1 %}
 									<a href="{{url_for('frontend.index', solicitud=numSolicitud)}}" class="btn btn-primary" onClick="alert('Solicitud de cambio rechazada.')">Rechazar</a>
 									<a href="{{url_for('frontend.index', solicitud=numSolicitud)}}" class="btn btn-primary" onClick="alert('Solicitud de cambio aprobada.')">Aprobar</a>
@@ -108,4 +107,3 @@
         	$('#myModal').modal('show');
     	});
 	</script>		
-    

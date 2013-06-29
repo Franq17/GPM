@@ -10,7 +10,7 @@ from ..decorators import crearComites_required,modificarProyectos_required, elim
 from .views_gdc import desasignarMiembro
 from ..modelos import User,Rol,Permiso, Proyecto,Fase,HistorialItem,TipoItem
 
-from ..modelos import TIPOS_ROLES, INICIADO
+from ..modelos import TIPOS_ROLES, INICIADO, Atributo
 from .forms_adm import UserForm, DeleteUserForm, CreateUserForm
 from .forms_adm import ProyectoForm, BorrarProyectoForm, CrearProyectoForm
 from .forms_adm import RolForm, CrearRolForm , BorrarRolForm 

@@ -7,6 +7,8 @@ except ImportError:
     from sqlalchemy.types import MutableType as Mutable
 from werkzeug import generate_password_hash, check_password_hash
 from flask_login import UserMixin
+from datetime import datetime
+from datetime import date
 
 from ..extensions import db
 from ..utils import get_current_time

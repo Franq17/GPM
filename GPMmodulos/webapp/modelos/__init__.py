@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 
-from .models_adm import User, Rol, Permiso, Fase, Proyecto, Comite, TipoItem, HistorialItem, Item, Antecesores, Atributo, LineaBase, HistorialLineaBase, Solicitud
+from .models_adm import ItemPorProyectoReporte, User, Rol, Permiso, Fase, Proyecto, Comite, TipoItem, HistorialItem, Item, Antecesores, Atributo, LineaBase, HistorialLineaBase, Solicitud
 
 from .views import user,rol,proyecto, comite, tipoItem
 

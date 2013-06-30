@@ -8,6 +8,15 @@ from ..decorators import crearComites_required,modificarProyectos_required, elim
 from ..modelos import BLOQUEADO, CERRADA, Item, LineaBase, HistorialLineaBase,Proyecto, Fase, Comite, User
 from .forms_gdc import AsignarItemsLBForm, CrearLBForm, ComiteForm, LineaBaseForm, UserxComiteForm, BorrarComiteForm, CrearComiteForm
 
+#Librerias para dibujar el grafo
+#import sys
+#sys.path.append('..')
+#sys.path.append('/usr/lib/graphviz/python/')
+#sys.path.append('/usr/lib64/graphviz/python/')
+#import gv
+import pygraphviz as pgv
+from pygraphviz import *
+
 
 cambios = Blueprint('cambios', __name__, url_prefix='/cambios')
 #COMITE
@@ -286,3 +295,51 @@ def lineaBase(proyecto_id, lineabase_id):
         return redirect(url_for('cambios.lineaBasexproyecto', proyecto_id=proyecto.id, lineabase_id=lineaBase.id))
 
     return render_template('cambios/lineaBase.html', proyecto=proyecto, lineabase=lineaBase, form=form)
+
+@cambios.route('/grafosItemsLB/<lineaBase_id>/', methods=['GET', 'POST'])
+@login_required
+def dibujarGrafoLB(lineaBase_id):
+    """Funcion que permite asignar un item a una Linea Base"""
+    lineaBase = LineaBase.query.filter_by(id=lineaBase_id).first_or_404()
+    fase = Fase.query.filter_by(id=lineaBase.fase_id).first_or_404()
+    
+    desplazamiento_x = {}
+    __index = 0
+    for i in fase.items:
+        desplazamiento_x[i.id] = __index
+        __index+=1
+    # eje y
+    desplazamiento_y = []
+    for i in range(fase.getNroItems()):
+        desplazamiento_y.append(0)
+    
+    #####
+    gr = pgv.AGraph(label= "Costo de la Linea Base: "+ str(lineaBase.complejidad),directed=True)
+    #gr.node_attr['shape']='circle'
+    nodos= []
+    id_nodos= []
+    for nodo in fase.items:
+        if nodo.getEstado() != 'Eliminado':
+            id_nodos.append(nodo.id)
+            nodos.append(nodo)
+    
+    for nodo in nodos:
+        item = nodo
+        valor = str(item.id)+" : "+str(item.getComplejidad())
+        index = desplazamiento_x[item.fase_id]
+        posicion =  str(index*3.5)+','+str(90-desplazamiento_y[index]*2)
+        desplazamiento_y[index] = desplazamiento_y[index] + 1
+        color= 'white'
+        if item.getMarcado() == 'Si':
+            color= '#708090'
+        gr.add_node(valor, label= item.getNombre()+" : "+  str(item.getComplejidad()), fillcolor=color, style="filled", pos=posicion, pin=True)
+    
+    gr.layout()
+    gr.draw('webapp/static/grafos/grafo_item.png')
+#    archivo= open('webapp/static/grafos/grafo_item.png','rb')
+#    contenido= archivo.read()
+#    archivo.close()
+#    return Response(contenido)
+   
+    flash('Items dibujados.', 'success')
+    return redirect(url_for('cambios.lineaBasexproyecto', proyecto_id=fase.proyecto_id))

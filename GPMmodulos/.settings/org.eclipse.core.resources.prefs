@@ -19,6 +19,7 @@ encoding//webapp/vistas/forms_adm.py=utf-8
 encoding//webapp/vistas/forms_des.py=utf-8
 encoding//webapp/vistas/forms_frontend.py=utf-8
 encoding//webapp/vistas/forms_gdc.py=utf-8
+encoding//webapp/vistas/forms_reportes.py=utf-8
 encoding//webapp/vistas/forms_settings.py=utf-8
 encoding//webapp/vistas/views_adm.py=utf-8
 encoding//webapp/vistas/views_api.py=utf-8

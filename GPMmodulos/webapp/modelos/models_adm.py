@@ -10,6 +10,10 @@ from flask_login import UserMixin
 from datetime import datetime
 from datetime import date
 
+#librerias para reportes
+from geraldo import Report, ReportBand, DetailBand, SystemField, Label, ObjectValue, ReportGroup
+from geraldo.utils import cm, BAND_WIDTH, TA_CENTER, TA_RIGHT
+
 from ..extensions import db
 from ..utils import get_current_time
 
@@ -1264,5 +1268,52 @@ class Comite(db.Model):
             ))
         q = reduce(db.and_, criteria)
         return cls.query.filter(q)
+
+class ItemPorProyectoReporte(Report):
+    title = 'Lista de Items de Proyecto'
+    
+    #cuerpo que muestra los datos en si 
+    class band_detail(DetailBand):
+        height = 0.7 * cm
+        elements = [
+            ObjectValue(expression='id', left=1.5 * cm),
+            ObjectValue(expression='nombre', left=3 * cm),
+            ObjectValue(expression='estado', left=5.5 * cm),
+        ]
+        borders = {'bottom': True}
+    #cabecera pagina
+    class band_page_header(ReportBand):
+        height = 1.3 * cm
+        elements = [
+            SystemField(expression='%(report_title)s', top=0.1 * cm, left=0, width=BAND_WIDTH,
+                style={'fontName': 'Helvetica-Bold', 'fontSize': 14, 'alignment': TA_CENTER}),
+            SystemField(expression=u'Pagina %(page_number)d de %(page_count)d', top=0.1 * cm,
+                width=BAND_WIDTH, style={'alignment': TA_RIGHT}),
+            Label(text="ID", top=0.8 * cm, left=1.5 * cm),
+            Label(text="Nombre", top=0.8 * cm, left=3 * cm),
+            Label(text="Estado", top=0.8 * cm, left=5.5 * cm),
+        ]
+        borders = {'all': True}
+    #Pie de pagina    
+    class band_page_footer(ReportBand):
+        height = 0.5*cm
+        elements = [
+            Label(text='Sistema GPM', top=0.1*cm),
+            SystemField(expression='Impreso %(now:%b %d, %Y)s a las %(now:%H:%M)s', top=0.1*cm,
+                width=BAND_WIDTH, style={'alignment': TA_RIGHT}),
+            ]
+        borders = {'top': True}
+     
+    groups = [
+        ReportGroup(
+            attribute_name='fase',
+            band_header=DetailBand(
+                height=0.6*cm,
+                elements=[
+                    ObjectValue(expression='fase', style={'fontName': 'Helvetica-Bold','fontSize': 12})
+                ]
+            ),
+        ),
+    ]
 
 

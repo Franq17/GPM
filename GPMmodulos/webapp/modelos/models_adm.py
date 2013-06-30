@@ -1264,4 +1264,5 @@ class Comite(db.Model):
             ))
         q = reduce(db.and_, criteria)
         return cls.query.filter(q)
-    
+
+

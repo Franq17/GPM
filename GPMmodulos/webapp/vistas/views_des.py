@@ -7,7 +7,7 @@ from ..extensions import db
 from ..decorators import crearUsuarios_required, modificarUsuarios_required,eliminarUsuarios_required, verUsuarios_required, crearRoles_required, modificarRoles_required, eliminarRoles_required, verRoles_required, verPermisos_required, crearProyectos_required, verItems_required, crearFases_required, modificarFases_required, eliminarFases_required
 from ..decorators import crearComites_required,modificarProyectos_required, eliminarProyectos_required, verProyectos_required, crearComites_required, modificarComites_required, eliminarComites_required, verComites_required, verMiembrosComites_required, crearItems_required, modificarItems_required,eliminarItems_required, verFases_required
 
-from ..modelos import Item,TipoItem, Fase, Proyecto, HistorialItem, APROBADO, DESAPROBADO, Antecesores, Solicitud
+from ..modelos import Item,TipoItem, Fase, Proyecto, HistorialItem,DESARROLLO, APROBADO, DESAPROBADO, Antecesores, Solicitud
 from .forms_des import CrearItemForm,ItemForm
 
 
@@ -42,6 +42,7 @@ def crearItem(proyecto_id, fase_id):
         item.proyecto_id = proyecto.id
         item.fase_id = fase.id
         item.tipoItem_id = tipoItem.id
+        fase.setEstado(DESARROLLO)
         
         
         db.session.add(item)

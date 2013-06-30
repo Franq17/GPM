@@ -305,12 +305,12 @@ def dibujarGrafoLB(lineaBase_id):
     
     desplazamiento_x = {}
     __index = 0
-    for i in fase.items:
+    for i in lineaBase.items:
         desplazamiento_x[i.id] = __index
         __index+=1
     # eje y
     desplazamiento_y = []
-    for i in range(fase.getNroItems()):
+    for i in range(lineaBase.getNroItems()):
         desplazamiento_y.append(0)
     
     #####
@@ -318,7 +318,7 @@ def dibujarGrafoLB(lineaBase_id):
     #gr.node_attr['shape']='circle'
     nodos= []
     id_nodos= []
-    for nodo in fase.items:
+    for nodo in lineaBase.items:
         if nodo.getEstado() != 'Eliminado':
             id_nodos.append(nodo.id)
             nodos.append(nodo)

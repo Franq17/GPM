@@ -10,7 +10,7 @@
 from flask_testing import TestCase as Base, Twill
 
 from webapp import create_app
-from webapp.modelos.models_adm import User, ADMIN, USER
+from webapp.modelos.models_adm import User
 from webapp.modelos.constants import ACTIVE
 from webapp.configs import TestConfig
 from webapp.extensions import db
@@ -30,7 +30,7 @@ class TestCase(Base):
         demo = User(name=u'demo', 
             email=u'usuario@example.com', 
             password=u'123456', 
-            role_id=USER,
+            #role_id=USER,
             status_id=ACTIVE)
 #             user_detail=UserDetail(
 #                 nameReal=u'Francisco',
@@ -42,7 +42,7 @@ class TestCase(Base):
         admin = User(name=u'admin', 
                 email=u'admin@example.com', 
                 password=u'123456', 
-                role_id=ADMIN,
+                #role_id=ADMIN,
                 status_id=ACTIVE)
 #                 user_detail=UserDetail(
 #                     nameReal=u'lorena',

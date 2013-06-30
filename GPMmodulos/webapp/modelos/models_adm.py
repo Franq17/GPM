@@ -7,11 +7,21 @@ except ImportError:
     from sqlalchemy.types import MutableType as Mutable
 from werkzeug import generate_password_hash, check_password_hash
 from flask_login import UserMixin
+from datetime import datetime
+from datetime import date
+
+#librerias para reportes
+from geraldo import Report, ReportBand, DetailBand, SystemField, Label, ObjectValue, ReportGroup
+from geraldo.utils import cm, BAND_WIDTH, TA_CENTER, TA_RIGHT
 
 from ..extensions import db
 from ..utils import get_current_time
-from .constants import INACTIVE, USER_STATUS,NO_INICIADO, PROYECTO_ESTADOS, LINEABASE_ESTADOS, FASE_ESTADOS
-from .constants import INICIAL
+
+from .constants import INACTIVE, USER_STATUS,NO_INICIADO, PROYECTO_ESTADOS, LINEABASE_ESTADOS, FASE_ESTADOS, ITEM_ESTADOS
+
+from .constants import INICIAL, DESARROLLO, COMPLETA, DESAPROBADO, ROL_ESTADOS, TIPOS_ROLES, NO_ASIGNADO, ABIERTA, TIPOS_ATRIBUTOS
+
+
 
 class DenormalizedText(Mutable, types.TypeDecorator):
     """
@@ -68,6 +78,11 @@ rolPorUsuario = db.Table('rolPorUsuario',
     Column('user_id', db.Integer, db.ForeignKey('users.id'))
 )
 
+rolPorProyecto = db.Table('rolPorProyecto',
+    Column('rol_id', db.Integer, db.ForeignKey('rol.id')),
+    Column('proyecto_id', db.Integer, db.ForeignKey('proyecto.id'))
+)
+
 atributoPorTipoItem = db.Table('atributoPorTipoItem',
     Column('tipoItem_id', db.Integer, db.ForeignKey('tipoItem.id')),
     Column('atributo_id', db.Integer, db.ForeignKey('atributo.id'))
@@ -78,35 +93,29 @@ solicitudPorUsuario = db.Table('solicitudPorUsuario',
     Column('solicitud_id', db.Integer, db.ForeignKey('solicitud.id'))
 )
 
-rolPorProyecto = db.Table('rolPorProyecto',
-    Column('rol_id', db.Integer, db.ForeignKey('rol.id')),
-    Column('proyecto_id', db.Integer, db.ForeignKey('proyecto.id'))
+tipoItemPorFase = db.Table ('tipoItemPorFase',
+    Column('tipoItem_id', db.Integer, db.ForeignKey('tipoItem.id')),
+    Column('fase_id', db.Integer, db.ForeignKey('fase.id'))
 )
+
 ############################################################################################
 #            Agregado de Adolfismo
 ############################################################################################
+
+
 
 archivoPorItem = db.Table('asociacion_item_archivo',
     Column('item_id', db.Integer, db.ForeignKey('item.id')),
     Column('archivo_id', db.Integer, db.ForeignKey('archivo.id'))
 )
 
-class RelacionSucesor(db.Model):
-    __tablename__ = 'relacion_sucesor'
-    left_id = Column(db.Integer, db.ForeignKey('item.id'), primary_key=True)
-    right_id = Column(db.Integer, db.ForeignKey('item.id'), primary_key=True)
-    item = db.relationship('Item', primaryjoin="Item.id==RelacionSucesor.right_id", backref='relacion_sucesor')
+class Antecesores(db.Model):
+    __tablename__ = 'sucesores'
+    id = Column(db.Integer, primary_key=True)
+    item_id = Column(db.Integer)
+    antecesor_id = Column (db.Integer)
     
-class RelacionHijo(db.Model):
-    __tablename__ = 'relacion_hijo'
-    left_id = Column(db.Integer, db.ForeignKey('item.id'), primary_key=True)
-    right_id = Column(db.Integer, db.ForeignKey('item.id'), primary_key=True)
-    hijo = db.relationship('Item', primaryjoin="Item.id==RelacionHijo.right_id", backref='relacion_hijo')
-
-
-##############################################################################################
-##############################################################################################
-
+    
 class User(db.Model, UserMixin):
 
     __tablename__ = 'users'
@@ -126,8 +135,8 @@ class User(db.Model, UserMixin):
     
 # RELACIONES ==========================================================================
 
-    # Many-to-many relationship 
-    
+    #esLiderFase = db.relationship('Fase', backref='users',lazy='dynamic')
+    # Many-to-many relationship    
     rolPorUsuario = db.relationship('Rol', secondary=rolPorUsuario,
        backref=db.backref('users', lazy='dynamic'))
     
@@ -191,6 +200,15 @@ class User(db.Model, UserMixin):
                 if self.id==miembro.id:
                     misProyectos.append(unProyecto)
         return misProyectos
+    
+    def getProyectosDeLider(self):
+        todosProyectos = Proyecto.query.all()
+        
+        misProyectos=[]
+        for proyecto in todosProyectos:
+            if self.id == proyecto.lider_proyecto:
+                misProyectos.append(proyecto)
+        return misProyectos
         
     def getCantSolicitudes (self):
         listaSolicitudes = self.solicitudPorUsuario
@@ -204,8 +222,53 @@ class User(db.Model, UserMixin):
             listaItem.append(item)
         return listaItem
 
+    def estaEnComite(self, comite_id):
+        comite = Comite.query.filter_by(id=comite_id).first_or_404()
+        members = comite.usuarioPorComite
+        for member in members:
+            if self.id == member.id:
+                return True
+        return False
+    
+    ## Falta arreglar para el caso de desasignar el rol de un usuario en un Proyecto
+    def puedeSerLiderFase(self):
+        roles = self.rolPorUsuario
+        for rol in roles:
+            unRol = Rol.query.filter_by(id=rol.id).first_or_404()
+            if unRol.getTipo() == 'lider de Fase':
+                return True
+        return False
+    
+    def puedeSerLiderProyecto(self):
+        roles = self.rolPorUsuario
+        for rol in roles:
+            unRol = Rol.query.filter_by(id=rol.id).first_or_404()
+            if unRol.getTipo() == 'lider de Proyecto':
+                return True
+        return False
+    
+    def puedeSerDesarrollador(self):
+        roles = self.rolPorUsuario
+        for rol in roles:
+            unRol = Rol.query.filter_by(id=rol.id).first_or_404()
+            if unRol.getTipo() == 'desarrollador':
+                return True
+        return False
+     
+    def esLiderDeFase(self, proyecto_id):
+        proyecto = Proyecto.query.filter_by(id=proyecto_id).first_or_404()
+        fases = proyecto.fases
+        for fase in fases:
+            fase = Fase.query.filter_by(id=fase.id).first_or_404()
+            if self.id == fase.lider_fase:
+                return True
+        return False
+
     def getStatus(self):
         return USER_STATUS[self.status_id]
+    
+    def setStatus(self, estado):
+        self.status_id = estado
 
     def setNombre(self, nombre):
         self.nombre= nombre
@@ -290,7 +353,9 @@ class Rol(db.Model):
 
     id = Column(db.Integer, primary_key=True)
     nombre = Column(db.String(32), nullable=False, unique=True)
+    tipo = Column(db.SmallInteger)
     descripcion = Column(db.String)
+    estado_id = Column(db.SmallInteger, default=NO_ASIGNADO)
     
 # RELACIONES =================================================================
     permisoPorRol = db.relationship('Permiso', secondary=permisoPorRol,
@@ -308,7 +373,60 @@ class Rol(db.Model):
     
     def setDescripcion(self, descripcion):
         self.descripcion= descripcion
-        
+    
+    def getTipo(self):
+        return TIPOS_ROLES[self.tipo]
+    
+    def setTipo(self, tipo):
+        self.tipo = tipo
+    
+    def getEstado(self):
+        return ROL_ESTADOS[self.estado_id]
+    
+    def setEstado(self, estado):
+        self.estado_id = estado
+    
+    def getUsuarios(self):
+        users = User.query.all()
+        userList = []
+        for user in users:
+            roles = user.rolPorUsuario
+            if self in roles:
+                userList.append(user)
+        return userList
+
+    def comprobarAsignacion(self):
+        users = self.getUsuarios()
+        if len(users)==0:
+            self.setEstado(0)
+    
+    def cargarPermisos(self):
+        if self.getTipo()=="administrador":
+            for pid in range(1,32):
+                permiso = Permiso.query.filter_by(id=pid).first_or_404()
+                self.permisoPorRol.append(permiso)
+        elif self.getTipo()=="lider de Proyecto":
+            perLider = Permiso.query.filter_by(id=32).first_or_404()
+            self.permisoPorRol.append(perLider)
+            for pid in range(10,19):
+                permiso = Permiso.query.filter_by(id=pid).first_or_404()
+                self.permisoPorRol.append(permiso)
+        elif self.getTipo()=="lider de Fase":
+            perLider = Permiso.query.filter_by(id=33).first_or_404()
+            self.permisoPorRol.append(perLider)
+            for pid in range(19,27):
+                permiso = Permiso.query.filter_by(id=pid).first_or_404()
+                self.permisoPorRol.append(permiso)
+        elif self.getTipo()=="desarrollador":
+            perDesarrollador = Permiso.query.filter_by(id=34).first_or_404()
+            self.permisoPorRol.append(perDesarrollador)
+            for pid in range(19,23):
+                permiso = Permiso.query.filter_by(id=pid).first_or_404()
+                self.permisoPorRol.append(permiso)
+            for pid in range(27,31):
+                permiso = Permiso.query.filter_by(id=pid).first_or_404()
+                self.permisoPorRol.append(permiso)
+    
     # Class methods
 
     @classmethod
@@ -342,6 +460,7 @@ class Proyecto(db.Model):
     comite = db.relationship('Comite', backref='proyecto', uselist=False)
     # One-to-many relationship
     fases = db.relationship('Fase', backref='proyecto',lazy='dynamic')
+
     tiposItem = db.relationship('TipoItem', backref='proyecto',lazy='dynamic')
     items = db.relationship('Item', backref='proyecto',lazy='dynamic')
     
@@ -367,6 +486,9 @@ class Proyecto(db.Model):
     def getEstado(self):
         return PROYECTO_ESTADOS[self.estado_id]
     
+    def setEstado(self, estado):
+        self.estado_id = estado
+            
     def getNroFases(self):
         return self.numero_fases
     
@@ -378,11 +500,39 @@ class Proyecto(db.Model):
     
     def setDescripcion(self, descripcion):
         self.descripcion= descripcion
+    
+    def setComplejidad(self, complejidad):
+        self.complejidad_total= complejidad
+    
+    def setNroFases(self, numero):
+        self.numero_fases= numero
 
     def getTodosProyectos(self):
         todosProyectos = Proyecto.query.filter(Proyecto.id != self.id)
         return todosProyectos
-   
+    
+    def getLider(self):
+        lider = User.query.filter_by(id=self.lider_proyecto).first_or_404()
+        return lider.nombre+' '+lider.apellido
+    
+    def getUsuariosLideresFase(self):
+        users = self.usuarioPorProyecto
+        usuariosLideres=[]
+        for user in users:
+            usuario = User.query.filter_by(id=user.id).first_or_404()
+            if usuario.puedeSerLiderFase():
+                usuariosLideres.append(usuario)
+        return usuariosLideres
+    
+    def getUsuariosLideresProyecto(self):
+        users = self.usuarioPorProyecto
+        usuariosLideres=[]
+        for user in users:
+            usuario = User.query.filter_by(id=user.id).first_or_404()
+            if usuario.puedeSerLiderProyecto():
+                usuariosLideres.append(usuario)
+        return usuariosLideres
+    
     # ================================================================
     # Follow / Following
     followers = Column(DenormalizedText)
@@ -434,18 +584,24 @@ class Fase(db.Model):
     __tablename__='fase'
     
     id = Column(db.Integer, primary_key=True)
-    nombre = Column(db.String(32), nullable=False, unique=True)
+    nombre = Column(db.String(32), nullable=False)
     descripcion = Column(db.String(),nullable=True)
     numero_fase = Column(db.Integer,nullable=True)
     numero_lb = Column(db.Integer,default=0)
     estado_id = Column(db.SmallInteger,default=INICIAL)
+    lider_fase = Column(db.Integer, nullable=True)
     
 # RELACIONES =================================================================
     # Many-to-one relationship
     proyecto_id = Column(db.Integer, db.ForeignKey('proyecto.id'))
+    #liderFase_id = Column(db.Integer(), db.ForeignKey('users.id'))
     # One-to-many relationship
     lineaBase = db.relationship('LineaBase', backref='fase',lazy='dynamic')
     items = db.relationship('Item', backref='fase',lazy='dynamic')
+    # Many-to-many relationship
+    tipoItemPorFase = db.relationship('TipoItem', secondary=tipoItemPorFase,
+       backref=db.backref('fases', lazy='dynamic'))
+    
     
 # FUNCIONES =================================================================    
 
@@ -466,7 +622,10 @@ class Fase(db.Model):
         return FASE_ESTADOS[self.estado_id]
     
     def getNroLB(self):
-        return len(self.numero_lb)
+        return self.numero_lb
+    
+    def getNroFase(self):
+        return self.numero_fase
     
     def setNombre(self, nombre):
         self.nombre= nombre
@@ -477,10 +636,56 @@ class Fase(db.Model):
     def setNroLB(self, cantidad):
         self.numero_lb= cantidad
     
-    def getItems (self, proyecto_id):
+    def setEstado(self, estado):
+        self.estado_id = estado
+    
+    def getItems (self):
         misItems = self.items
         return misItems
     
+    def existeTipoItem (self, tipoItem_id):
+        
+        for tipo in self.tipoItemPorFase:
+            print tipo.nombre
+            if tipo.id == tipoItem_id:
+                return True
+        return False
+    
+    def getLider(self):
+        lider = User.query.filter_by(id=self.lider_fase).first_or_404()
+        return lider.nombre+' '+lider.apellido
+    
+    def setLider(self, lider):
+        self.lider_fase = lider
+    
+    def actualizarEstado(self):
+        inicial= True
+        completo= False
+        desarrollo= False
+        for item in self.items:
+            if item.getEstado() != 'eliminado':
+                completo= True
+                if item.getEstado() != 'bloqueado' :
+                    desarrollo= True
+        if inicial and (not completo) and not(desarrollo):
+            self.estado_id = INICIAL
+        if inicial and completo and not(desarrollo):
+            self.estado_id= COMPLETA
+        if inicial and completo and desarrollo:
+            self.estado_id= DESARROLLO
+        
+    def getFaseSiguiente(self, proyecto):
+        for fase in proyecto.fases:
+            if fase.numero_fase == self.numero_fase+1:
+                faseSiguiente = fase
+        return faseSiguiente
+    
+    def tieneSiguiente(self, proyecto):
+        for fase in proyecto.fases:
+            if fase.numero_fase == self.numero_fase+1:
+                return True
+        return False
+
     
 class TipoItem(db.Model):
     
@@ -493,7 +698,7 @@ class TipoItem(db.Model):
 
 # RELACIONES  ===========================================================================
     atributoPorTipoItem = db.relationship('Atributo', secondary=atributoPorTipoItem,
-        backref=db.backref('atributoPorTipoItem', lazy='dynamic'))
+        backref=db.backref('tiposItem', lazy='dynamic'))
     
 # FUNCIONES =============================================================================   
     
@@ -538,11 +743,15 @@ class Item(db.Model):
     descripcion = Column(db.String(),nullable=True)
     version = Column(db.Integer)
     complejidad= Column(db.Integer) 
-    estado_id = Column(db.SmallInteger,default=INICIAL)
+    estado_id = Column(db.SmallInteger,default=DESAPROBADO)
+    marcado = Column(db.String(2),nullable=True)
+
     
 # RELACIONES  ====================================================================
+
     proyecto_id = Column(db.Integer, db.ForeignKey('proyecto.id'))
     fase_id = Column(db.Integer, db.ForeignKey('fase.id')) 
+
     solicitudes = db.relationship('Solicitud', backref='item',lazy='dynamic')
     lineaBase_id = Column(db.Integer, db.ForeignKey('lineaBase.id'))
     
@@ -557,16 +766,31 @@ class Item(db.Model):
     """
     estas dos columnas son para relaciones de versiones de items
     """
-    versionSuperior_id = Column(db.Integer, db.ForeignKey('item.id'))
-    versionAnterior = db.relationship("Item")
+    #versionSuperior_id = Column(db.Integer, db.ForeignKey('item.id'))
+    #versionAnterior = db.relationship("Item")
+    
+    padre_id = Column(db.Integer,db.ForeignKey('item.id'))
+    hijo = db.relationship("Item",
+                backref=db.backref('padre', remote_side=[id])
+            )
+    sucesor_id = Column(db.Integer)
     """
     relacion con el item sucesor
     """
-    relacionSucesor= db.relationship("RelacionSucesor", primaryjoin=id==RelacionSucesor.left_id, backref='items')
-#    
-    relacionHijo = db.relationship("RelacionHijo", primaryjoin=id==RelacionHijo.left_id, backref='item')
-
-
+    #sucesores = db.relationship('Item', secondary=sucesorPorItem,
+    #                            backref=db.backref('antecesor', lazy='dynamic'))
+    def getAntecesores(self):
+        todosAntecesores = Antecesores.query.all()
+        misAntecesores = []
+        for relacion in todosAntecesores:
+            if relacion.item_id == self.id and relacion.antecesor_id != self.id:
+                item = Item.query.filter_by(id=relacion.antecesor_id).first()
+                misAntecesores.append(item)
+        return misAntecesores
+    
+    def getSucesor(self):
+        sucesor = Item.query.filter_by(id=self.sucesor_id).first()
+        return sucesor
 # FUNCIONES  ====================================================================   
     def getHistorial(self):
         todosHistoriales = HistorialItem.query.all()
@@ -586,7 +810,10 @@ class Item(db.Model):
         return self.version
     
     def getEstado(self):
-        return self.estado
+        return ITEM_ESTADOS[self.estado_id]
+    
+    def setEstado(self, estado):
+        self.estado_id = estado
     
     def getComplejidad(self):
         return self.complejidad
@@ -594,8 +821,11 @@ class Item(db.Model):
     def getDescripcion(self):
         return self.descripcion
     
+    def getMarcado(self):
+        return self.marcado
+    
     def marcarRevision(self):
-        self.estado= 'Revision'
+        self.estado_id = 4 #Estado: 'revision'
     
     def tieneLineaBase(self):
         if self.lineaBase_id != None:
@@ -634,121 +864,40 @@ class Item(db.Model):
     
     def tienePadre(self, fase):
         for item in fase.items:
-            if item.getEstado() != 'Eliminado' and item != self:
-                for relacion in item.relacionHijo:
-                    if relacion.hijo == self:
-                        return True
+            if item.getEstado() != 'eliminado' and item != self:
+                if self.padre_id is not None:
+                    return True
         return False
     
     """
-    note: metodo que devuelve el padre del item, devuelve None en caso de no tener
+    note: metodo que devuelve el padre del item, devuelve String en caso de no tener
     """
-    def getPadre(self, fase):
-        for item in fase.items:
-            if item.getEstado() != 'Eliminado' and item != self:
-                for relacion in item.relacionHijo:
-                    if relacion.hijo == self:
-                        return item
-        return None
-    
+    def getPadre(self):
+        padre = Item.query.filter_by(id=self.padre_id).first()
+        if padre is None:
+            return None
+        return padre.nombre
     """
     note metodo que pregunta si un item es descendiente de otro en una fase dada
     """
     def esDescendiente(self, fase, item):
-        lista_hijos= self.getGeneraciones(fase, self)
-        print "\n\n\n\n\n\n\n"
-        for aux in lista_hijos:
-            print aux.getNombre()
-        print "\n\n\n\n\n\n\n"
-        return item in lista_hijos
+        lista_descendientes = self.getGeneraciones(fase, self)
+        return item in lista_descendientes
     
     """
     note: metodo que acumula los hijos, nietos etc. de un item en una lista incluyendose al item
     """
-#    def getGeneraciones(self, fase, item):
-#        lista= []
-#        for relacion in item.relacionHijo:
-#            if relacion.hijo.getEstado() != 'Eliminado' and relacion.hijo in fase.items:
-#                lista= lista + item.getGeneraciones(fase, relacion.hijo)
-#        lista = lista + [item]
-#        return lista
-#    
-#    """
-#    note: metodo que acumula en una lista los padres, abuelos etc de un item incluyendose a el
-#    """
-#    def getAscendientes(self, fase):
-#        lista= []
-#        item_aux= self
-#        while item_aux.tienePadre(fase):
-#            lista.append(item_aux.getPadre(fase))
-#            item_aux= item_aux.getPadre(fase)
-#        lista = lista + [self]
-#        return lista
-#    
-#    """
-#    note: metodo que acumula los sucesores de un item en una lista incluyendose al item, pueden existir repetidos
-#    """
-#    def getSucesores(self, session, fase, item):
-#        lista= []
-#        proyecto= session.query(Proyecto).filter_by(id= fase.proyecto_id).first()
-#        proyecto.fases.sort(comparaFase)
-#        ubicacion= proyecto.fases.index(fase)
-#        lista_hijos= item.getGeneraciones(fase, item)
-#        for aux in lista_hijos:
-#            for relacion in aux.relacionSucesor:
-#                fase= proyecto.fases[ubicacion + 1]
-#                if relacion.item.getEstado() != 'Eliminado' and relacion.item in fase.items:
-#                    lista= lista + item.getSucesores(session, fase, relacion.item)
-#            lista = lista + [aux]
-#        return lista
-#    
-#    def getAntecesores(self, session, fase, item):
-#        lista= []
-#        proyecto= session.query(Proyecto).filter_by(id= fase.proyecto_id).first()
-#        proyecto.fases.sort(comparaFase)
-#        ubicacion= proyecto.fases.index(fase)
-#        lista= item.getAscendientes(fase)
-#        if ubicacion > 0:
-#            listaAdd= []
-#            faseAnterior= proyecto.fases[ubicacion-1]
-#            for aux in lista:
-#                for candidato in faseAnterior.items:
-#                    for relacion in candidato.relacionSucesor:
-#                        if relacion.item == aux and candidato.getEstado() != 'Eliminado':
-#                            listaAdd= listaAdd + item.getAntecesores(session, faseAnterior, candidato)
-#            lista = lista + listaAdd
-#        return lista
-#    
-#    def getSucesoresParaLb(self, session, fase):
-#        proyecto= session.query(Proyecto).filter_by(id= fase.proyecto_id).first()
-#        proyecto.fases.sort(comparaFase)
-#        ubicacion= proyecto.fases.index(fase)
-#        lista= []
-#        if ubicacion < (len(proyecto.fases)-1):
-#            """ note: copia las relaciones que estan en la fase posterior """
-#            fasePosterior= proyecto.fases[ubicacion+1]
-#            for relacion in self.relacionSucesor:
-#                if relacion.item.getEstado() != 'Eliminado' and (relacion.item in fasePosterior.items):
-#                    lista.append(relacion.item)
-#        return lista
-#    
-#    def getAntecesoresParaLb(self, session, fase):
-#        proyecto= session.query(Proyecto).filter_by(id= fase.proyecto_id).first()
-#        proyecto.fases.sort(comparaFase)
-#        ubicacion= proyecto.fases.index(fase)
-#        lista= []
-#        if ubicacion > 0:
-#            """ note: copia las relaciones que estan en la fase anterior """
-#            faseAnterior= proyecto.fases[ubicacion-1]
-#            for candidato in faseAnterior.items:
-#                for relacion in candidato.relacionSucesor:
-#                    if relacion.item == self and candidato.getEstado() != 'Eliminado':
-#                        lista.append(candidato)
-#        return lista
-#    
-#    def getMarcado(self):
-#        return self.marcado
-#    
+    def getGeneraciones(self, fase, item):
+        lista= []
+        for hij in item.hijo:
+            if hij.getEstado() != 'Eliminado' and hij in fase.items:
+                lista= lista + item.getGeneraciones(fase, hij)
+        lista = lista + [item]
+        return lista
+    
+    """
+    note: metodo que acumula los hijos, nietos etc. de un item en una lista incluyendose al item
+    """
     def setNombre(self, nombre):
         self.nombre= nombre
     
@@ -757,9 +906,6 @@ class Item(db.Model):
     
     def setVersion(self, version):
         self.version= version
-    
-    def setEstado(self, estado):
-        self.estado= estado
     
     def setComplejidad(self, complejidad):
         self.complejidad= complejidad
@@ -775,180 +921,49 @@ class Item(db.Model):
     
     def getRelacionArchivos(self):
         return self.relacionArchivo
+    """
+    note: metodo que acumula en una lista los padres, abuelos etc de un item incluyendose a el
+    """
+    def getAscendientes(self, fase):
+        lista= []
+        item_aux= self
+        while item_aux.tienePadre(fase):
+            lista.append(item_aux.getPadre(fase))
+            item_aux= item_aux.getPadre(fase)
+        lista = lista + [self]
+        return lista
     
-#    def copiarAtributos(self, atributosImportados, relacionArchivos):
-#        for atributoImportado in atributosImportados:
-#            nuevoAtributo= Atributo(atributoImportado.getNombre(), atributoImportado.getTipo())
-#            nuevoAtributo.setDescripcion(atributoImportado.getDescripcion())
-#            nuevoAtributo.setValor(atributoImportado.getValor())
-#            self.atributos.append(nuevoAtributo)
-#        for relacion in relacionArchivos:
-#            asociacion= AsociacionItemArchivo()
-#            archivo= Archivo()
-#            archivo.setArchivo(relacion.archivo.getArchivo())
-#            archivo.setTipoArchivo(relacion.archivo.getTipoArchivo())
-#            archivo.setNombreArchivo(relacion.archivo.getNombreArchivo())
-#            asociacion.archivo= archivo
-#            self.relacionArchivo.append(asociacion)
+#    def getAntecesores(self, fase, item):
+#        lista = []
+#        proyecto= Proyecto.query.filter_by(id=fase.proyecto_id).first()
+#      #  proyecto.fases.sort(comparaFase)
+#        ubicacion = fase.numero_fase
+#        lista = item.getAscendientes(fase)
+#        if ubicacion > 1:
+#            listaAdd= []
+#            faseAnterior = proyecto.fases[ubicacion-1]
+#            for aux in lista:
+#                for candidato in faseAnterior.items:
+#                    for suce in candidato.getSucesores():
+#                        if suce == aux and candidato.getEstado() != 'eliminado':
+#                            listaAdd= listaAdd + item.getAntecesores(faseAnterior, candidato)
+#            lista = lista + listaAdd
+#        return lista
 #    
-#    def modificarAtributo(self, atributosImportados, atributo, nombre, descripcion, valor, relacionArchivos):
-#        for atributoImportado in atributosImportados:
-#            if atributoImportado != atributo:
-#                nuevoAtributo= Atributo(atributoImportado.getNombre(), atributoImportado.getTipo())
-#                nuevoAtributo.setDescripcion(atributoImportado.getDescripcion())
-#                nuevoAtributo.setValor(atributoImportado.getValor())
-#                self.atributos.append(nuevoAtributo)
-#            else:
-#                nuevoAtributo= Atributo(nombre, atributoImportado.getTipo())
-#                nuevoAtributo.setDescripcion(descripcion)
-#                nuevoAtributo.setValor(valor)
-#                self.atributos.append(nuevoAtributo)
-#        
-#        for relacion in relacionArchivos:
-#            asociacion= AsociacionItemArchivo()
-#            archivo= Archivo()
-#            archivo.setArchivo(relacion.archivo.getArchivo())
-#            archivo.setTipoArchivo(relacion.archivo.getTipoArchivo())
-#            archivo.setNombreArchivo(relacion.archivo.getNombreArchivo())
-#            asociacion.archivo= archivo
-#            self.relacionArchivo.append(asociacion)
-#    
-#    def copiarArchivos(self, relacionArchivos):
-#        for relacion in relacionArchivos:
-#            asociacion= AsociacionItemArchivo()
-#            archivo= Archivo()
-#            archivo.setArchivo(relacion.archivo.getArchivo())
-#            archivo.setTipoArchivo(relacion.archivo.getTipoArchivo())
-#            archivo.setNombreArchivo(relacion.archivo.getNombreArchivo())
-#            asociacion.archivo= archivo
-#            self.relacionArchivo.append(asociacion)
-#    
-#    def inicializarAtributos(self):
-#        tipoItemElegido= self.tipoItem
-#        for atributo in tipoItemElegido.atributos:
-#            nuevoAtributo= Atributo(atributo.getNombre(), atributo.getTipo())
-#            nuevoAtributo.setValor(atributo.getValor())
-#            nuevoAtributo.setDescripcion(atributo.getDescripcion())
-#            self.atributos.append(nuevoAtributo)
-#    
-#    def actualizarAtributos(self):
-#        """
-#        note: funcion que al agregar atributos al tipo de item actualiza 
-#        a todos los items de ese tipo
-#        """
-#        tipoItemElegido= self.tipoItem
-#        numeroDeAtributosItem= len(self.atributos)
-#        numeroDeAtributosTipo= len(tipoItemElegido.atributos)
-#        rango= numeroDeAtributosTipo - numeroDeAtributosItem
-#        for indice in range(-rango, 0):
-#            atributo= tipoItemElegido.atributos[indice]
-#            nuevoAtributo= Atributo(atributo.getNombre(), atributo.getTipo())
-#            nuevoAtributo.setValor(atributo.getValor())
-#            nuevoAtributo.setDescripcion(atributo.getDescripcion())
-#            self.atributos.append(nuevoAtributo)
-#    
-#    def copiarRelaciones(self, item, session):
-#        fase= session.query(Fase).filter_by(id= item.fase_id).first()
-#        proyecto= session.query(Proyecto).filter_by(id= fase.proyecto_id).first()
-#        proyecto.fases.sort(comparaFase)
-#        ubicacion= proyecto.fases.index(fase)
-#        if ubicacion > 0:
-#            """
-#            note: copia las relaciones que estan en la fase anterior
-#            """
-#            faseAnterior= proyecto.fases[ubicacion-1]
-#            for candidato in faseAnterior.items:
-#                for relacion in candidato.relacionSucesor:
-#                    if relacion.item == item and candidato.getEstado() != 'Eliminado':
-#                        asociacion= RelacionSucesor()
-#                        asociacion.item= self
-#                        asociacion.left_id= candidato.id
-#                        candidato.relacionSucesor.append(asociacion)
-#                        session.add(candidato)
-#        if ubicacion < (len(proyecto.fases)-1):
-#            """
-#            note: copia las relaciones que estan en la fase posterior
-#            """
-#            fasePosterior= proyecto.fases[ubicacion+1]
-#            for relacion in item.relacionSucesor:
-#                if relacion.item.getEstado() != 'Eliminado' and (relacion.item in fasePosterior.items):
-#                    asociacion= RelacionSucesor()
-#                    asociacion.item= relacion.item
-#                    asociacion.left_id= self.id
-#                    self.relacionSucesor.append(asociacion)
-#        """
-#        note: copia las relaciones de los padres al nuevo item
-#        """
-#        for candidato in fase.items:
-#            for relacion in candidato.relacionHijo:
-#                if relacion.hijo == item and candidato.getEstado() != 'Eliminado':
-#                    asociacion= RelacionHijo()
-#                    asociacion.hijo= self
-#                    asociacion.left_id= candidato.id
-#                    candidato.relacionHijo.append(asociacion)
-#                    session.add(candidato)
-#        """
-#        note: copia las relaciones hijos al nuevo item
-#        """
-#        for relacion in item.relacionHijo:
-#            if relacion.hijo.getEstado() != 'Eliminado' and (relacion.hijo in fase.items):
-#                asociacion= RelacionHijo()
-#                asociacion.hijo= relacion.hijo
-#                asociacion.left_id= self.id
-#                self.relacionHijo.append(asociacion)
-#        return self
-#    
-#    def copiarRelacionesParaRevertir(self, item, numeroDeFase, session):
-#        fase= session.query(Fase).filter_by(id= numeroDeFase).first()
-#        proyecto= session.query(Proyecto).filter_by(id= fase.proyecto_id).first()
-#        proyecto.fases.sort(comparaFase)
-#        ubicacion= proyecto.fases.index(fase)
-#        if ubicacion > 0:
-#            """
-#            note: copia las relaciones que estan en la fase anterior
-#            """
-#            faseAnterior= proyecto.fases[ubicacion-1]
-#            for candidato in faseAnterior.items:
-#                for relacion in candidato.relacionSucesor:
-#                    if relacion.item == item and candidato.getEstado() != 'Eliminado':
-#                        asociacion= RelacionSucesor()
-#                        asociacion.item= self
-#                        asociacion.left_id= candidato.id
-#                        candidato.relacionSucesor.append(asociacion)
-#                        session.add(candidato)
-#        if ubicacion < (len(proyecto.fases)-1):
-#            """
-#            note: copia las relaciones que estan en la fase posterior
-#            """
-#            fasePosterior= proyecto.fases[ubicacion+1]
-#            for relacion in item.relacionSucesor:
-#                if relacion.item.getEstado() != 'Eliminado' and (relacion.item in fasePosterior.items):
-#                    asociacion= RelacionSucesor()
-#                    asociacion.item= relacion.item
-#                    asociacion.left_id= self.id
-#                    self.relacionSucesor.append(asociacion)
-#        """
-#        note: copia las relaciones de los padres al nuevo item
-#        """
-#        for candidato in fase.items:
-#            for relacion in candidato.relacionHijo:
-#                if relacion.hijo == item and candidato.getEstado() != 'Eliminado':
-#                    asociacion= RelacionHijo()
-#                    asociacion.hijo= self
-#                    asociacion.left_id= candidato.id
-#                    candidato.relacionHijo.append(asociacion)
-#                    session.add(candidato)
-#        """
-#        note: copia las relaciones hijos al nuevo item
-#        """
-#        for relacion in item.relacionHijo:
-#            if relacion.hijo.getEstado() != 'Eliminado' and (relacion.hijo in fase.items):
-#                asociacion= RelacionHijo()
-#                asociacion.hijo= relacion.hijo
-#                asociacion.left_id= self.id
-#                self.relacionHijo.append(asociacion)
-#        return self
-
+    def getAntecesoresParaLb(self, fase):
+        proyecto= Proyecto.query.filter_by(id=fase.proyecto_id).first()
+        #proyecto.fases.sort(comparaFase)
+        ubicacion= fase.numero_fase
+        lista= []
+        if ubicacion > 1:
+            """ note: copia las relaciones que estan en la fase anterior """
+            faseAnterior= proyecto.fases[ubicacion-1]
+            for candidato in faseAnterior.items:
+                for relacion in candidato.relacionSucesor:
+                    if relacion.item == self and candidato.getEstado() != 'eliminado':
+                        lista.append(candidato)
+        return lista
+    
  
 class Atributo(db.Model):
     
@@ -957,7 +972,7 @@ class Atributo(db.Model):
     id = Column(db.Integer, primary_key=True)
     nombre= Column(db.String(32), nullable=False, unique=True)
     tipo= Column(db.Integer)
-    descripcion= Column(db.String(200), nullable=True)
+    descripcion= Column(db.String(100), nullable=True)
     valorString= Column(db.String(32))
     valorInteger= Column(db.Integer)
     valorFecha=  Column(db.DateTime)
@@ -968,7 +983,7 @@ class Atributo(db.Model):
         return self.nombre
     
     def getTipo(self):
-        return self.tipo
+        return TIPOS_ATRIBUTOS[self.tipo]
     
     def getValor(self):
         if self.getTipo() == 'String':
@@ -1053,22 +1068,21 @@ class Archivo(db.Model):
     
     
 class HistorialItem(db.Model):
-
     __tablename__ = 'historialItem'
 
     id = Column(db.Integer, primary_key=True)
     itemId= Column(db.Integer, nullable=False)
     descripcion = Column(db.String)
     fecha= Column(db.DateTime, default=get_current_time)
-    
+
     
 class LineaBase(db.Model):
     __tablename__='lineaBase'
     
     id = Column(db.Integer, primary_key=True)
-    numero_lb = Column(db.Integer, nullable=False)
-    descripcion = Column(db.String(),nullable=True)
-    estado_id = Column(db.SmallInteger,default=INICIAL)   
+    numero_lb = Column(db.Integer)
+    nombre = Column(db.String(25), nullable=False)
+    estado_id = Column(db.SmallInteger,default=ABIERTA)   
     complejidad = Column(db.Integer)
     
 # RELACIONES ===================================================================
@@ -1077,13 +1091,13 @@ class LineaBase(db.Model):
     # One-to-many relationship 
     items = db.relationship('Item', backref='lineaBase',lazy='dynamic')
     
+ # FUNCIONES =====================================================================    
 
-# FUNCIONES =====================================================================    
     def getNombre(self):
         return self.nombre
     
     def getNumero(self):
-        return self.numero
+        return self.numero_lb
     
     def getEstado(self):
         return LINEABASE_ESTADOS[self.estado_id]
@@ -1095,7 +1109,10 @@ class LineaBase(db.Model):
         return cont
     
     def getNroItems(self):
-        return len(self.items)
+        cant = 0
+        for item in self.items:
+            cant=cant + 1
+        return  cant#len(self.items)
     
     def getItems(self):
         lista= []
@@ -1107,7 +1124,7 @@ class LineaBase(db.Model):
         self.nombre= nombre
     
     def setNumero(self, numero):
-        self.numero= numero
+        self.numero_lb = numero
     
     def setEstado(self, estado_id):
         self.estado_id = estado_id
@@ -1115,17 +1132,17 @@ class LineaBase(db.Model):
     def romper(self):
         self.estado_id = 'Abierta'
         for item in self.items:
-            item.setEstado('Revision')
+            item.setEstado('para revision')
     
     def comprometer(self, session):
-        self.estado_id = 'Comprometida'
+        self.estado_id = 'comprometida'
         for item in self.items:
-            item.setEstado('Revision')
+            item.setEstado('revision')
         session.add(self)
     
     def removerItemsEliminados(self, session):
         for item in self.items:
-            if item.getEstado() == 'Eliminado':
+            if item.getEstado() == 'eliminado':
                 self.items.remove(item)
         session.add(self)
     
@@ -1183,7 +1200,6 @@ class LineaBase(db.Model):
                 print "\n"
                 print "Es None..."
                 print "\n"
-    
 
 class HistorialLineaBase(db.Model):
 
@@ -1209,6 +1225,8 @@ class Solicitud(db.Model):
     comite_id = Column(db.Integer, db.ForeignKey('comite.id'))
     item_id = Column(db.Integer, db.ForeignKey('item.id'))
 
+    def getItem(self):
+        return Item.query.filter_by(id=self.item_id).first_or_404()
 
 class Comite(db.Model):
     
@@ -1230,6 +1248,14 @@ class Comite(db.Model):
 
 # FUNCIONES ================================================================
     
+    def getProyecto(self):
+        proyecto = Proyecto.query.filter_by(id=self.proyecto_id).first_or_404()
+        return proyecto
+    
+    def getProyectoNombre(self):
+        proyecto = self.getProyecto()
+        return proyecto.nombre
+
     # Class methods
 
     @classmethod
@@ -1242,4 +1268,52 @@ class Comite(db.Model):
             ))
         q = reduce(db.and_, criteria)
         return cls.query.filter(q)
+
+class ItemPorProyectoReporte(Report):
+    title = 'Lista de Items de Proyecto'
     
+    #cuerpo que muestra los datos en si 
+    class band_detail(DetailBand):
+        height = 0.7 * cm
+        elements = [
+            ObjectValue(expression='id', left=1.5 * cm),
+            ObjectValue(expression='nombre', left=3 * cm),
+            ObjectValue(expression='estado', left=5.5 * cm),
+        ]
+        borders = {'bottom': True}
+    #cabecera pagina
+    class band_page_header(ReportBand):
+        height = 1.3 * cm
+        elements = [
+            SystemField(expression='%(report_title)s', top=0.1 * cm, left=0, width=BAND_WIDTH,
+                style={'fontName': 'Helvetica-Bold', 'fontSize': 14, 'alignment': TA_CENTER}),
+            SystemField(expression=u'Pagina %(page_number)d de %(page_count)d', top=0.1 * cm,
+                width=BAND_WIDTH, style={'alignment': TA_RIGHT}),
+            Label(text="ID", top=0.8 * cm, left=1.5 * cm),
+            Label(text="Nombre", top=0.8 * cm, left=3 * cm),
+            Label(text="Estado", top=0.8 * cm, left=5.5 * cm),
+        ]
+        borders = {'all': True}
+    #Pie de pagina    
+    class band_page_footer(ReportBand):
+        height = 0.5*cm
+        elements = [
+            Label(text='Sistema GPM', top=0.1*cm),
+            SystemField(expression='Impreso %(now:%b %d, %Y)s a las %(now:%H:%M)s', top=0.1*cm,
+                width=BAND_WIDTH, style={'alignment': TA_RIGHT}),
+            ]
+        borders = {'top': True}
+     
+    groups = [
+        ReportGroup(
+            attribute_name='fase',
+            band_header=DetailBand(
+                height=0.6*cm,
+                elements=[
+                    ObjectValue(expression='fase', style={'fontName': 'Helvetica-Bold','fontSize': 12})
+                ]
+            ),
+        ),
+    ]
+
+

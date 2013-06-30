@@ -6,6 +6,6 @@
 {% block body %}
 <div class="container">
     <h2>Crear Linea Base</h2>
-    {{ render_form(url_for('admin.crearLineaBase', proyecto_id=proyecto.id), form)}}
+    {{ render_form(url_for('cambios.crearLB', proyecto_id=proyecto.id, fase_id=fase.id), form)}}
 </div>
 {% endblock %}

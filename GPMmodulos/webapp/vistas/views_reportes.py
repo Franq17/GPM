@@ -26,7 +26,7 @@ def itemsxproyecto():
         
         listaItems.sort(lambda a,b: cmp(a['fase'], b['fase']))
         my_report = ItemPorProyectoReporte(queryset=listaItems)
-        my_report.generate_by(PDFGenerator, filename='/home/franq/Escritorio/items_'+proyecto.nombre+'.pdf')
+        my_report.generate_by(PDFGenerator, filename='/home/adolfo/Escritorio/items_'+proyecto.nombre+'.pdf')
         
         flash('Reporte creado exitosamente en su Escritorio', 'success')
         return redirect(url_for('reportes.itemsxproyecto'))
@@ -70,7 +70,7 @@ def historialxitemPaso2(proyecto_id):
             listaHistorial.append({'id': fila.itemId,'descripcion': fila.descripcion, 'fecha':fila.fecha})
         
         my_report = HistorialPorItemReporte(queryset=listaHistorial)
-        my_report.generate_by(PDFGenerator, filename='/home/franq/Escritorio/historial_'+item.nombre+'.pdf')
+        my_report.generate_by(PDFGenerator, filename='/home/adolfo/Escritorio/historial_'+item.nombre+'.pdf')
         
         flash('Reporte creado exitosamente en su Escritorio', 'success')
         return redirect(url_for('reportes.historialxitemPaso1'))

@@ -640,7 +640,8 @@ class Fase(db.Model):
         self.estado_id = estado
     
     def getItems (self):
-        misItems = self.items
+        #misItems = self.items
+        misItems = Item.query.filter_by(fase_id=self.id).order_by("nombre asc")
         return misItems
     
     def existeTipoItem (self, tipoItem_id):
@@ -742,7 +743,7 @@ class Item(db.Model):
     nombre = Column(db.String(32), nullable=False)
     descripcion = Column(db.String(),nullable=True)
     version = Column(db.Integer)
-    complejidad= Column(db.Integer) 
+    complejidad= Column(db.Integer, default=0) 
     estado_id = Column(db.SmallInteger,default=DESAPROBADO)
     marcado = Column(db.String(2),nullable=True)
 
@@ -1108,6 +1109,16 @@ class LineaBase(db.Model):
             cont= cont + item.getComplejidad()
         return cont
     
+    def setComplejidad(self, nro):
+        self.complejidad=nro
+    
+    def actualizarComplejidad(self):
+        cant=0
+        for item in self.items:
+            cant=cant + item.getComplejidad()
+            self.complejidad=cant    
+        
+    
     def getNroItems(self):
         cant = 0
         for item in self.items:
@@ -1170,24 +1181,23 @@ class LineaBase(db.Model):
     
     def actualizarLineaBase(self, session, item, nuevaVersion):
         #self.items.sort(compara)
-        print "\n\n\n\n\n\n"
         for aux in self.items:
             print str(aux.id)+ " : "+ str(aux.getNombre())+" : "+ str(aux.getNumero())
-        print "\n\n\n\n\n\n"
+        
         indice= self.items.index(item)
         self.items.insert(indice, nuevaVersion)
-        print "\n\n\n\n\n\n"
+        
         for aux in self.items:
             print str(aux.id)+ " : "+str(aux.getNombre()) +" : "+ str(aux.getNumero())
-        print "\n\n\n\n\n\n"
+        
         #session.add(self)
         self.items.remove(item)
         #self.reEnumerarItems()
         #self.reEnumerarItemsPorTipo()
-        print "\n\n\n\n\n\n"
+        
         for aux in self.items:
             print str(aux.id)+ " : "+str(aux.getNombre()) +" : "+str(aux.getNumero())
-        print "\n\n\n\n\n\n"
+        
         session.add(self)
     
     def imprimirItems(self):

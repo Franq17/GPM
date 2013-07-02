@@ -20,12 +20,24 @@ from ..utils import (PASSWORD_LEN_MIN, PASSWORD_LEN_MAX,
 class CrearItemForm(Form):
     next = HiddenField()
     nombre = nombre = TextField(u'Nombre del Item', [Required(), Length(REALNAME_LEN_MIN, REALNAME_LEN_MAX)])
+    complejidad = IntegerField(u'Complejidad',[Required()])
     tipoItem_id = SelectField(u'TipoItemID', coerce=int,)
     descripcion = TextAreaField(u'Descripcion', [Optional(), Length(max=1024)])
     submit = SubmitField(u'Crear')
+    
+    def validate_complejidad(self,field):
+        if field.data < 0:
+            raise ValidationError(u'Complejidad no valida')
+
 
 class ItemForm(Form):
     next = HiddenField()
     nombre = nombre = TextField(u'Nombre del Item', [Required(), Length(REALNAME_LEN_MIN, REALNAME_LEN_MAX)])
+    complejidad = IntegerField(u'Complejidad',[Required()])
     descripcion = TextAreaField(u'Descripcion', [Optional(), Length(max=1024)])
     submit = SubmitField(u'Editar')
+    
+    def validate_complejidad(self,field):
+        if field.data < 0:
+            raise ValidationError(u'Complejidad no valida')
+

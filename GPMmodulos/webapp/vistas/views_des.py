@@ -29,7 +29,6 @@ def crearItem(proyecto_id, fase_id):
     """Funcion que permite instanciar un Item de un Proyecto"""
     proyecto = Proyecto.query.filter_by(id=proyecto_id).first_or_404()
     fase = Fase.query.filter_by(id=fase_id).first_or_404()
-    #tiposItem= TipoItem.query.filter_by(proyecto_id=proyecto_id)
     tiposItem= fase.tipoItemPorFase
     
     form = CrearItemForm(next=request.args.get('next'))
@@ -38,6 +37,7 @@ def crearItem(proyecto_id, fase_id):
         item = Item()
         tipoItem = TipoItem.query.filter_by(id=form.tipoItem_id.data).first_or_404()
         item.nombre = form.nombre.data
+        item.complejidad = form.complejidad.data
         item.descripcion = form.descripcion.data
         item.proyecto_id = proyecto.id
         item.fase_id = fase.id
@@ -71,7 +71,6 @@ def item(proyecto_id, item_id):
     form = ItemForm(obj=item, next=request.args.get('next'))
     if form.validate_on_submit():
         form.populate_obj(item)
-        
         
         db.session.add(item)
         db.session.commit()
@@ -210,7 +209,6 @@ def relacionarSucesor(itemActual_id, itemCandidato_id):
 def quitarPadre(itemActual_id, itemCandidato_id):
     itemActual = Item.query.filter_by(id=itemActual_id).first_or_404()
     itemCandidato = Item.query.filter_by(id=itemCandidato_id).first_or_404()
-    fase = Fase.query.filter_by(id=itemActual.fase_id).first_or_404()
     
     if itemActual.getEstado()== 'bloqueado':
         flash ('No se puede quitar padre. El item se encuentra en estado bloqueado', 'error')
@@ -266,19 +264,16 @@ def crearSolicitud(item_id, proyecto_id):
         db.session.commit()
     
     flash('Solicitud enviada correctamente.', 'success')
-   
     return render_template('des/itemsxproyecto.html', proyecto=proyecto, items=itemsExistentes, active='Items')
 
 
 @des.route('/fasesxproyecto/<proyecto_id>', methods=['GET', 'POST'])
 @login_required
 def fasesxproyecto(proyecto_id):
-    """Funcion que lista las fases de un Proyecto"""
+    """Funcion que lista las fases de un Proyecto"""    
     proyecto = Proyecto.query.filter_by(id=proyecto_id).first_or_404()
-    fases = proyecto.fases
-    #cabeceras=[]
-    #for fase in fasesExistentes:
-    #   cabeceras.append((fase.nombre, proyecto.id, fase.id ))
+    fases = Fase.query.filter_by(proyecto_id=proyecto.id).order_by("numero_fase asc")
+    
     return render_template('des/fases.html', proyecto=proyecto, fases=fases, active='Fases')
 
 @des.route('/IdF<fase_id>/<proyecto_id>', methods=['GET', 'POST'])

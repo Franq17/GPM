@@ -5,7 +5,7 @@ from ..extensions import db
 from ..decorators import crearUsuarios_required, modificarUsuarios_required,eliminarUsuarios_required, verUsuarios_required, crearRoles_required, modificarRoles_required, eliminarRoles_required, verRoles_required, verPermisos_required, crearProyectos_required, verItems_required, crearFases_required, modificarFases_required, eliminarFases_required
 from ..decorators import crearComites_required,modificarProyectos_required, eliminarProyectos_required, verProyectos_required, crearComites_required, modificarComites_required, eliminarComites_required, verComites_required, verMiembrosComites_required, crearItems_required, modificarItems_required,eliminarItems_required, verFases_required
 
-from ..modelos import BLOQUEADO, CERRADA, Item, LineaBase, HistorialLineaBase,Proyecto, Fase, Comite, User
+from ..modelos import BLOQUEADO,APROBADO, CERRADA, Item, LineaBase, HistorialLineaBase,Proyecto, Fase, Comite, User
 from .forms_gdc import AsignarItemsLBForm, CrearLBForm, ComiteForm, LineaBaseForm, UserxComiteForm, BorrarComiteForm, CrearComiteForm
 
 #Librerias para dibujar el grafo
@@ -51,7 +51,6 @@ def crearLB(proyecto_id, fase_id):
     
     form = CrearLBForm(next=request.args.get('next'))
     
-    
     if form.validate_on_submit():
         lineaBase = LineaBase()
         lineaBase.nombre = form.nombre.data
@@ -83,7 +82,7 @@ def asignarItemsLB(lineaBase_id):
     if form.validate_on_submit():       
         listaItemsSeleccionados=form.items.data  # trae el id de los item que selecciono
                     
-        for itemAsig in itemsActuales:    # a la lista de roles que ya tiene, le agrega lo que selecciono
+        for itemAsig in itemsActuales:    # a la lista de items que ya tiene, le agrega lo que selecciono
             listaItemsSeleccionados.append(itemAsig.id)
                      
         for itemID in listaItemsSeleccionados:
@@ -92,6 +91,7 @@ def asignarItemsLB(lineaBase_id):
             lineaBase.items.append(item)
         lineaBase.estado_id = CERRADA
         fase.actualizarEstado()
+        
         db.session.add(fase)    
         db.session.add(lineaBase)
         db.session.commit()
@@ -100,6 +100,25 @@ def asignarItemsLB(lineaBase_id):
         return redirect(url_for('cambios.lineaBasexproyecto', proyecto_id=fase.proyecto_id))
        
     return render_template('cambios/asignarItemsLB.html', lineaBase=lineaBase, form=form)
+
+@cambios.route('/desasignarItemsLB/<lineaBase_id>/<item_id>', methods=['GET', 'POST'])
+@login_required
+def desasignarItemsLB(lineaBase_id, item_id):
+    """Funcion que permite desasignar un item de una Linea Base"""
+    lineaBase = LineaBase.query.filter_by(id=lineaBase_id).first_or_404()
+    item = Item.query.filter_by(id=item_id).first_or_404()
+    fase = Fase.query.filter_by(id=lineaBase.fase_id).first_or_404()
+    
+    lineaBase.items.remove(item)
+    item.setEstado(APROBADO)
+    fase.actualizarEstado()
+    
+    db.session.add(lineaBase)
+    db.session.add(fase)
+    db.session.commit()
+    
+    flash ('Se ha quitado el item exitosamente', 'success')
+    return redirect(url_for('cambios.lineaBasexproyecto', proyecto_id=item.proyecto_id))
 
     
 @cambios.route('/crearComite', methods=['GET', 'POST'])
@@ -314,7 +333,7 @@ def dibujarGrafoLB(lineaBase_id):
         desplazamiento_y.append(0)
     
     #####
-    gr = pgv.AGraph(label= "Costo de la Linea Base: "+ str(lineaBase.complejidad),directed=True)
+    gr = pgv.AGraph(label= "Costo de la Linea Base: "+ str(lineaBase.getComplejidad()),directed=True)
     #gr.node_attr['shape']='circle'
     nodos= []
     id_nodos= []

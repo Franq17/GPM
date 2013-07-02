@@ -81,31 +81,6 @@ class CrearProyectoForm(Form):
     def validate_numero_fases(self,field):
         if field.data < 0 or field.data > 3:
             raise ValidationError(u'Numero de fases de un proyecto no valido')
-          
-#COMITE
-#class ComiteForm(Form):
-#    next = HiddenField()
-#    descripcion = TextAreaField(u'Descripcion', [Optional(),Length(max=1024)])
-#    submit = SubmitField(u'Guardar')
-#    
-#class CrearComiteForm(Form):
-#    next = HiddenField()
-#    nombre = TextField(u'Nombre de Comite', [Required(), Length(REALNAME_LEN_MIN, REALNAME_LEN_MAX)])
-#    proyecto_id = SelectField(u'ProyectoID', coerce=int,)
-#    descripcion = TextAreaField(u'Descripcion', [Optional(), Length(max=1024)])
-#    submit = SubmitField(u'Crear')
-#    
-#    def validate_nombre(self, field):
-#        if Comite.query.filter_by(nombre=field.data).first() is not None:
-#            raise ValidationError(u'El nombre del Comite ya existe')
-#    
-#class BorrarComiteForm(Form):
-#    next = HiddenField()
-#    descripcion = TextAreaField(u'Descripcion', [Optional(), Length(max=1024)])
-#    # A demo of datepicker.
-#    submit = SubmitField(u'Eliminar')
-    
-#ROL
 
 class CrearRolForm(Form):
     next = HiddenField()

@@ -58,12 +58,12 @@ def historialxitemPaso2(proyecto_id):
     
     if form.validate_on_submit():
         item = Item.query.filter_by(id=form.item_id.data).first_or_404()
-        todosHistoriales = HistorialItem.query.all()
+        historiales = HistorialItem.query.filter_by(itemId=item.id)
          
-        historiales=[]
-        for historial in todosHistoriales:
-            if historial.itemId==item.id:
-                historiales.append(historial)
+        #historiales=[]
+        #for historial in todosHistoriales:
+        #    if historial.itemId==item.id:
+        #        historiales.append(historial)
         
         listaHistorial=[]
         for fila in historiales:

@@ -47,7 +47,7 @@
 							<th>Nombre</th>
 							<th>Estado:</th>
 							<th>Cantidad Item</th>
-							<th>Orden</th>
+							<th>Complejidad</th>
 							<th></th>
 						</tr>
 						</thead>
@@ -56,10 +56,30 @@
 							<td>{{ lb.nombre }}</td>
 							<td>{{ lb.getEstado() }}</td>
 							<td>{{ lb.getNroItems() }}</td>
-							<td>{{ lb.numero_lb }}</td>
-							<th><a href="{{ url_for('cambios.asignarItemsLB', lineaBase_id=lb.id)}}">asignar Items</a></th>
-							<th><a href="{{ url_for('cambios.dibujarGrafoLB', lineaBase_id=lb.id)}}">Grafo</a></th>
+							<td>{{ lb.getComplejidad() }}</td>
+							<th><a href="{{ url_for('cambios.asignarItemsLB', lineaBase_id=lb.id)}}"><i class="icon-plus"></i>Asignar Items</a> | <a data-toggle="modal" href="#items{{lb.id}}"><i class="icon-plus"></i> Items</a></th>
+							<th><a href="{{ url_for('cambios.dibujarGrafoLB', lineaBase_id=lb.id)}}"><i class="icon-asterisk"></i>Grafo</a></th>
 						</tr>
+						
+						<!--******************** MODAL VER ITEMS LINEA BASE ***************-->
+						<div id="items{{lb.id}}" class="modal hide fade in" style="display: none;">
+							<div class="modal-header">
+								<a data-dismiss="modal" class="close">×</a>
+								<h4>Items Actuales de:<font color="royalblue"> {{lb.nombre}}</font></h4>
+							</div>
+							<div class="modal-body">
+								<ul class="nav nav-list">
+							    		{% for item in lb.items %}
+		    								{% if item.getEstado()!='eliminado' %}
+		    								<li><a href="{{ url_for('cambios.desasignarItemsLB	', lineaBase_id=lb.id, item_id=item.id)  }}">{{ item.nombre }} -- <i class="icon-trash"></i>Quitar</a></li>
+		    								{% endif %}
+		    							{% endfor%}	
+		    					</ul>
+							</div>
+							<div class="modal-footer">
+								<a href="#" data-dismiss="modal" class="btn">Cancelar</a>
+							</div>
+						</div>
 						
 						{% endfor %}
 	     			</table>	

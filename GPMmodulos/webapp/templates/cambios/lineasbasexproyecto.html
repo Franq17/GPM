@@ -71,7 +71,7 @@
 								<ul class="nav nav-list">
 							    		{% for item in lb.items %}
 		    								{% if item.getEstado()!='eliminado' %}
-		    								<li><a href="{{ url_for('cambios.desasignarItemsLB	', lineaBase_id=lb.id, item_id=item.id)  }}">{{ item.nombre }} -- <i class="icon-trash"></i>Quitar</a></li>
+		    								<li><a href="{{ url_for('cambios.desasignarItemsLB', lineaBase_id=lb.id, item_id=item.id)  }}">{{ item.nombre }} -- <i class="icon-trash"></i>Quitar</a></li>
 		    								{% endif %}
 		    							{% endfor%}	
 		    					</ul>

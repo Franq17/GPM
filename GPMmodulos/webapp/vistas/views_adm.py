@@ -600,7 +600,7 @@ def crearAtributo(proyecto_id, tipoItem_id):
     
     form = CrearAtributoForm(next=request.args.get('next'))
     atributos = [(1,'String'), (2,'Integer'),(3,'Date')]
-    form.tipo.choices=[(id, nombre) for id, nombre in atributos]
+    form.tipo.choices=[(id, nombre) for id,nombre in atributos]
    
     if form.validate_on_submit():
         atributo = Atributo()

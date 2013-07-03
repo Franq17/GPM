@@ -153,9 +153,22 @@ class CrearAtributoForm(Form):
     valor = TextField(u'Valor', [Optional(), Length(max=1024)])
     submit = SubmitField(u'Crear')
     
+    #Para saber que tipo de atributo y validar el valo 
+    tipoInt = 0
+    
     def validate_nombre(self, field):
         if Atributo.query.filter_by(nombre=field.data).first() is not None:
             raise ValidationError(u'El nombre del Atributo ya existe')
+    
+    def validate_tipo(self, field):
+        self.tipoInt = field.data
+   
+   #Validamos que sea un entero     
+    def validate_valor(self, field):
+        if self.tipoInt== 2 and (field.data).isdigit() == False:
+            raise ValidationError(u'El valor no es un entero') 
+         
+
 
 
 ####################################################################################    

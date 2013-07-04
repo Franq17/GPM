@@ -527,6 +527,23 @@ class Proyecto(db.Model):
                 usuariosLideres.append(usuario)
         return usuariosLideres
     
+    def existeTipoItem(self):
+        tipos = self.tiposItem
+        count=0
+        for tipo in tipos:
+            count+=1
+        if count==0:
+            return False
+        else:
+            return True
+        
+    def existeTipoItemEnFase(self):
+        fases = self.fases
+        for fase in fases:
+            if not fase.tipoItemPorFase:
+                return False
+        return True
+        
     # ================================================================
     # Follow / Following
     followers = Column(DenormalizedText)

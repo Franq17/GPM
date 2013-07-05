@@ -597,7 +597,6 @@ def crearAtributo(proyecto_id, tipoItem_id):
     proyecto = Proyecto.query.filter_by(id=proyecto_id).first_or_404()
     tipoItem = TipoItem.query.filter_by(id=tipoItem_id).first_or_404()
     
-    
     form = CrearAtributoForm(next=request.args.get('next'))
     atributos = [(1,'String'), (2,'Integer'),(3,'Date')]
     form.tipo.choices=[(id, nombre) for id,nombre in atributos]
@@ -606,9 +605,9 @@ def crearAtributo(proyecto_id, tipoItem_id):
         atributo = Atributo()
         atributo.nombre = form.nombre.data
         atributo.tipo = form.tipo.data
-        #if atributo.getTipo() == 'String' form.valor.data  
             
         atributo.setValor(form.valor.data)  
+        tipoItem.atributoPorTipoItem.append(atributo)
                 
         db.session.add(atributo)
         db.session.commit()

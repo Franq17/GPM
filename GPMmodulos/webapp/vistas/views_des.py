@@ -7,7 +7,7 @@ from ..extensions import db
 from ..decorators import crearUsuarios_required, modificarUsuarios_required,eliminarUsuarios_required, verUsuarios_required, crearRoles_required, modificarRoles_required, eliminarRoles_required, verRoles_required, verPermisos_required, crearProyectos_required, verItems_required, crearFases_required, modificarFases_required, eliminarFases_required
 from ..decorators import crearComites_required,modificarProyectos_required, eliminarProyectos_required, verProyectos_required, crearComites_required, modificarComites_required, eliminarComites_required, verComites_required, verMiembrosComites_required, crearItems_required, modificarItems_required,eliminarItems_required, verFases_required
 
-from ..modelos import Item,TipoItem, Fase, Proyecto, HistorialItem,DESARROLLO, APROBADO, DESAPROBADO, Antecesores, Solicitud
+from ..modelos import Atributo, Item,TipoItem, Fase, Proyecto, HistorialItem,DESARROLLO, APROBADO, DESAPROBADO, Antecesores, Solicitud
 from .forms_des import CrearItemForm,ItemForm
 
 
@@ -29,7 +29,7 @@ def crearItem(proyecto_id, fase_id):
     """Funcion que permite instanciar un Item de un Proyecto"""
     proyecto = Proyecto.query.filter_by(id=proyecto_id).first_or_404()
     fase = Fase.query.filter_by(id=fase_id).first_or_404()
-    tiposItem= fase.tipoItemPorFase
+    tiposItem = fase.tipoItemPorFase
     
     form = CrearItemForm(next=request.args.get('next'))
     form.tipoItem_id.choices = [(h.id, h.nombre) for h in tiposItem ]
@@ -42,11 +42,12 @@ def crearItem(proyecto_id, fase_id):
         item.proyecto_id = proyecto.id
         item.fase_id = fase.id
         item.tipoItem_id = tipoItem.id
-        fase.setEstado(DESARROLLO)
         
-        
+
+        item.inicializarAtributos()
         db.session.add(item)
         db.session.commit()
+        fase.actualizarEstado()
         
         historial = HistorialItem()
         historial.itemId=item.id
@@ -93,43 +94,34 @@ def item(proyecto_id, item_id):
 def aprobarItem(item_id):
     item= Item.query.filter_by(id=item_id).first_or_404()
     fase = Fase.query.filter_by(id=item.fase_id).first_or_404()
-    if fase.numero_fase:# == 1:    
-        if item.getEstado() == 'desaprobado' or item.getEstado()== 'revision': #and user.esLiderFAse
-            
-            item.estado_id = APROBADO
-            db.session.add(item)
-            db.session.commit()
-            
-            flash('Item aprobado correctamente.', 'success')
+    
+    if fase.numero_fase > 1:
+        
+        for antecesor in item.getAntecesores():
+            if antecesor.getEstado() != 'bloqueado':
+                flash ('No se puede aprobar el item. Uno(s) de sus antecesores no esta en una Linea Base', 'error')
+                return redirect(url_for('des.fasesxproyecto', proyecto_id=item.proyecto_id ))
+        
+        if item.tienePadre(fase):
+            if item.getItemPadre().getEstado() != 'aprobado':
+                flash ('No se puede aprobar el item. Su padre no esta aprobado', 'error')
+                return redirect(url_for('des.fasesxproyecto', proyecto_id=item.proyecto_id ))
+        if item.getAntecesores() == [] and item.tienePadre(fase) == False:
+            flash ('No se puede aprobar el item. No esta en la primera fase y no posee ninguna relacion.', 'error')
             return redirect(url_for('des.fasesxproyecto', proyecto_id=item.proyecto_id ))
-        else:
-            flash ('No se puede aprobar el item.', 'error')
-            return redirect(url_for('des.fasesxproyecto', proyecto_id=item.proyecto_id ))
-#    else:
-#        antecesores = item.getAntecesores(fase, item)
-#        for item_aux in antecesores:
-#            print "/////////////////////////////////////////////////////7"
-#            print item_aux.nombre
-#            print "/////////////////////////////////////////////////////7"
-#            
-#            if item_aux.getEstado()!= 'bloqueado':
-#                flash ('No se puede aprobar el item. Existe antecesor que no esta en una linea base cerrada', 'error')
-#                return redirect(url_for('des.fasesxproyecto', proyecto_id=item.proyecto_id ))
-#        if antecesores == [] and not item.tienePadre(fase):
-#            flash ('No se puede aprobar. El item no esta en la primera fase y no posee ninguna relacion valida', 'error')
-#            return redirect(url_for('des.fasesxproyecto', proyecto_id=item.proyecto_id ))
-#        if item.getEstado() == 'bloqueado':
-#            flash ('No se puede aprobar el item. Item en estado bloqueado', 'error')
-#            return redirect(url_for('des.fasesxproyecto', proyecto_id=item.proyecto_id ))
-#        
-#        item.estado_id = APROBADO
-#        db.session.add(item)
-#        db.session.commit()
-#        
-#        flash('Item aprobado correctamente.', 'success')
-#        return redirect(url_for('des.fasesxproyecto', proyecto_id=item.proyecto_id ))
-#    
-
+               
+    if item.getEstado() == 'desaprobado' or item.getEstado()== 'revision': #and user.esLiderFAse
+        
+        item.estado_id = APROBADO
+        db.session.add(item)
+        db.session.commit()
+        
+        flash('Item aprobado correctamente.', 'success')
+        return redirect(url_for('des.fasesxproyecto', proyecto_id=item.proyecto_id ))
+    else:
+        flash ('No se puede aprobar el item.', 'error')
+        return redirect(url_for('des.fasesxproyecto', proyecto_id=item.proyecto_id ))
+#
 @des.route('/Desaprobar/<item_id>', methods=['GET', 'POST'])
 @login_required
 def desaprobarItem(item_id):
@@ -184,13 +176,17 @@ def relacionarSucesor(itemActual_id, itemCandidato_id):
     itemCandidato = Item.query.filter_by(id=itemCandidato_id).first_or_404()
     fase = Fase.query.filter_by(id=itemActual.fase_id).first_or_404()
    
-    if itemActual.getEstado()== 'bloqueado':
-        flash ('No se puede relacionar. El item se encuentra en estado bloqueado', 'error')
+    if itemActual.getEstado()!= 'bloqueado':
+        flash ('No se puede relacionar. El item debe estar en una Linea Base para tener sucesor.', 'error')
         return redirect(url_for('des.fasesxproyecto', proyecto_id=itemActual.proyecto_id ))
     
-    if itemCandidato.getEstado() != 'aprobado':
-        flash ('No se puede relacionar. El item que se quiere asignar como Sucesor no esta Aprobado', 'error')
+    if itemCandidato.getEstado() == 'bloqueado':
+        flash ('No se puede relacionar. El item que se quiere asignar como Sucesor ya esta en una Linea Base cerrada', 'error')
         return redirect(url_for('des.fasesxproyecto', proyecto_id=itemActual.proyecto_id ))
+    
+    #Borrar Sucesor
+    sucesor = Antecesores.query.filter_by(antecesor_id=itemActual.id).first_or_404()
+    db.session.delete(sucesor)
     
     itemActual.sucesor_id = itemCandidato.id
     antecesor = Antecesores()
@@ -226,6 +222,17 @@ def quitarPadre(itemActual_id, itemCandidato_id):
     flash ('Se ha quitado el padre exitosamente', 'success')
     return redirect(url_for('des.fasesxproyecto', proyecto_id=itemActual.proyecto_id ))
 
+@des.route('/editarAtributo/<item_id>', methods=['GET', 'POST'])
+@login_required
+def editarAtributo(item_id):
+    "Funcion que permite editar atributos de un item"
+    item = Item.query.filter_by(id=item_id).first_or_404()
+    tipoItem = TipoItem.query.filter_by(id=item.tipoItem_id).first_or_404()
+    
+    atributos = tipoItem.atributoPorTipoItem
+    for atributo in atributos:
+        item.atributos.append(atributo)
+    return redirect(url_for('des.fasesxproyecto', proyecto_id=item.proyecto_id ))
 
 @des.route('/historialxitem/<item_id>', methods=['GET', 'POST'])
 @login_required

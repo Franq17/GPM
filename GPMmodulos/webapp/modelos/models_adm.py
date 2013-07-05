@@ -88,6 +88,11 @@ atributoPorTipoItem = db.Table('atributoPorTipoItem',
     Column('atributo_id', db.Integer, db.ForeignKey('atributo.id'))
 )
 
+atributoPorItem = db.Table('atributoPorItem',
+    Column('item_id', db.Integer, db.ForeignKey('item.id')),
+    Column('atributo_id', db.Integer, db.ForeignKey('atributo.id'))
+)
+
 solicitudPorUsuario = db.Table('solicitudPorUsuario',
     Column('user_id', db.Integer, db.ForeignKey('users.id')),
     Column('solicitud_id', db.Integer, db.ForeignKey('solicitud.id'))
@@ -666,14 +671,16 @@ class Fase(db.Model):
         for item in self.items:
             if item.getEstado() != 'eliminado':
                 completo= True
-                if item.getEstado() != 'bloqueado' :
+                if item.getEstado() != 'bloqueado':
                     desarrollo= True
-        if inicial and (not completo) and not(desarrollo):
+        
+        if inicial and not(completo) and not(desarrollo):
             self.estado_id = INICIAL
         if inicial and completo and not(desarrollo):
             self.estado_id= COMPLETA
         if inicial and completo and desarrollo:
             self.estado_id= DESARROLLO
+        
         
     def getFaseSiguiente(self, proyecto):
         for fase in proyecto.fases:
@@ -761,7 +768,11 @@ class Item(db.Model):
     """
     tipoItem_id= Column(db.Integer, db.ForeignKey('tipoItem.id'), nullable=True)
 #    tipoItem = db.relationship("TipoItem", backref='item', lazy='dynamic')
-#    atributos= db.relationship('Atributo', backref='item',lazy='dynamic')
+    #atributos = db.relationship('Atributo', backref='item',lazy='dynamic')
+    
+    atributos= db.relationship('Atributo', secondary=atributoPorItem,
+       backref=db.backref('items', lazy='dynamic'))
+    
     archivoPorItem= db.relationship('Archivo', secondary=archivoPorItem,
        backref=db.backref('archivo', lazy='dynamic'))
     """
@@ -878,6 +889,13 @@ class Item(db.Model):
         if padre is None:
             return None
         return padre.nombre
+    
+    """
+    note: metodo que devuelve el padre del item, devuelve String en caso de no tener
+    """
+    def getItemPadre(self):
+        padre = Item.query.filter_by(id=self.padre_id).first()
+        return padre
     """
     note metodo que pregunta si un item es descendiente de otro en una fase dada
     """
@@ -965,13 +983,23 @@ class Item(db.Model):
                         lista.append(candidato)
         return lista
     
+    def inicializarAtributos(self):
+        tipoItemElegido = TipoItem.query.filter_by(id=self.tipoItem_id).first()
+        for atributo in tipoItemElegido.atributoPorTipoItem:
+            nuevoAtributo = Atributo()
+            nuevoAtributo.nombre = atributo.nombre
+            nuevoAtributo.tipo = atributo.tipo
+            nuevoAtributo.setValor(atributo.getValor())
+            nuevoAtributo.descripcion = atributo.descripcion
+            self.atributos.append(nuevoAtributo)
+            
  
 class Atributo(db.Model):
     
     __tablename__ = 'atributo'
     
     id = Column(db.Integer, primary_key=True)
-    nombre= Column(db.String(32), nullable=False, unique=True)
+    nombre= Column(db.String(32), nullable=False)
     tipo= Column(db.Integer)
     descripcion= Column(db.String(100), nullable=True)
     valorString= Column(db.String(32))

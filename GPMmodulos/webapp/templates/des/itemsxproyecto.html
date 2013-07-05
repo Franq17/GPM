@@ -39,9 +39,9 @@
 	        {%if proyecto.comite is none%}
 	        <a href="#" onClick="alert('El proyecto aun no cuenta con un Comite de cambios.')"><i class="icon-remove"></i>Eliminar</a></td>
 	        {% else%}
-	        <a data-toggle="modal" href="#modalSolicitud"><i class="icon-remove"></i>Eliminar</a> </td>
+	        <a data-toggle="modal" href="#{{item.id}}"><i class="icon-remove"></i>Eliminar</a> </td>
 	        {% endif %}  
-	            <div id="modalSolicitud" class="modal hide fade in" style="display: none;">
+	            <div id="{{item.id}}" class="modal hide fade in" style="display: none;">
 					<div class="modal-header">
 						<a data-dismiss="modal" class="close">×</a>
 						<h4>Solicitud de Cambio</h4>

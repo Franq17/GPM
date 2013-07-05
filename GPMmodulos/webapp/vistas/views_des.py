@@ -7,7 +7,7 @@ from ..extensions import db
 from ..decorators import crearUsuarios_required, modificarUsuarios_required,eliminarUsuarios_required, verUsuarios_required, crearRoles_required, modificarRoles_required, eliminarRoles_required, verRoles_required, verPermisos_required, crearProyectos_required, verItems_required, crearFases_required, modificarFases_required, eliminarFases_required
 from ..decorators import crearComites_required,modificarProyectos_required, eliminarProyectos_required, verProyectos_required, crearComites_required, modificarComites_required, eliminarComites_required, verComites_required, verMiembrosComites_required, crearItems_required, modificarItems_required,eliminarItems_required, verFases_required
 
-from ..modelos import Atributo, Item,TipoItem, Fase, Proyecto, HistorialItem,DESARROLLO, APROBADO, DESAPROBADO, Antecesores, Solicitud
+from ..modelos import Atributo, Item,TipoItem, Fase, Proyecto, HistorialItem,DESARROLLO, APROBADO, DESAPROBADO, Antecesores, Solicitud, User
 from .forms_des import CrearItemForm,ItemForm
 
 
@@ -256,21 +256,60 @@ def crearSolicitud(item_id, proyecto_id):
     usuariosComite = comite.usuarioPorComite
     itemsExistentes = proyecto.items
     
-        
-    solicitud = Solicitud()
-    solicitud.comite_id = comite.id
-    solicitud.item_id = item_id
-    db.session.add(solicitud)
-    db.session.commit()
-    
     for usuario in usuariosComite:
+        solicitud = Solicitud()
+        solicitud.comite_id = comite.id
+        solicitud.item_id = item.id
+        solicitud.solicitante = current_user.id
         usuario.solicitudPorUsuario.append(solicitud)
         
+        db.session.add(solicitud)
         db.session.add(usuario)
         db.session.commit()
     
     flash('Solicitud enviada correctamente.', 'success')
     return render_template('des/itemsxproyecto.html', proyecto=proyecto, items=itemsExistentes, active='Items')
+
+############################ FALTA ARREGLAR ##########################
+@des.route('/Sol<solicitud_id>', methods=['GET', 'POST'])
+@login_required
+def aprobarSolicitud(solicitud_id):
+    solicitud = Solicitud.query.filter_by(id=solicitud_id).first_or_404()
+    proyecto = solicitud.getProyecto()
+    item = solicitud.getItem()
+    
+    solicitud.setVoto(1) #Voto aprobado
+    solicitud.setEstado(1) #Estado votado
+    
+    db.session.add(solicitud)
+    db.session.commit()
+    
+    flash('Solicitud aprobada.', 'success')
+    
+    #page = int(request.args.get('page', 1))
+    #pagination = User.query.paginate(page=page, per_page=10)
+    return render_template('/index/indexUser.html', solicitud=solicitud)
+
+
+############################ FALTA ARREGLAR ##########################
+@des.route('/<solicitud_id>', methods=['GET', 'POST'])
+@login_required
+def rechazarSolicitud(solicitud_id):
+    solicitud = Solicitud.query.filter_by(id=solicitud_id).first_or_404()
+    proyecto = solicitud.getProyecto()
+    item = solicitud.getItem()
+    
+    solicitud.setVoto(2) #Voto rechazado
+    solicitud.setEstado(1) #Estado votado
+    
+    db.session.add(solicitud)
+    db.session.commit()
+    
+    flash('Solicitud rechazada.', 'success')
+    
+    #page = int(request.args.get('page', 1))
+    #pagination = User.query.paginate(page=page, per_page=10)
+    return render_template('/index/indexUser.html', solicitud=solicitud)
 
 
 @des.route('/fasesxproyecto/<proyecto_id>', methods=['GET', 'POST'])

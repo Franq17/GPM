@@ -81,6 +81,25 @@ ITEM_ESTADOS = {
     REVISION: 'revision',
 }
 
+#Solicitud_estados
+NO_VOTADO = 0
+VOTADO = 1
+
+SOLICITUD_ESTADOS = {
+    NO_VOTADO: 'no votado',
+    VOTADO: 'votado',
+}
+
+#Votacion_estados
+NO_VOTADO = 0
+APROBADO = 1
+RECHAZADO = 2
+
+VOTACION_ESTADOS = {
+    NO_VOTADO: 'no votado',
+    APROBADO: 'aprobado',
+    RECHAZADO: 'rechazado',
+}
 
 LINEABASE_ESTADOS = {
     ABIERTA: "abierta",

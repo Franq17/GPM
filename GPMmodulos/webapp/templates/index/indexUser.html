@@ -3,7 +3,7 @@
 {% extends "layouts/base.html" %}
 
 {% block body %}
-<h1> BIENVENIDO {{ current_user.name }} !!</h1><br>
+<h1> BIENVENIDO <font color="royalblue"><i>{{ current_user.nombre+" "+current_user.apellido }}</font> !!</i></h1><br>
 <img src="{{ url_for('user.avatar', avatar_filename=current_user.avatar) }}" alt="" />
 <br>
 <h4>Para rellenar o modificar sus datos siga los siguientes pasos:</h4>
@@ -11,99 +11,36 @@
 <li> Vaya a la parte superior derecha y haga Click en su nombre de Usuario
 
 <li> Seleccione la Opcion <i><b>Configuraciones</b></i>
-<li> Tiene la opciones de Editar su <i><b>Perfil Publico</b></i> asi como su <i><b>Contrasena</b></i>
+<li> Tiene las opciones de Editar su <i><b>Perfil Publico</b></i> asi como su <i><b>Contrasena</b></i>
 <br><br>
 
-<h4>Para salir elija la opcion de <i><b>Cerrar Sesion</b></i></h4>
-
-
-
+<h4>Para salir elija la opcion: <i><b>Cerrar Sesion</b></i></h4>
 
 
 <tr>
-	
-				<div id="{{current_user.name}}2" class="modal hide fade" style="display: none;">
-					 <div class="modal-header">
-							<a data-dismiss="modal" class="close">×</a>
-							<h4>Solicitudes de Cambio </h4>
-						</div>
-						<div class="modal-body">
-							<p>Seleccione un Solicitud para Votar:</p>
-							    <ul class="nav nav-list">
-							    		<li class="nav-header">Items de: </li>
-				  						{% for sol in current_user.getSolicitudes() %}
-				  						<li><a data-toggle="modal" data-dismiss="modal" href="#id">Solicitud p/ eliminar el item {{sol.nombre}}
-				  						</a></li>
-				  						
-					  						
-				  									  						
-				  						{% endfor %}
-				  											
-				  				</ul>
-						</div>
-						<div class="modal-footer">
-							<a href="#" data-dismiss="modal" class="btn">Cancelar</a>
-						</div>
-					</div>
-				
-					<div id="id" class="modal hide fade" style="display: none;">
-								<div class="modal-header">
-									<a data-dismiss="modal" class="close">×</a>
-										<h4>Aprobar Solicitud de Cambio: <font color="royalblue">item.nombre</font></h4>
-										<h4>item: [ <font color="royalblue">{{ current_user.nombre }}</font> ] <h4>
-								</div>
-								<div class="modal-body">
-									<center><a class="btn btn-primary" href="#example"><i class="icon-eye-open"></i> Ver impacto</a></center>
-										<div id="example" class="dropdown">
-										    <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu">
-						    					<li><a tabindex="-1" href="#">Action</a></li>
-						    					<li><a tabindex="-1" href="#">Another action</a></li>
-						    					<li><a tabindex="-1" href="#">Something else here</a></li>
-						    					<li class="divider"></li>
-						    					<li><a tabindex="-1" href="#">Separated link</a></li>
-						    				</ul>
-										</div>
-									<th>--</th>
-									<p>Favor, confirme su respuesta</p>
-								</div>
-								<div class="modal-footer">
-									<a href="#" data-dismiss="modal" class="btn">Cancelar</a>
-									{% set numSolicitud = current_user.getCantSolicitudes() -1 %}
-									<a href="{{url_for('frontend.index', solicitud=numSolicitud)}}" class="btn btn-primary" onClick="alert('Solicitud de cambio rechazada.')">Rechazar</a>
-									<a href="{{url_for('frontend.index', solicitud=numSolicitud)}}" class="btn btn-primary" onClick="alert('Solicitud de cambio aprobada.')">Aprobar</a>
-								</div>
-							</div>
-					
-						
-						<div class="modal hide fade" id="myModal">
- 						 <div class="modal-header">
-						    <a class="close" data-dismiss="modal">×</a>
-						    <h3>Modal header</h3>
-						 </div>
-						 <div class="modal-body">
-						   <p>One fine body…</p>
-						 </div>
-						 <div class="modal-footer">
-						   <a href="#" class="btn">Close</a>
-						   <a href="#" class="btn btn-primary">Save changes</a>
-						  </div>
-					</div>
-									
-	
-	
-	
-	
-	
+	<div id="{{current_user.name}}2" class="modal hide fade" style="display: none;">
+	{% set solicitud = current_user.getSolicitud() %}
+	{% if solicitud %}
+			<div class="modal-header">
+				<a data-dismiss="modal" class="close">×</a>
+					<h4>Solicitud de Cambio de item: <font color="royalblue">{{ solicitud.getItem().nombre }}</font></h4>
+			</div>
+			<div class="modal-body">
+				<h5>Proyecto: <font color="royalblue">{{ solicitud.getProyecto().nombre }} </font></h5>
+				<h5>Fase: <font color="royalblue">{{ current_user.getSolicitud().getItem().getFase().nombre }}</font></h5>
+				<h5>Complejidad: <font color="royalblue">{{ solicitud.getItem().getComplejidad() }}</font></h5>
+				<center><a class="btn btn-primary" href="#example"><i class="icon-eye-open"></i> Ver impacto</a></center>
+				<th>--</th>
+				<p>Favor, confirme su respuesta</p>
+			</div>
+			<div class="modal-footer">
+				<a href="#" data-dismiss="modal" class="btn">Cancelar</a>
+
+				<a href="{{ url_for('des.rechazarSolicitud', solicitud_id=solicitud.id )}}" class="btn btn-primary">Rechazar</a>
+				<a href="{{ url_for('des.aprobarSolicitud', solicitud_id=solicitud.id )}}" class="btn btn-primary">Aprobar</a>
+			</div>
+		</div>
+	{% endif %}
 </tr>
 
-
-
 {% endblock %}
-
-					
-	
-    <script type="text/javascript">
-    	$(window).load(function(){
-        	$('#myModal').modal('show');
-    	});
-	</script>		

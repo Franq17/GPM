@@ -104,12 +104,13 @@
                 </div>
                 <div class="nav-collapse collapse pull-right">
                     <ul class="nav">
-					<img src="{{ url_for('user.avatar', avatar_filename=current_user.avatar) }}" style="border:1px solid black" width="40" alt="" />
+						<img src="{{ url_for('user.avatar', avatar_filename=current_user.avatar) }}" style="border:1px solid black" width="40" alt="" />
 						<li>
-							{% if numSolicitud %}
-							<td><a data-toggle="modal" href="#{{current_user.name}}2" class="text"><span class="badge badge-info">{{numSolicitud}}</span>Solicitud de Cambio</a></td>
+							{% set cantSolicitudes = current_user.getCantSolicitudes() %}
+							{% if cantSolicitudes %}
+							<td><a data-toggle="modal" href="#{{current_user.name}}2" class="text"><span class="badge badge-info">{{cantSolicitudes}}</span> Solicitud de Cambio</a></td>
 							{% else %}
-							<td><a data-toggle="modal" href="#{{current_user.name}}2" class="text"><span class="badge badge-info">{{current_user.getCantSolicitudes()}}</span>Solicitud de Cambio</a></td>
+							<td><a data-toggle="modal" href="#" class="text"><span class="badge badge-info">{{cantSolicitudes}}</span> Solicitud de Cambio</a></td>
 							{% endif %}
 						</li>
                         <li class="dropdown">

@@ -94,9 +94,8 @@ def item(proyecto_id, item_id):
 def aprobarItem(item_id):
     item= Item.query.filter_by(id=item_id).first_or_404()
     fase = Fase.query.filter_by(id=item.fase_id).first_or_404()
-    
+
     if fase.numero_fase > 1:
-        
         for antecesor in item.getAntecesores():
             if antecesor.getEstado() != 'bloqueado':
                 flash ('No se puede aprobar el item. Uno(s) de sus antecesores no esta en una Linea Base', 'error')

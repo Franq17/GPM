@@ -102,7 +102,7 @@ def deleteUser(user_id):
     if user == current_user:
         flash ('Usuario no eliminado. Logueado en este momento', 'error')
         return redirect(url_for('admin.users'))
-    else:
+    elif user.getStatus() == 'inactivo':
         if form.validate_on_submit():
             form.populate_obj(user)
     
@@ -111,8 +111,11 @@ def deleteUser(user_id):
     
             flash('Usuario eliminado.', 'success')
             return redirect(url_for('admin.users'))
+    else:
+        flash('Usuario activo, no puede ser eliminado.', 'error')
+        return redirect(url_for('admin.users'))
     
-        return render_template('admin/deleteUser.html', user=user, form=form)
+    return render_template('admin/deleteUser.html', user=user, form=form)
 
 
 
@@ -335,6 +338,7 @@ def crearProyecto():
     if form.validate_on_submit():
         proyecto = Proyecto()
         user = User.query.filter_by(id=form.lider_proyecto.data).first_or_404()
+        user.setStatus(1) #Estado activo
         proyecto.usuarioPorProyecto = [user]
         proyecto.nombre = form.nombre.data
         proyecto.numero_fases = form.numero_fases.data
@@ -417,14 +421,31 @@ def borrarProyecto(proyecto_id):
 def iniciarProyecto(proyecto_id):
     proyecto = Proyecto.query.filter_by(id=proyecto_id).first_or_404()
     
-    if proyecto.getEstado()== 'no iniciado': #and user.esLider
-        proyecto.setEstado(INICIADO)
+    fases = proyecto.fases
+    count=0
+    for fase in fases:
+        count+=1     
+        
+    resta=proyecto.getNroFases()-count
+    
+    if count==0:
+        flash('No se puede iniciar proyecto. Aun no ha creado fases', 'error')
+    elif resta==2:
+        flash('No se puede iniciar proyecto. Falta crear 2 fases', 'error')
+    elif resta==1:
+        flash('No se puede iniciar proyecto. Falta crear 1 fase', 'error')
+    elif not proyecto.existeTipoItem():
+        flash('No se puede iniciar proyecto. Falta agregar tipo de items', 'error')
+    elif not proyecto.existeTipoItemEnFase():
+        flash('No se puede iniciar proyecto. Falta agregar tipo de items en Fase', 'error')
+    elif proyecto.getEstado()== 'no iniciado': #and user.esLider
+        #proyecto.setEstado(INICIADO)
         
         db.session.add(proyecto)
         db.session.commit()
         flash('Proyecto Iniciado.', 'success')
     else:
-        flash('No se puede iniciar proyecto.', 'error')    
+        flash('El proyecto ya esta iniciado.', 'error')    
     return redirect(url_for('admin.proyectos',proyecto_id=proyecto.id))
 
 
@@ -447,7 +468,9 @@ def desasignarUsuario(proyecto_id, user_id):
             flash('El usuario es Lider del proyecto, no puede ser desasignado.', 'error')
             return redirect(url_for('admin.usuariosxproyecto', proyecto_id=proyecto.id))
         elif item == usuarioDesasignar:
-                proyecto.usuarioPorProyecto.remove(item)
+                proyecto.usuarioPorProyecto.remove(usuarioDesasignar)
+                if not usuarioDesasignar.getProyectos():
+                    usuarioDesasignar.setStatus(0) #Vuelve a estar en estado inactivo
 #                 if usuarioDesasignar.esLiderDeFase(proyecto.id):
 #                     fase = Fase.query.filter_by(lider_fase=usuarioDesasignar.id).first_or_404()
 #                     fase.setLider(None)
@@ -803,6 +826,7 @@ def usuariosxproyecto(proyecto_id):
         
         for userID in listaUsuariosSeleccionados:
             usere=User.query.filter_by(id=userID).first_or_404()
+            usere.setStatus(1) #Estado activo
             proyecto.usuarioPorProyecto.append(usere)
             
         db.session.add(proyecto)

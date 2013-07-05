@@ -538,6 +538,23 @@ class Proyecto(db.Model):
                 usuariosLideres.append(usuario)
         return usuariosLideres
     
+    def existeTipoItem(self):
+        tipos = self.tiposItem
+        count=0
+        for tipo in tipos:
+            count+=1
+        if count==0:
+            return False
+        else:
+            return True
+        
+    def existeTipoItemEnFase(self):
+        fases = self.fases
+        for fase in fases:
+            if not fase.tipoItemPorFase:
+                return False
+        return True
+        
     # ================================================================
     # Follow / Following
     followers = Column(DenormalizedText)
@@ -645,7 +662,6 @@ class Fase(db.Model):
         self.estado_id = estado
     
     def getItems (self):
-        #misItems = self.items
         misItems = Item.query.filter_by(fase_id=self.id).order_by("nombre asc")
         return misItems
     
@@ -680,7 +696,6 @@ class Fase(db.Model):
             self.estado_id= COMPLETA
         if inicial and completo and desarrollo:
             self.estado_id= DESARROLLO
-        
         
     def getFaseSiguiente(self, proyecto):
         for fase in proyecto.fases:

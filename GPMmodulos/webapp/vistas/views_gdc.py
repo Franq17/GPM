@@ -120,6 +120,7 @@ def desasignarItemsLB(lineaBase_id, item_id):
     flash ('Se ha quitado el item exitosamente', 'success')
     return redirect(url_for('cambios.lineaBasexproyecto', proyecto_id=item.proyecto_id))
 
+
     
 @cambios.route('/crearComite', methods=['GET', 'POST'])
 @login_required

@@ -11,7 +11,7 @@ from flask_login import UserMixin
 from ..extensions import db
 from ..utils import get_current_time
 
-from .constants import INACTIVE, USER_STATUS,NO_INICIADO, PROYECTO_ESTADOS, LINEABASE_ESTADOS, FASE_ESTADOS, ITEM_ESTADOS
+from .constants import INACTIVE, USER_STATUS,NO_INICIADO, PROYECTO_ESTADOS, LINEABASE_ESTADOS, FASE_ESTADOS, ITEM_ESTADOS, SOLICITUD_ESTADOS, VOTACION_ESTADOS, NO_VOTADO
 
 from .constants import INICIAL, DESARROLLO, COMPLETA, DESAPROBADO, ROL_ESTADOS, TIPOS_ROLES, NO_ASIGNADO, ABIERTA, TIPOS_ATRIBUTOS
 
@@ -205,16 +205,30 @@ class User(db.Model, UserMixin):
         return misProyectos
         
     def getCantSolicitudes (self):
+        listaTotal = []
         listaSolicitudes = self.solicitudPorUsuario
-        return len(listaSolicitudes)
+        for solicitud in listaSolicitudes:
+            if solicitud.getEstado()=='no votado':
+                listaTotal.append(solicitud)
+        return len(listaTotal)
     
-    def getSolicitudes (self):
+    def getItemsDeSolicitudes (self):
         listaSolicitudes = self.solicitudPorUsuario
         listaItem=[]
         for solicitud in listaSolicitudes:
             item = Item.query.filter_by(id = solicitud.item_id).first_or_404()
             listaItem.append(item)
         return listaItem
+    
+    def getSolicitud(self):
+        listaSolicitudes = []
+        listaSolicitudes = self.solicitudPorUsuario
+        if listaSolicitudes is not None:
+            for solicitud in listaSolicitudes:
+                if solicitud.getEstado()=='no votado':
+                    return solicitud
+                    break
+        
 
     def estaEnComite(self, comite_id):
         comite = Comite.query.filter_by(id=comite_id).first_or_404()
@@ -844,6 +858,10 @@ class Item(db.Model):
         else:
             return False
     
+    def getFase(self):
+        fase = Fase.query.filter_by(id=self.fase_id).first_or_404()
+        return fase
+    
 #    def getLineaBase(self, session):
 #        lb= session.query(LineaBase).filter_by(id= self.lineaBase_id).first()
 #        return lb
@@ -1223,21 +1241,36 @@ class HistorialLineaBase(db.Model):
 
 
 class Solicitud(db.Model):
-    __tablemame__ = 'solicitud'
+    __tablename__ = 'solicitud'
     
     id = Column(db.Integer, primary_key=True)
-    estado = Column(db.SmallInteger, default=NO_INICIADO)
-    si = Column(db.Integer, nullable=False, default=0)
-    no = Column(db.Integer, nullable=False, default=0)
-    
+    estado = Column(db.SmallInteger, default=NO_VOTADO)
+    voto = Column(db.SmallInteger, default=NO_VOTADO)
+    solicitante = Column(db.Integer, nullable=True)
     
 # RELACIONES ===============================================================================
-    # one-to-many relationship
+    # Many-to-one relationship
     comite_id = Column(db.Integer, db.ForeignKey('comite.id'))
     item_id = Column(db.Integer, db.ForeignKey('item.id'))
 
+    def setEstado(self, estado):
+        self.estado = estado
+    
+    def setVoto(self, voto):
+        self.voto = voto
+    
+    def getVoto(self):
+        return VOTACION_ESTADOS[self.voto]
+    
+    def getEstado(self):
+        return SOLICITUD_ESTADOS[self.estado]
+    
     def getItem(self):
         return Item.query.filter_by(id=self.item_id).first_or_404()
+    
+    def getProyecto(self):
+        comite = Comite.query.filter_by(id=self.comite_id).first_or_404()
+        return comite.getProyecto()
 
 
 class Comite(db.Model):
@@ -1267,7 +1300,10 @@ class Comite(db.Model):
     def getProyectoNombre(self):
         proyecto = self.getProyecto()
         return proyecto.nombre
-
+    
+    def getSolicitudes(self):
+        return self.solicitudes
+    
     # Class methods
 
     @classmethod

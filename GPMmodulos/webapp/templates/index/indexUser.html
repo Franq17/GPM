@@ -3,7 +3,7 @@
 {% extends "layouts/base.html" %}
 
 {% block body %}
-<h1> BIENVENIDO {{ current_user.name }} !!</h1><br>
+<h1> BIENVENIDO <font color="royalblue"><i>{{ current_user.nombre+" "+current_user.apellido }}</font> !!</i></h1><br>
 <img src="{{ url_for('user.avatar', avatar_filename=current_user.avatar) }}" alt="" />
 <br>
 <h4>Para rellenar o modificar sus datos siga los siguientes pasos:</h4>
@@ -11,17 +11,43 @@
 <li> Vaya a la parte superior derecha y haga Click en su nombre de Usuario
 
 <li> Seleccione la Opcion <i><b>Configuraciones</b></i>
-<li> Tiene la opciones de Editar su <i><b>Perfil Publico</b></i> asi como su <i><b>Contrasena</b></i>
+<li> Tiene las opciones de Editar su <i><b>Perfil Publico</b></i> asi como su <i><b>Contrasena</b></i>
 <br><br>
 
-<h4>Para salir elija la opcion de <i><b>Cerrar Sesion</b></i></h4>
-
-
-
+<h4>Para salir elija la opcion: <i><b>Cerrar Sesion</b></i></h4>
 
 
 <tr>
+	<div id="{{current_user.name}}2" class="modal hide fade" style="display: none;">
+	{% set solicitud = current_user.getSolicitud() %}
+	{% if solicitud %}
+			<div class="modal-header">
+				<a data-dismiss="modal" class="close">×</a>
+					<h4>Solicitud de Cambio de item: <font color="royalblue">{{ solicitud.getItem().nombre }}</font></h4>
+			</div>
+			<div class="modal-body">
+				<h5>Proyecto: <font color="royalblue">{{ solicitud.getProyecto().nombre }} </font></h5>
+				<h5>Fase: <font color="royalblue">{{ current_user.getSolicitud().getItem().getFase().nombre }}</font></h5>
+				<h5>Complejidad: <font color="royalblue">{{ solicitud.getItem().getComplejidad() }}</font></h5>
+				<center><a class="btn btn-primary" href="#example"><i class="icon-eye-open"></i> Ver impacto</a></center>
+				<th>--</th>
+				<p>Favor, confirme su respuesta</p>
+			</div>
+			<div class="modal-footer">
+				<a href="#" data-dismiss="modal" class="btn">Cancelar</a>
+
+				<a href="{{ url_for('des.rechazarSolicitud', solicitud_id=solicitud.id )}}" class="btn btn-primary">Rechazar</a>
+				<a href="{{ url_for('des.aprobarSolicitud', solicitud_id=solicitud.id )}}" class="btn btn-primary">Aprobar</a>
+			</div>
+		</div>
+	{% endif %}
+</tr>
+
+
+<!--
+<tr>
 	
+
 				<div id="{{current_user.name}}2" class="modal hide fade" style="display: none;">
 					 <div class="modal-header">
 							<a data-dismiss="modal" class="close">×</a>
@@ -109,3 +135,4 @@
     	});
 	</script>		
     
+-->

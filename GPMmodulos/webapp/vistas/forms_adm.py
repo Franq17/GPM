@@ -81,31 +81,6 @@ class CrearProyectoForm(Form):
     def validate_numero_fases(self,field):
         if field.data < 0 or field.data > 3:
             raise ValidationError(u'Numero de fases de un proyecto no valido')
-          
-#COMITE
-#class ComiteForm(Form):
-#    next = HiddenField()
-#    descripcion = TextAreaField(u'Descripcion', [Optional(),Length(max=1024)])
-#    submit = SubmitField(u'Guardar')
-#    
-#class CrearComiteForm(Form):
-#    next = HiddenField()
-#    nombre = TextField(u'Nombre de Comite', [Required(), Length(REALNAME_LEN_MIN, REALNAME_LEN_MAX)])
-#    proyecto_id = SelectField(u'ProyectoID', coerce=int,)
-#    descripcion = TextAreaField(u'Descripcion', [Optional(), Length(max=1024)])
-#    submit = SubmitField(u'Crear')
-#    
-#    def validate_nombre(self, field):
-#        if Comite.query.filter_by(nombre=field.data).first() is not None:
-#            raise ValidationError(u'El nombre del Comite ya existe')
-#    
-#class BorrarComiteForm(Form):
-#    next = HiddenField()
-#    descripcion = TextAreaField(u'Descripcion', [Optional(), Length(max=1024)])
-#    # A demo of datepicker.
-#    submit = SubmitField(u'Eliminar')
-    
-#ROL
 
 class CrearRolForm(Form):
     next = HiddenField()
@@ -178,9 +153,22 @@ class CrearAtributoForm(Form):
     valor = TextField(u'Valor', [Optional(), Length(max=1024)])
     submit = SubmitField(u'Crear')
     
+    #Para saber que tipo de atributo y validar el valo 
+    tipoInt = 0
+    
     def validate_nombre(self, field):
         if Atributo.query.filter_by(nombre=field.data).first() is not None:
             raise ValidationError(u'El nombre del Atributo ya existe')
+    
+    def validate_tipo(self, field):
+        self.tipoInt = field.data
+   
+   #Validamos que sea un entero     
+    def validate_valor(self, field):
+        if self.tipoInt== 2 and (field.data).isdigit() == False:
+            raise ValidationError(u'El valor no es un entero') 
+         
+
 
 
 ####################################################################################    
@@ -232,11 +220,5 @@ class CrearLineaBaseForm(Form):
     descripcion = TextAreaField(u'Descripcion', [Optional(), Length(max=1024)])
     submit = SubmitField(u'Crear')
 
-class LineaBaseForm(Form):
-    next = HiddenField()
-    numero_lb = IntegerField(u'Numero de Linea Base',[Required()])
-    estado = RadioField(u"Estados", [AnyOf([str(val) for val in LINEABASE_ESTADOS.keys()])],
-            choices=[(str(val), label) for val, label in LINEABASE_ESTADOS.items()])
-    descripcion = TextAreaField(u'Descripcion', [Optional(), Length(max=1024)])
-    submit = SubmitField(u'Editar')
+
 

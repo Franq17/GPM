@@ -36,7 +36,7 @@
 
 					<h3>Items de: <font color="royalblue">{{ fase.nombre }}</font></h3>	
 					<p>Descripcion: {{fase.descripcion}}</p>
-					<p>Estado: <font color="royalblue">{{ fase.estado }}</font></p>
+					<p>Estado: <font color="royalblue">{{ fase.getEstado() }}</font></p>
 	
 					<div class="row-fluid">
 						<div class="span2">
@@ -48,29 +48,31 @@
 						<thead>
 						<tr>
 							<th>Nombre</th>
-							<th>Descripcion</th>
+							<th>Complejidad</th>
 							<th>Estado</th>
 							<th>Historiales</th>
 							<th>Relaciones</th>
+							<th>Atributos</th>
 							<th></th>
 						</tr>
 						</thead>
-						{% for item in fase.getItems(proyecto.id) %}
+						{% for item in fase.getItems() %}
 						<tr>
 							<td>{{ item.nombre }}</td>
-							<td>{{ item.descripcion }}</td>
+							<td>{{ item.complejidad }}</td>
 							<td>{{ item.getEstado() }} | 
 							{% if item.getEstado()=='aprobado'%}
 							<a href="{{ url_for('des.desaprobarItem', item_id=item.id) }}"><i class="icon-remove"></i>Desaprobar</a>
 							{%else%}
 							 <a href="{{ url_for('des.aprobarItem', item_id=item.id) }}"><i class="icon-ok"></i>Aprobar</a>{%endif%}</td>
 							<td><a data-toggle="modal" href="#{{item.id}}"><i class="icon-calendar"></i>Historial</a></td>
-							<td><a href="#"><i class="icon-plus"></i> Antecesor</a> | <a data-toggle="modal" href="#padre{{item.id}}"><i class="icon-plus"></i> Padre</a> | <a href="#"><i class="icon-eye-open"></i> Sucesor</a> | <a data-toggle="modal" href="#hijos{{item.id}}"><i class="icon-eye-open"></i> Hijos</a></td>
-							<td><a href="{{ url_for('des.item', item_id=item.id, proyecto_id=proyecto.id) }}"><i class="icon-pencil"></i>Editar</a>
+							<td><a data-toggle="modal" href="#sucesor{{item.id}}"><i class="icon-plus"></i> Sucesor</a> | <a data-toggle="modal" href="#padre{{item.id}}"><i class="icon-plus"></i> Padre</a> | <a data-toggle="modal" href="#antecesores{{item.id}}"><i class="icon-eye-open"></i> Antecesores</a> | <a data-toggle="modal" href="#hijos{{item.id}}"><i class="icon-eye-open"></i> Hijos</a></td>
+							<td><a data-toggle="modal" title="Editar Atributos" href="#atributos{{item.id}}"><i class="icon-pencil"></i></a></td>
+							<td><a title="Editar Item" href="{{ url_for('des.item', item_id=item.id, proyecto_id=proyecto.id) }}"><i class="icon-pencil"></i>Editar</a></td>
 							{%if proyecto.comite is none%}
-							<a href="#" onClick="alert('El proyecto aun no cuenta con un Comite de cambios.')"><i class="icon-remove"></i>Eliminar</a></td>
+							<td> <a title="Eliminar Item" href="#" onClick="alert('El proyecto aun no cuenta con un Comite de cambios.')"><i class="icon-trash"></i></a></td>
 							{% else%}
-							<a data-toggle="modal" href="#modalSolicitud"><i class="icon-remove"></i>Eliminar</a> </td>
+							<a data-toggle="modal" title="Eliminar Item" href="#modalSolicitud"><i class="icon-trash"></i></a> 
 							{% endif %}
 						</tr>
 						
@@ -133,6 +135,81 @@
 								<a href="#" data-dismiss="modal" class="btn">Cancelar</a>
 							</div>
 						</div>
+						
+						<!--******************** MODAL ASIGNAR SUCESOR ***************-->
+						<div id="sucesor{{item.id}}" class="modal hide fade in" style="display: none;">
+							<div class="modal-header">
+								<a data-dismiss="modal" class="close">×</a>
+								<h4>Asignar Sucesor al Item:<font color="royalblue"> {{item.nombre}}</font></h4>
+							</div>
+							<div class="modal-body">
+								<p>Sucesor Actual: <font color="royalblue">{{item.getSucesor().nombre}} {%if item.sucesor_id > 0%}| <a href="#"><i class="icon-remove"></i>Quitar</a>{%endif%}</font></p>
+								<p>Seleccione un nuevo Sucesor: </p>
+								    <ul class="nav nav-list">
+								    	<li class="nav-header">Items disponibles de la Fase Siguiente</li>
+			    						{% if fase.tieneSiguiente(proyecto) %}	
+			    							{% for itemCandidato in fase.getFaseSiguiente(proyecto).items %}
+			    								{% if itemCandidato != item %}
+			    								<li><a href="{{ url_for('des.relacionarSucesor', itemActual_id=item.id, itemCandidato_id=itemCandidato.id) }}">{{ itemCandidato.nombre }} </a></li>
+			    								{% endif %}
+			    							{% endfor%}
+			    						{% else %}
+			    							<li><a> NO EXISTEN FASES SIGUIENTES </a></li>
+			    						{% endif %}		
+			    						</ul>
+							</div>
+							<div class="modal-footer">
+								<a href="#" data-dismiss="modal" class="btn">Cancelar</a>
+							</div>
+						</div>
+						
+						<!--******************** MODAL VER ANTECESORES ***************-->
+						<div id="antecesores{{item.id}}" class="modal hide fade in" style="display: none;">
+							<div class="modal-header">
+								<a data-dismiss="modal" class="close">×</a>
+								<h4>Antecesores Actuales de Item:<font color="royalblue"> {{item.nombre}}</font></h4>
+							</div>
+							<div class="modal-body">
+								<p>Antecesores en la Fase Anterior</p>
+								    <ul class="nav nav-list">
+								    	<li class="nav-header">Antecesores la fase Anterior</li>
+			    							{% for itemAntecesor in item.getAntecesores() %}
+			    								{% if itemAntecesor != item %}
+			    								<li><a href="#">{{ itemAntecesor.nombre }}</a></li>
+			    								{% endif %}
+			    							{% endfor%}	
+			    						</ul>
+							</div>
+							<div class="modal-footer">
+								<a href="#" data-dismiss="modal" class="btn">Cancelar</a>
+							</div>
+						</div>
+						
+						<!--******************** MODAL EDITAR ***************-->
+						<div id="atributos{{item.id}}" class="modal hide fade in" style="display: none;">
+							<div class="modal-header">
+								<a data-dismiss="modal" class="close">×</a>
+								<h4>Atributos actuales de: <font color="royalblue"> {{item.nombre}}</font></h4>
+							</div>
+							<div class="modal-body">
+								<p></p>
+								    <ul class="nav nav-list">
+								    	<li class="nav-header">Hijos en fase: {{fase.nombre}}</li>
+			    							{% for atributo in item.atributos %}
+			    								<li><a href="#">{{ atributo.nombre }} - Editar</a>
+			    									 Tipo: {{ atributo.getTipo() }}
+			    									 Valor: {{ atributo.getValor() }}
+			    									 <form action=""></form> 
+			    								</li>
+			    							{% endfor%}	
+			    						</ul>
+							</div>
+							<div class="modal-footer">
+								<a href="#" data-dismiss="modal" class="btn">Cancelar</a>
+							</div>
+						</div>
+						
+						
 						{% endfor %}
 	     			</table>	
 				</div>

@@ -7,13 +7,19 @@ except ImportError:
     from sqlalchemy.types import MutableType as Mutable
 from werkzeug import generate_password_hash, check_password_hash
 from flask_login import UserMixin
+from datetime import datetime
+from datetime import date
+
+#librerias para reportes
+from geraldo import Report, ReportBand, DetailBand, SystemField, Label, ObjectValue, ReportGroup
+from geraldo.utils import cm, BAND_WIDTH, TA_CENTER, TA_RIGHT
 
 from ..extensions import db
 from ..utils import get_current_time
 
 from .constants import INACTIVE, USER_STATUS,NO_INICIADO, PROYECTO_ESTADOS, LINEABASE_ESTADOS, FASE_ESTADOS, ITEM_ESTADOS
 
-from .constants import INICIAL, DESAPROBADO, ROL_ESTADOS, TIPOS_ROLES, NO_ASIGNADO, ABIERTA, TIPOS_ATRIBUTOS
+from .constants import INICIAL, DESARROLLO, COMPLETA, DESAPROBADO, ROL_ESTADOS, TIPOS_ROLES, NO_ASIGNADO, ABIERTA, TIPOS_ATRIBUTOS
 
 
 
@@ -82,6 +88,11 @@ atributoPorTipoItem = db.Table('atributoPorTipoItem',
     Column('atributo_id', db.Integer, db.ForeignKey('atributo.id'))
 )
 
+atributoPorItem = db.Table('atributoPorItem',
+    Column('item_id', db.Integer, db.ForeignKey('item.id')),
+    Column('atributo_id', db.Integer, db.ForeignKey('atributo.id'))
+)
+
 solicitudPorUsuario = db.Table('solicitudPorUsuario',
     Column('user_id', db.Integer, db.ForeignKey('users.id')),
     Column('solicitud_id', db.Integer, db.ForeignKey('solicitud.id'))
@@ -97,23 +108,18 @@ tipoItemPorFase = db.Table ('tipoItemPorFase',
 ############################################################################################
 
 
-class RelacionSucesor(db.Model):
-    __tablename__ = 'relacion_sucesor'
-    left_id = Column(db.Integer, db.ForeignKey('item.id'), primary_key=True)
-    right_id = Column(db.Integer, db.ForeignKey('item.id'), primary_key=True)
-    item = db.relationship('Item', primaryjoin="Item.id==RelacionSucesor.right_id", backref='relacion_sucesor')
-    
-class RelacionHijo(db.Model):
-    __tablename__ = 'relacion_hijo'
-    left_id = Column(db.Integer, db.ForeignKey('item.id'), primary_key=True)
-    right_id = Column(db.Integer, db.ForeignKey('item.id'), primary_key=True)
-    hijo = db.relationship('Item', primaryjoin="Item.id==RelacionHijo.right_id", backref='relacion_hijo')
 
 archivoPorItem = db.Table('asociacion_item_archivo',
     Column('item_id', db.Integer, db.ForeignKey('item.id')),
     Column('archivo_id', db.Integer, db.ForeignKey('archivo.id'))
 )
 
+class Antecesores(db.Model):
+    __tablename__ = 'sucesores'
+    id = Column(db.Integer, primary_key=True)
+    item_id = Column(db.Integer)
+    antecesor_id = Column (db.Integer)
+    
     
 class User(db.Model, UserMixin):
 
@@ -267,7 +273,7 @@ class User(db.Model, UserMixin):
         return USER_STATUS[self.status_id]
     
     def setStatus(self, estado):
-        self.estado = estado
+        self.status_id = estado
 
     def setNombre(self, nombre):
         self.nombre= nombre
@@ -499,6 +505,12 @@ class Proyecto(db.Model):
     
     def setDescripcion(self, descripcion):
         self.descripcion= descripcion
+    
+    def setComplejidad(self, complejidad):
+        self.complejidad_total= complejidad
+    
+    def setNroFases(self, numero):
+        self.numero_fases= numero
 
     def getTodosProyectos(self):
         todosProyectos = Proyecto.query.filter(Proyecto.id != self.id)
@@ -615,7 +627,10 @@ class Fase(db.Model):
         return FASE_ESTADOS[self.estado_id]
     
     def getNroLB(self):
-        return len(self.numero_lb)
+        return self.numero_lb
+    
+    def getNroFase(self):
+        return self.numero_fase
     
     def setNombre(self, nombre):
         self.nombre= nombre
@@ -626,8 +641,12 @@ class Fase(db.Model):
     def setNroLB(self, cantidad):
         self.numero_lb= cantidad
     
-    def getItems (self, proyecto_id):
-        misItems = self.items
+    def setEstado(self, estado):
+        self.estado_id = estado
+    
+    def getItems (self):
+        #misItems = self.items
+        misItems = Item.query.filter_by(fase_id=self.id).order_by("nombre asc")
         return misItems
     
     def existeTipoItem (self, tipoItem_id):
@@ -644,6 +663,37 @@ class Fase(db.Model):
     
     def setLider(self, lider):
         self.lider_fase = lider
+    
+    def actualizarEstado(self):
+        inicial= True
+        completo= False
+        desarrollo= False
+        for item in self.items:
+            if item.getEstado() != 'eliminado':
+                completo= True
+                if item.getEstado() != 'bloqueado':
+                    desarrollo= True
+        
+        if inicial and not(completo) and not(desarrollo):
+            self.estado_id = INICIAL
+        if inicial and completo and not(desarrollo):
+            self.estado_id= COMPLETA
+        if inicial and completo and desarrollo:
+            self.estado_id= DESARROLLO
+        
+        
+    def getFaseSiguiente(self, proyecto):
+        for fase in proyecto.fases:
+            if fase.numero_fase == self.numero_fase+1:
+                faseSiguiente = fase
+        return faseSiguiente
+    
+    def tieneSiguiente(self, proyecto):
+        for fase in proyecto.fases:
+            if fase.numero_fase == self.numero_fase+1:
+                return True
+        return False
+
     
 class TipoItem(db.Model):
     
@@ -700,8 +750,10 @@ class Item(db.Model):
     nombre = Column(db.String(32), nullable=False)
     descripcion = Column(db.String(),nullable=True)
     version = Column(db.Integer)
-    complejidad= Column(db.Integer) 
+    complejidad= Column(db.Integer, default=0) 
     estado_id = Column(db.SmallInteger,default=DESAPROBADO)
+    marcado = Column(db.String(2),nullable=True)
+
     
 # RELACIONES  ====================================================================
 
@@ -716,7 +768,11 @@ class Item(db.Model):
     """
     tipoItem_id= Column(db.Integer, db.ForeignKey('tipoItem.id'), nullable=True)
 #    tipoItem = db.relationship("TipoItem", backref='item', lazy='dynamic')
-#    atributos= db.relationship('Atributo', backref='item',lazy='dynamic')
+    #atributos = db.relationship('Atributo', backref='item',lazy='dynamic')
+    
+    atributos= db.relationship('Atributo', secondary=atributoPorItem,
+       backref=db.backref('items', lazy='dynamic'))
+    
     archivoPorItem= db.relationship('Archivo', secondary=archivoPorItem,
        backref=db.backref('archivo', lazy='dynamic'))
     """
@@ -724,14 +780,29 @@ class Item(db.Model):
     """
     #versionSuperior_id = Column(db.Integer, db.ForeignKey('item.id'))
     #versionAnterior = db.relationship("Item")
-    """
-    relacion con el item sucesor
-    """
+    
     padre_id = Column(db.Integer,db.ForeignKey('item.id'))
     hijo = db.relationship("Item",
                 backref=db.backref('padre', remote_side=[id])
             )
-
+    sucesor_id = Column(db.Integer)
+    """
+    relacion con el item sucesor
+    """
+    #sucesores = db.relationship('Item', secondary=sucesorPorItem,
+    #                            backref=db.backref('antecesor', lazy='dynamic'))
+    def getAntecesores(self):
+        todosAntecesores = Antecesores.query.all()
+        misAntecesores = []
+        for relacion in todosAntecesores:
+            if relacion.item_id == self.id and relacion.antecesor_id != self.id:
+                item = Item.query.filter_by(id=relacion.antecesor_id).first()
+                misAntecesores.append(item)
+        return misAntecesores
+    
+    def getSucesor(self):
+        sucesor = Item.query.filter_by(id=self.sucesor_id).first()
+        return sucesor
 # FUNCIONES  ====================================================================   
     def getHistorial(self):
         todosHistoriales = HistorialItem.query.all()
@@ -762,8 +833,11 @@ class Item(db.Model):
     def getDescripcion(self):
         return self.descripcion
     
+    def getMarcado(self):
+        return self.marcado
+    
     def marcarRevision(self):
-        self.estado= 'Revision'
+        self.estado_id = 4 #Estado: 'revision'
     
     def tieneLineaBase(self):
         if self.lineaBase_id != None:
@@ -802,10 +876,9 @@ class Item(db.Model):
     
     def tienePadre(self, fase):
         for item in fase.items:
-            if item.getEstado() != 'Eliminado' and item != self:
-                for relacion in item.relacionHijo:
-                    if relacion.hijo == self:
-                        return True
+            if item.getEstado() != 'eliminado' and item != self:
+                if self.padre_id is not None:
+                    return True
         return False
     
     """
@@ -814,8 +887,15 @@ class Item(db.Model):
     def getPadre(self):
         padre = Item.query.filter_by(id=self.padre_id).first()
         if padre is None:
-            return "<NO TIENE>"
+            return None
         return padre.nombre
+    
+    """
+    note: metodo que devuelve el padre del item, devuelve String en caso de no tener
+    """
+    def getItemPadre(self):
+        padre = Item.query.filter_by(id=self.padre_id).first()
+        return padre
     """
     note metodo que pregunta si un item es descendiente de otro en una fase dada
     """
@@ -860,14 +940,66 @@ class Item(db.Model):
     
     def getRelacionArchivos(self):
         return self.relacionArchivo
-
+    """
+    note: metodo que acumula en una lista los padres, abuelos etc de un item incluyendose a el
+    """
+    def getAscendientes(self, fase):
+        lista= []
+        item_aux= self
+        while item_aux.tienePadre(fase):
+            lista.append(item_aux.getPadre(fase))
+            item_aux= item_aux.getPadre(fase)
+        lista = lista + [self]
+        return lista
+    
+#    def getAntecesores(self, fase, item):
+#        lista = []
+#        proyecto= Proyecto.query.filter_by(id=fase.proyecto_id).first()
+#      #  proyecto.fases.sort(comparaFase)
+#        ubicacion = fase.numero_fase
+#        lista = item.getAscendientes(fase)
+#        if ubicacion > 1:
+#            listaAdd= []
+#            faseAnterior = proyecto.fases[ubicacion-1]
+#            for aux in lista:
+#                for candidato in faseAnterior.items:
+#                    for suce in candidato.getSucesores():
+#                        if suce == aux and candidato.getEstado() != 'eliminado':
+#                            listaAdd= listaAdd + item.getAntecesores(faseAnterior, candidato)
+#            lista = lista + listaAdd
+#        return lista
+#    
+    def getAntecesoresParaLb(self, fase):
+        proyecto= Proyecto.query.filter_by(id=fase.proyecto_id).first()
+        #proyecto.fases.sort(comparaFase)
+        ubicacion= fase.numero_fase
+        lista= []
+        if ubicacion > 1:
+            """ note: copia las relaciones que estan en la fase anterior """
+            faseAnterior= proyecto.fases[ubicacion-1]
+            for candidato in faseAnterior.items:
+                for relacion in candidato.relacionSucesor:
+                    if relacion.item == self and candidato.getEstado() != 'eliminado':
+                        lista.append(candidato)
+        return lista
+    
+    def inicializarAtributos(self):
+        tipoItemElegido = TipoItem.query.filter_by(id=self.tipoItem_id).first()
+        for atributo in tipoItemElegido.atributoPorTipoItem:
+            nuevoAtributo = Atributo()
+            nuevoAtributo.nombre = atributo.nombre
+            nuevoAtributo.tipo = atributo.tipo
+            nuevoAtributo.setValor(atributo.getValor())
+            nuevoAtributo.descripcion = atributo.descripcion
+            self.atributos.append(nuevoAtributo)
+            
  
 class Atributo(db.Model):
     
     __tablename__ = 'atributo'
     
     id = Column(db.Integer, primary_key=True)
-    nombre= Column(db.String(32), nullable=False, unique=True)
+    nombre= Column(db.String(32), nullable=False)
     tipo= Column(db.Integer)
     descripcion= Column(db.String(100), nullable=True)
     valorString= Column(db.String(32))
@@ -1005,6 +1137,16 @@ class LineaBase(db.Model):
             cont= cont + item.getComplejidad()
         return cont
     
+    def setComplejidad(self, nro):
+        self.complejidad=nro
+    
+    def actualizarComplejidad(self):
+        cant=0
+        for item in self.items:
+            cant=cant + item.getComplejidad()
+            self.complejidad=cant    
+        
+    
     def getNroItems(self):
         cant = 0
         for item in self.items:
@@ -1067,24 +1209,23 @@ class LineaBase(db.Model):
     
     def actualizarLineaBase(self, session, item, nuevaVersion):
         #self.items.sort(compara)
-        print "\n\n\n\n\n\n"
         for aux in self.items:
             print str(aux.id)+ " : "+ str(aux.getNombre())+" : "+ str(aux.getNumero())
-        print "\n\n\n\n\n\n"
+        
         indice= self.items.index(item)
         self.items.insert(indice, nuevaVersion)
-        print "\n\n\n\n\n\n"
+        
         for aux in self.items:
             print str(aux.id)+ " : "+str(aux.getNombre()) +" : "+ str(aux.getNumero())
-        print "\n\n\n\n\n\n"
+        
         #session.add(self)
         self.items.remove(item)
         #self.reEnumerarItems()
         #self.reEnumerarItemsPorTipo()
-        print "\n\n\n\n\n\n"
+        
         for aux in self.items:
             print str(aux.id)+ " : "+str(aux.getNombre()) +" : "+str(aux.getNumero())
-        print "\n\n\n\n\n\n"
+        
         session.add(self)
     
     def imprimirItems(self):
@@ -1122,6 +1263,8 @@ class Solicitud(db.Model):
     comite_id = Column(db.Integer, db.ForeignKey('comite.id'))
     item_id = Column(db.Integer, db.ForeignKey('item.id'))
 
+    def getItem(self):
+        return Item.query.filter_by(id=self.item_id).first_or_404()
 
 class Comite(db.Model):
     
@@ -1163,4 +1306,87 @@ class Comite(db.Model):
             ))
         q = reduce(db.and_, criteria)
         return cls.query.filter(q)
+
+class ItemPorProyectoReporte(Report):
+    title = 'Lista de Items de Proyecto'
     
+    #cuerpo que muestra los datos en si 
+    class band_detail(DetailBand):
+        height = 0.7 * cm
+        elements = [
+            ObjectValue(expression='id', left=1.5 * cm),
+            ObjectValue(expression='nombre', left=3 * cm),
+            ObjectValue(expression='estado', left=5.5 * cm),
+        ]
+        borders = {'bottom': True}
+    #cabecera pagina
+    class band_page_header(ReportBand):
+        height = 1.3 * cm
+        elements = [
+            SystemField(expression='%(report_title)s', top=0.1 * cm, left=0, width=BAND_WIDTH,
+                style={'fontName': 'Helvetica-Bold', 'fontSize': 14, 'alignment': TA_CENTER}),
+            SystemField(expression=u'Pagina %(page_number)d de %(page_count)d', top=0.1 * cm,
+                width=BAND_WIDTH, style={'alignment': TA_RIGHT}),
+            Label(text="ID", top=0.8 * cm, left=1.5 * cm),
+            Label(text="Nombre", top=0.8 * cm, left=3 * cm),
+            Label(text="Estado", top=0.8 * cm, left=5.5 * cm),
+        ]
+        borders = {'all': True}
+    #Pie de pagina    
+    class band_page_footer(ReportBand):
+        height = 0.5*cm
+        elements = [
+            Label(text='Sistema GPM', top=0.1*cm),
+            SystemField(expression='Impreso %(now:%b %d, %Y)s a las %(now:%H:%M)s', top=0.1*cm,
+                width=BAND_WIDTH, style={'alignment': TA_RIGHT}),
+            ]
+        borders = {'top': True}
+     
+    groups = [
+        ReportGroup(
+            attribute_name='fase',
+            band_header=DetailBand(
+                height=0.6*cm,
+                elements=[
+                    ObjectValue(expression='fase', style={'fontName': 'Helvetica-Bold','fontSize': 12})
+                ]
+            ),
+        ),
+    ]
+
+class HistorialPorItemReporte(Report):
+    title = 'Historial de Item'
+    
+    #cuerpo que muestra los datos en si 
+    class band_detail(DetailBand):
+        height = 1.3 * cm
+        elements = [
+            ObjectValue(expression='id', left=1.5 * cm),
+            ObjectValue(expression='descripcion', left=2.5 * cm),
+            ObjectValue(expression='fecha', left=12.5 * cm),
+        ]
+        borders = {'bottom': True}
+    #cabecera pagina
+    class band_page_header(ReportBand):
+        height = 1.3 * cm
+        elements = [
+            SystemField(expression='%(report_title)s', top=0.1 * cm, left=0, width=BAND_WIDTH,
+                style={'fontName': 'Helvetica-Bold', 'fontSize': 14, 'alignment': TA_CENTER}),
+            SystemField(expression=u'Pagina %(page_number)d de %(page_count)d', top=0.1 * cm,
+                width=BAND_WIDTH, style={'alignment': TA_RIGHT}),
+            Label(text="ID", top=0.8 * cm, left=1.5 * cm),
+            Label(text="Descripcion", top=0.8 * cm, left=2.5 * cm),
+            Label(text="Fecha", top=0.8 * cm, left=12.5 * cm),
+        ]
+        borders = {'all': True}
+    #Pie de pagina    
+    class band_page_footer(ReportBand):
+        height = 0.5*cm
+        elements = [
+            Label(text='Sistema GPM', top=0.1*cm),
+            SystemField(expression='Impreso %(now:%b %d, %Y)s a las %(now:%H:%M)s', top=0.1*cm,
+                width=BAND_WIDTH, style={'alignment': TA_RIGHT}),
+            ]
+        borders = {'top': True}
+
+

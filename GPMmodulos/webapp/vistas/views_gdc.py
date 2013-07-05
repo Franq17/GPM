@@ -2,10 +2,21 @@ from flask import Blueprint, render_template, request, flash, url_for, redirect
 from flask_login import login_required, current_user
 
 from ..extensions import db
-from ..decorators import *
+from ..decorators import crearUsuarios_required, modificarUsuarios_required,eliminarUsuarios_required, verUsuarios_required, crearRoles_required, modificarRoles_required, eliminarRoles_required, verRoles_required, verPermisos_required, crearProyectos_required, verItems_required, crearFases_required, modificarFases_required, eliminarFases_required
+from ..decorators import crearComites_required,modificarProyectos_required, eliminarProyectos_required, verProyectos_required, crearComites_required, modificarComites_required, eliminarComites_required, verComites_required, verMiembrosComites_required, crearItems_required, modificarItems_required,eliminarItems_required, verFases_required
 
-from ..modelos import *
-from .forms_gdc import *
+from ..modelos import BLOQUEADO,APROBADO, CERRADA, Item, LineaBase, HistorialLineaBase,Proyecto, Fase, Comite, User
+from .forms_gdc import AsignarItemsLBForm, CrearLBForm, ComiteForm, LineaBaseForm, UserxComiteForm, BorrarComiteForm, CrearComiteForm
+
+#Librerias para dibujar el grafo
+#import sys
+#sys.path.append('..')
+#sys.path.append('/usr/lib/graphviz/python/')
+#sys.path.append('/usr/lib64/graphviz/python/')
+#import gv
+import pygraphviz as pgv
+from pygraphviz import *
+
 
 cambios = Blueprint('cambios', __name__, url_prefix='/cambios')
 #COMITE
@@ -23,7 +34,7 @@ def comites():
 @login_required
 #@verComites_required
 def proyectosLB():
-    """Funcion que lista los proyectos que pueden tener linea base """
+    """Funcion que lista los proyectositem.estado_id = BLOQUEADO  que pueden tener linea base """
     #proyectosLB = Proyecto.query.all()
     #Le pasamos solamente los proyectos en el que usuario actual participa
     proyectos=current_user.getProyectos()
@@ -40,7 +51,6 @@ def crearLB(proyecto_id, fase_id):
     
     form = CrearLBForm(next=request.args.get('next'))
     
-    
     if form.validate_on_submit():
         lineaBase = LineaBase()
         lineaBase.nombre = form.nombre.data
@@ -50,9 +60,66 @@ def crearLB(proyecto_id, fase_id):
         db.session.commit()
         
         flash('Linea Base creada.', 'success')
-        return redirect(url_for('cambios.lineasBasexproyecto',proyecto_id=proyecto_id))
+        return redirect(url_for('cambios.lineaBasexproyecto',proyecto_id=proyecto_id))
     return render_template('cambios/crearLineaBase.html', proyecto=proyecto, fase=fase, form=form)
        
+@cambios.route('/asignarItemsLB/<lineaBase_id>/', methods=['GET', 'POST'])
+@login_required
+def asignarItemsLB(lineaBase_id):
+    """Funcion que permite asignar un item a una Linea Base"""
+    lineaBase = LineaBase.query.filter_by(id=lineaBase_id).first_or_404()
+    fase = Fase.query.filter_by(id=lineaBase.fase_id).first_or_404()
+    
+    form = AsignarItemsLBForm(obj=fase, next=request.args.get('next'))
+    itemsDisponibles=[]
+    itemsActuales = lineaBase.items
+    for item in fase.items:
+        if item not in itemsActuales and item.getEstado()!='bloqueado' and item.getEstado() != 'desaprobado':
+            itemsDisponibles.append(item) #aca filtrar que el item debe estar aprobado
+          
+    form.items.choices = [(h.id, h.nombre) for h in itemsDisponibles ]
+    
+    if form.validate_on_submit():       
+        listaItemsSeleccionados=form.items.data  # trae el id de los item que selecciono
+                    
+        for itemAsig in itemsActuales:    # a la lista de items que ya tiene, le agrega lo que selecciono
+            listaItemsSeleccionados.append(itemAsig.id)
+                     
+        for itemID in listaItemsSeleccionados:
+            item=Item.query.filter_by(id=itemID).first_or_404()
+            item.setEstado(BLOQUEADO) #Se bloquea el item
+            lineaBase.items.append(item)
+        lineaBase.estado_id = CERRADA
+        fase.actualizarEstado()
+        
+        db.session.add(fase)    
+        db.session.add(lineaBase)
+        db.session.commit()
+       
+        flash('Items agregados.', 'success')
+        return redirect(url_for('cambios.lineaBasexproyecto', proyecto_id=fase.proyecto_id))
+       
+    return render_template('cambios/asignarItemsLB.html', lineaBase=lineaBase, form=form)
+
+@cambios.route('/desasignarItemsLB/<lineaBase_id>/<item_id>', methods=['GET', 'POST'])
+@login_required
+def desasignarItemsLB(lineaBase_id, item_id):
+    """Funcion que permite desasignar un item de una Linea Base"""
+    lineaBase = LineaBase.query.filter_by(id=lineaBase_id).first_or_404()
+    item = Item.query.filter_by(id=item_id).first_or_404()
+    fase = Fase.query.filter_by(id=lineaBase.fase_id).first_or_404()
+    
+    lineaBase.items.remove(item)
+    item.setEstado(APROBADO)
+    fase.actualizarEstado()
+    
+    db.session.add(lineaBase)
+    db.session.add(fase)
+    db.session.commit()
+    
+    flash ('Se ha quitado el item exitosamente', 'success')
+    return redirect(url_for('cambios.lineaBasexproyecto', proyecto_id=item.proyecto_id))
+
     
 @cambios.route('/crearComite', methods=['GET', 'POST'])
 @login_required
@@ -143,7 +210,7 @@ def desasignarMiembro(comite_id, user_id):
     miembroDesasignar = User.query.filter_by(id=user_id).first_or_404()
     comite = Comite.query.filter_by(id=comite_id).first_or_404()
     proyecto = comite.getProyecto()
-    form = UserxComiteForm(obj=user, next=request.args.get('next'))
+    form = UserxComiteForm(obj=miembroDesasignar, next=request.args.get('next'))
     miembrosAsignados = comite.usuarioPorComite
     
     for item in miembrosAsignados:
@@ -247,3 +314,51 @@ def lineaBase(proyecto_id, lineabase_id):
         return redirect(url_for('cambios.lineaBasexproyecto', proyecto_id=proyecto.id, lineabase_id=lineaBase.id))
 
     return render_template('cambios/lineaBase.html', proyecto=proyecto, lineabase=lineaBase, form=form)
+
+@cambios.route('/grafosItemsLB/<lineaBase_id>/', methods=['GET', 'POST'])
+@login_required
+def dibujarGrafoLB(lineaBase_id):
+    """Funcion que permite asignar un item a una Linea Base"""
+    lineaBase = LineaBase.query.filter_by(id=lineaBase_id).first_or_404()
+    fase = Fase.query.filter_by(id=lineaBase.fase_id).first_or_404()
+    
+    desplazamiento_x = {}
+    __index = 0
+    for i in lineaBase.items:
+        desplazamiento_x[i.id] = __index
+        __index+=1
+    # eje y
+    desplazamiento_y = []
+    for i in range(lineaBase.getNroItems()):
+        desplazamiento_y.append(0)
+    
+    #####
+    gr = pgv.AGraph(label= "Costo de la Linea Base: "+ str(lineaBase.getComplejidad()),directed=True)
+    #gr.node_attr['shape']='circle'
+    nodos= []
+    id_nodos= []
+    for nodo in lineaBase.items:
+        if nodo.getEstado() != 'Eliminado':
+            id_nodos.append(nodo.id)
+            nodos.append(nodo)
+    
+    for nodo in nodos:
+        item = nodo
+        valor = str(item.id)+" : "+str(item.getComplejidad())
+        index = desplazamiento_x[item.fase_id]
+        posicion =  str(index*3.5)+','+str(90-desplazamiento_y[index]*2)
+        desplazamiento_y[index] = desplazamiento_y[index] + 1
+        color= 'white'
+        if item.getMarcado() == 'Si':
+            color= '#708090'
+        gr.add_node(valor, label= item.getNombre()+" : "+  str(item.getComplejidad()), fillcolor=color, style="filled", pos=posicion, pin=True)
+    
+    gr.layout()
+    gr.draw('webapp/static/grafos/grafo_item.png')
+#    archivo= open('webapp/static/grafos/grafo_item.png','rb')
+#    contenido= archivo.read()
+#    archivo.close()
+#    return Response(contenido)
+   
+    flash('Items dibujados.', 'success')
+    return redirect(url_for('cambios.lineaBasexproyecto', proyecto_id=fase.proyecto_id))

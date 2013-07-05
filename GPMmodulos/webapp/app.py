@@ -7,7 +7,7 @@ from flaskext.babel import Babel
 
 from .configs import DevConfig
 from .modelos import User, user, rol, proyecto, comite, tipoItem
-from .vistas import admin, settings, frontend, api, cambios,des
+from .vistas import admin, settings, frontend, api, cambios,des, reportes
 from .extensions import db, mail, cache, login_manager
 
 
@@ -25,7 +25,8 @@ DEFAULT_BLUEPRINTS = (
     comite,
     tipoItem,
     cambios,
-    des
+    des,
+    reportes
 )
 
 

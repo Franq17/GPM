@@ -113,15 +113,15 @@ class TestError(TestCase):
         self.assert404(response)
         self.assertTemplateUsed('errors/page_not_found.html')
 
-    #def test_403(self):
-        #response = self.client.get('/403/')
-        #self.assert403(response)
-        #self.assertTemplateUsed('errors/forbidden_page.html')
-
-    #def test_500(self):
-        #response = self.client.get('/500/')
-        #self.assert500(response)
-        #self.assertTemplateUsed('errors/server_error.html')
+#     def test_403(self):
+#         response = self.client.get('/403/')
+#         self.assert403(response)
+#         self.assertTemplateUsed('errors/forbidden_page.html')
+# 
+#     def test_500(self):
+#         response = self.client.get('/500/')
+#         self.assert500(response)
+#         self.assertTemplateUsed('errors/server_error.html')
 
 
 

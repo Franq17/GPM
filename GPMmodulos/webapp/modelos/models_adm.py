@@ -854,32 +854,63 @@ class Item(db.Model):
                     lista = lista + sucesor.getSucesores()
             
             lista = lista + [aux]
+        lista= self.eliminar_duplicados(lista)  
+        return lista
+    
+    def getAntecesores2 (self):
+        lista= []
+        proyecto = Proyecto.query.filter_by(id=self.proyecto_id).first_or_404()
+        fase = Fase.query.filter_by(id=self.fase_id).first_or_404()
+        
+        ubicacion= fase.numero_fase
+        lista= self.getAscendientes(fase)
+        if ubicacion > 1:
+            listaAdd= []
+            for aux in lista:
+                #for candidato in faseAnterior.items:
+                for antecesor in aux.getAntecesores():
+                    if antecesor.getEstado() != 'eliminado':
+                        listaAdd= listaAdd + antecesor.getAntecesores2()
+            lista = lista + listaAdd
+        lista= self.eliminar_duplicados(lista)    
         return lista
     
     def calcular_impacto_delante(self):
-        fase= Fase.query.filter_by(id=self.fase_id).first_or_404()
-        proyecto = Proyecto.query.filter_by(id=fase.proyecto_id).first_or_404()
-        
-        #for fase_aux in proyecto.fases:
-        #        for item_aux in fase_aux.items:
-        #                item_aux.setDesMarcar()
-        #                session.add(item_aux)
         """
         note: items que son sucesores, inclyendo el item
         """
         lista= self.getSucesores()
+        cont= 0
+        for aux in lista:
+                cont= cont + aux.getComplejidad()
+        return cont        
+    
+    def calcular_impacto_atras(self):
         """
-        note: elimina duplicados
+        note: items que son antecesores, inclyendo el item
         """
-        #lista= eliminar_duplicados(lista)
+        lista= self.getAntecesores2()
         cont= 0
         for aux in lista:
                 cont= cont + aux.getComplejidad()
         return cont        
 
+    def calcular_impacto_total(self):
+        """
+        note: calculo hacia adelante + calculo hacia atras
+        """
+        impacto = self.calcular_impacto_delante() + self.calcular_impacto_atras() - self.getComplejidad()
+        return impacto        
 
 
 # FUNCIONES  ====================================================================   
+    def eliminar_duplicados(self, lista):
+        refinada= []
+        for aux in lista:
+            if aux not in refinada:
+                refinada.append(aux)
+        return refinada
+
     def getHistorial(self):
         todosHistoriales = HistorialItem.query.all()
         historiales=[]
@@ -1027,8 +1058,8 @@ class Item(db.Model):
         lista= []
         item_aux= self
         while item_aux.tienePadre(fase):
-            lista.append(item_aux.getPadre(fase))
-            item_aux= item_aux.getPadre(fase)
+            lista.append(item_aux.getItemPadre())
+            item_aux= item_aux.getItemPadre()
         lista = lista + [self]
         return lista
     

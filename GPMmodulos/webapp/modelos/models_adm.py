@@ -19,7 +19,7 @@ from ..utils import get_current_time
 
 from .constants import INACTIVE, USER_STATUS,NO_INICIADO, PROYECTO_ESTADOS, LINEABASE_ESTADOS, FASE_ESTADOS, ITEM_ESTADOS, SOLICITUD_ESTADOS, VOTACION_ESTADOS, NO_VOTADO
 
-from .constants import INICIAL, DESARROLLO, COMPLETA, DESAPROBADO, ROL_ESTADOS, TIPOS_ROLES, NO_ASIGNADO, ABIERTA, TIPOS_ATRIBUTOS
+from .constants import APROBADO, INICIAL, DESARROLLO, COMPLETA, DESAPROBADO, ROL_ESTADOS, TIPOS_ROLES, NO_ASIGNADO, ABIERTA, TIPOS_ATRIBUTOS
 
 
 
@@ -540,6 +540,10 @@ class Proyecto(db.Model):
     def getLider(self):
         lider = User.query.filter_by(id=self.lider_proyecto).first_or_404()
         return lider.nombre+' '+lider.apellido
+    
+    def getUsuarioLider(self):
+        lider = User.query.filter_by(id=self.lider_proyecto).first_or_404()
+        return lider
     
     def getUsuariosLideresFase(self):
         users = self.usuarioPorProyecto
@@ -1295,9 +1299,9 @@ class LineaBase(db.Model):
         self.estado_id = estado_id
     
     def romper(self):
-        self.estado_id = 'Abierta'
+        self.estado_id = ABIERTA
         for item in self.items:
-            item.setEstado('para revision')
+            item.setEstado(APROBADO)
     
     def comprometer(self, session):
         self.estado_id = 'comprometida'
@@ -1432,7 +1436,12 @@ class Comite(db.Model):
     
 
 # FUNCIONES ================================================================
-    
+    def getCantidadMiembros(self):
+        cant = 0
+        for miembro in self.usuarioPorComite:
+            cant = cant + 1
+        return cant
+        
     def getProyecto(self):
         proyecto = Proyecto.query.filter_by(id=self.proyecto_id).first_or_404()
         return proyecto

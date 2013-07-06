@@ -120,6 +120,7 @@ def desasignarItemsLB(lineaBase_id, item_id):
     flash ('Se ha quitado el item exitosamente', 'success')
     return redirect(url_for('cambios.lineaBasexproyecto', proyecto_id=item.proyecto_id))
 
+
     
 @cambios.route('/crearComite', methods=['GET', 'POST'])
 @login_required
@@ -226,6 +227,32 @@ def desasignarMiembro(comite_id, user_id):
     
     return render_template('cambios/usuariosxcomite.html', comite=comite, form=form, users=miembrosAsignados)
 
+@cambios.route('/reemplazarMiembro/Comite<comite_id>/<user_id>/<candidato_id>', methods=['GET', 'POST'])
+@login_required
+#@desasignarMiembro_required
+def reemplazarMiembro(comite_id, user_id, candidato_id):
+    comite = Comite.query.filter_by(id=comite_id).first_or_404()
+    candidato = User.query.filter_by(id = candidato_id).first_or_404()
+    usuario = User.query.filter_by(id = user_id).first_or_404()
+    proyecto = Proyecto.query.filter_by(id =comite.proyecto_id).first_or_404()
+    
+    if proyecto.getUsuarioLider() == usuario:
+        flash('Es Lider de Proyecto. No puede salir del comite.', 'error')
+        return redirect(url_for('cambios.usuariosxcomite', comite_id=comite.id))
+    
+    comite.usuarioPorComite.append(candidato)
+    comite.usuarioPorComite.remove(usuario)
+    db.session.add(comite)
+    db.session.commit()
+    
+    return redirect(url_for('cambios.usuariosxcomite', comite_id=comite.id))
+    #desasignarMiembro(comite_id, user_id)
+    
+    
+
+
+
+
 @cambios.route('/usuariosxcomite/<comite_id>', methods=['GET', 'POST'])
 @login_required
 #@verMiembrosComites_required
@@ -258,7 +285,7 @@ def usuariosxcomite(comite_id):
         flash('Miembro asignado.', 'success')
         return redirect(url_for('cambios.usuariosxcomite', comite_id=comite.id))
     
-    return render_template('cambios/usuariosxcomite.html', comite=comite, form=form, users=usuariosAsignados)  
+    return render_template('cambios/usuariosxcomite.html', proyecto=proyecto, comite=comite, form=form, users=usuariosAsignados)  
 
 
 

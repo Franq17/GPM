@@ -19,7 +19,12 @@
        	{% for user in users%}
 		<tr>
         	<td>{{ user.nombre }}</td>
+            {% if (comite.getCantidadMiembros() % 2) == 0%}
             <td><a data-toggle="modal" href="#{{user.id}}"><i class="icon-remove"></i>Eliminar</a></td>
+			{% else %}
+			<td><a data-toggle="modal" href="#borrar{{user.id}}"><i class="icon-remove"></i>Eliminar</a></td>
+			{% endif%}
+			
 			<div id="{{user.id}}" class="modal hide fade in" style="display: none;">
 				<div class="modal-header">
 					<a data-dismiss="modal" class="close">×</a>
@@ -33,6 +38,31 @@
 					<a href="{{ url_for('cambios.desasignarMiembro', comite_id=comite.id, user_id=user.id)}}" class="btn btn-primary">Desasignar</a>
 				</div>
 			</div>
+			
+			
+			<!--******************** MODAL REEMPLAZAR SI ES IMPAR ***************-->
+			<div id="borrar{{user.id}}" class="modal hide fade in" style="display: none;">
+				<div class="modal-header">
+					<a data-dismiss="modal" class="close">×</a>
+					<h4>Reemplazar el usuario:<font color="royalblue">{{user.nombre}} </font></h4>
+				</div>
+				<div class="modal-body">
+					
+					<p>Seleccione un nuevo Miembro: </p>
+					    <ul class="nav nav-list">
+					    	<li class="nav-header">Usuarios disponibles </li>
+    							{% for candidato in proyecto.usuarioPorProyecto if candidato not in comite.usuarioPorComite %}
+    								{%if candidato.id != user.id%}
+    								<li><a href="{{ url_for('cambios.reemplazarMiembro', comite_id=comite.id, user_id=user.id, candidato_id=candidato.id)}}">{{ candidato.nombre }} </a></li>
+    								{%endif%}
+    							{% endfor%}	
+    						</ul>
+				</div>
+				<div class="modal-footer">
+					<a href="#" data-dismiss="modal" class="btn">Cancelar</a>
+				</div>
+			</div>
+						
         </tr>
         {% endfor %}
 	</table>

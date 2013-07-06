@@ -50,7 +50,7 @@
 							<th>Nombre</th>
 							<th>Complejidad</th>
 							<th>Estado</th>
-							<th>Historiales</th>
+							<th>Impactos</th>
 							<th>Relaciones</th>
 							<th>Atributos</th>
 							<th></th>
@@ -66,7 +66,9 @@
 							<a href="{{ url_for('des.desaprobarItem', item_id=item.id) }}"><i class="icon-remove"></i>Desaprobar</a>
 							{%elif item.getEstado() == 'desaprobado'%}
 							 <a href="{{ url_for('des.aprobarItem', item_id=item.id) }}"><i class="icon-ok"></i>Aprobar</a>{%endif%}</td>
-							<td><a data-toggle="modal" href="#{{item.id}}"><i class="icon-calendar"></i>Historial</a></td>
+							<td><a title="Calcular Impacto Hacia Atras" data-toggle="modal" href="#impactoAtras{{item.id}}"><i class="icon-chevron-left"></i></a> |
+							<a title="Calcular Impacto Total" data-toggle="modal" href="#impactoTotal{{item.id}}"><i class="icon-certificate"></i></a> | 
+							<a title="Calcular Impacto Hacia Adelante" data-toggle="modal" href="#impactoDelante{{item.id}}"><i class="icon-chevron-right"></i></a></td>
 							<td><a data-toggle="modal" href="#sucesor{{item.id}}"><i class="icon-plus"></i> Sucesor</a> | <a data-toggle="modal" href="#padre{{item.id}}"><i class="icon-plus"></i> Padre</a> | <a data-toggle="modal" href="#antecesores{{item.id}}"><i class="icon-eye-open"></i> Antecesores</a> | <a data-toggle="modal" href="#hijos{{item.id}}"><i class="icon-eye-open"></i> Hijos</a></td>
 							<td><a data-toggle="modal" title="Editar Atributos" href="#atributos{{item.id}}"><i class="icon-list-alt"></i></a></td>
 							<td><a title="Editar Item" href="{{ url_for('des.item', item_id=item.id, proyecto_id=proyecto.id) }}"><i class="icon-pencil"></i></a></td>
@@ -226,6 +228,71 @@
 								<a href="#" data-dismiss="modal" class="btn">Cancelar</a>
 							</div>
 						</div>
+						
+						<!--******************** MODAL CALCULO HACIA ATRAS ***************-->
+						<div id="impactoAtras{{item.id}}" class="modal hide fade in" style="display: none;">
+							<div class="modal-header">
+								<a data-dismiss="modal" class="close">×</a>
+								<h4>Calculo de Impacto hacia Atras: <font color="royalblue"> {{item.nombre}}</font></h4>
+							</div>
+							<div class="modal-body">
+								<p></p>
+								<ul class="nav nav-list">
+								    	<li class="nav-header"></li>
+			    								<li><a href="#">Impacto hacia Atras: {{ item.calcular_impacto_atras() }}</a>
+			    								 
+			    						</li>
+			    								
+			    				</ul>
+								     		 
+			    			</div>
+							<div class="modal-footer">
+								<a href="#" data-dismiss="modal" class="btn">Cancelar</a>
+							</div>
+						</div>
+						<!--******************** MODAL CALCULO HACIA Adelante ***************-->
+						<div id="impactoDelante{{item.id}}" class="modal hide fade in" style="display: none;">
+							<div class="modal-header">
+								<a data-dismiss="modal" class="close">×</a>
+								<h4>Calculo de Impacto hacia Adelante: <font color="royalblue"> {{item.nombre}}</font></h4>
+							</div>
+							<div class="modal-body">
+								<p></p>
+								<ul class="nav nav-list">
+								    	<li class="nav-header"></li>
+			    								<li><a href="#">Impacto hacia Adelante: {{ item.calcular_impacto_delante() }}</a>
+			    								 
+			    						</li>
+			    								
+			    				</ul>
+								     		 
+			    			</div>
+							<div class="modal-footer">
+								<a href="#" data-dismiss="modal" class="btn">Cancelar</a>
+							</div>
+						</div>
+						<!--******************** MODAL CALCULO total ***************-->
+						<div id="impactoTotal{{item.id}}" class="modal hide fade in" style="display: none;">
+							<div class="modal-header">
+								<a data-dismiss="modal" class="close">×</a>
+								<h4>Calculo de Impacto Total: <font color="royalblue"> {{item.nombre}}</font></h4>
+							</div>
+							<div class="modal-body">
+								<p></p>
+								<ul class="nav nav-list">
+								    	<li class="nav-header"></li>
+			    								<li><a href="#">Impacto Total: {{ item.calcular_impacto_total() }}</a>
+			    								 
+			    						</li>
+			    								
+			    				</ul>
+								     		 
+			    			</div>
+							<div class="modal-footer">
+								<a href="#" data-dismiss="modal" class="btn">Cancelar</a>
+							</div>
+						</div>
+						
 						
 						
 						{% endfor %}

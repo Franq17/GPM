@@ -1548,4 +1548,39 @@ class HistorialPorItemReporte(Report):
             ]
         borders = {'top': True}
 
-
+class SolicitudesPorProyectoReporte (Report):
+    title = 'Solicitudes Por Proyecto'
+    
+    #cuerpo que muestra los datos en si 
+    class band_detail(DetailBand):
+        height = 1.3 * cm
+        elements = [
+            ObjectValue(expression='lineaBase', left=1.5 * cm),
+            ObjectValue(expression='item', left=4.5 * cm),
+            ObjectValue(expression='solicitante', left=8.5 * cm),
+            ObjectValue(expression='estado', left=12.5 * cm),
+        ]
+        borders = {'bottom': True}
+    #cabecera pagina
+    class band_page_header(ReportBand):
+        height = 1.3 * cm
+        elements = [
+            SystemField(expression='%(report_title)s', top=0.1 * cm, left=0, width=BAND_WIDTH,
+                style={'fontName': 'Helvetica-Bold', 'fontSize': 14, 'alignment': TA_CENTER}),
+            SystemField(expression=u'Pagina %(page_number)d de %(page_count)d', top=0.1 * cm,
+                width=BAND_WIDTH, style={'alignment': TA_RIGHT}),
+            Label(text="Linea Base", top=0.8 * cm, left=1.5 * cm),
+            Label(text="Item", top=0.8 * cm, left=4.5 * cm),
+            Label(text="Solicitante", top=0.8 * cm, left=8.5 * cm),
+            Label(text="Estado", top=0.8 * cm, left=12.5 * cm),
+        ]
+        borders = {'all': True}
+    #Pie de pagina    
+    class band_page_footer(ReportBand):
+        height = 0.5*cm
+        elements = [
+            Label(text='Sistema GPM', top=0.1*cm),
+            SystemField(expression='Impreso %(now:%b %d, %Y)s a las %(now:%H:%M)s', top=0.1*cm,
+                width=BAND_WIDTH, style={'alignment': TA_RIGHT}),
+            ]
+        borders = {'top': True}

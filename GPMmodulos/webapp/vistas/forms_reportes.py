@@ -17,3 +17,8 @@ class ReporteHistorialxItemPaso2Form(Form):
     next = HiddenField()
     item_id = SelectField(u'Seleccione un Item:', coerce=int,)
     submit = SubmitField(u'Crear Reporte')
+    
+class ReporteSolicitudesxProyectoForm(Form):
+    next = HiddenField()
+    proyecto_id = SelectField(u'Seleccione un Proyecto:', coerce=int,)
+    submit = SubmitField(u'Crear Reporte')

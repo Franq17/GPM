@@ -57,6 +57,7 @@
 						</tr>
 						</thead>
 						{% for item in fase.getItems() %}
+						{% if item.getEstado()!='eliminado' %}
 						<tr>
 							<td>{{ item.nombre }}</td>
 							<td>{{ item.complejidad }}</td>
@@ -71,10 +72,27 @@
 							<td><a title="Editar Item" href="{{ url_for('des.item', item_id=item.id, proyecto_id=proyecto.id) }}"><i class="icon-pencil"></i></a></td>
 							{%if proyecto.comite is none%}
 							<td> <a title="Eliminar Item" href="#" onClick="alert('El proyecto aun no cuenta con un Comite de cambios.')"><i class="icon-trash"></i></a></td>
+							{% elif not item.tieneLineaBase() %}
+	        				<td><a data-toggle="modal" href="#eliminar{{item.id}}"><i class="icon-trash"></i></a> </td>
 							{% else%}
 							<td><a data-toggle="modal" href="#solicitud{{item.id}}"><i class="icon-trash"></i></a> </td>
 							{% endif %}
 						</tr>
+						{% endif %}
+						<!--******************** MODAL ELIMINAR ***************-->	
+						<div id="eliminar{{item.id}}" class="modal hide fade in" style="display: none;">
+							<div class="modal-header">
+								<a data-dismiss="modal" class="close">×</a>
+								<h4>Eliminar Item: <font color="royalblue">{{ item.nombre }}</font></h4>
+							</div>
+							<div class="modal-body">
+								<p>Favor, confirme su respuesta</p>
+							</div>
+							<div class="modal-footer">
+								<a href="#" data-dismiss="modal" class="btn">Cancelar</a>
+								<a href="{{ url_for('des.eliminarItem', item_id=item.id)}}" class="btn btn-primary">Eliminar</a>
+							</div>
+						</div>
 						
 						<!--******************** MODAL SOLICITUD ***************-->	
 						<div id="solicitud{{item.id}}" class="modal hide fade in" style="display: none;"> 
@@ -103,7 +121,7 @@
 								    <ul class="nav nav-list">
 								    	<li class="nav-header">Items disponibles de: {{fase.nombre}}</li>
 			    							{% for itemCandidato in fase.items %}
-			    								{% if itemCandidato != item %}
+			    								{% if itemCandidato != item and itemCandidato.getEstado() != 'eliminado' %}
 			    								<li><a href="{{ url_for('des.relacionarPadre', itemActual_id=item.id, itemCandidato_id=itemCandidato.id) }}">{{ itemCandidato.nombre }} </a></li>
 			    								{% endif %}
 			    							{% endfor%}	
@@ -125,7 +143,7 @@
 								    <ul class="nav nav-list">
 								    	<li class="nav-header">Hijos en fase: {{fase.nombre}}</li>
 			    							{% for itemHijo in item.hijo %}
-			    								{% if itemHijo != item %}
+			    								{% if itemHijo != item and itemHijo.getEstado() != 'eliminado' %}
 			    								<li><a href="#">{{ itemHijo.nombre }}</a></li>
 			    								{% endif %}
 			    							{% endfor%}	
@@ -149,7 +167,7 @@
 								    	<li class="nav-header">Items disponibles de la Fase Siguiente</li>
 			    						{% if fase.tieneSiguiente(proyecto) %}	
 			    							{% for itemCandidato in fase.getFaseSiguiente(proyecto).items %}
-			    								{% if itemCandidato != item %}
+			    								{% if itemCandidato != item and itemCandidato.getEstado() != 'eliminado' %}
 			    								<li><a href="{{ url_for('des.relacionarSucesor', itemActual_id=item.id, itemCandidato_id=itemCandidato.id) }}">{{ itemCandidato.nombre }} </a></li>
 			    								{% endif %}
 			    							{% endfor%}
@@ -174,7 +192,7 @@
 								    <ul class="nav nav-list">
 								    	<li class="nav-header">Antecesores la fase Anterior</li>
 			    							{% for itemAntecesor in item.getAntecesores() %}
-			    								{% if itemAntecesor != item %}
+			    								{% if itemAntecesor != item and itemAntecesor.getEstado() != 'eliminado' %}
 			    								<li><a href="#">{{ itemAntecesor.nombre }}</a></li>
 			    								{% endif %}
 			    							{% endfor%}	

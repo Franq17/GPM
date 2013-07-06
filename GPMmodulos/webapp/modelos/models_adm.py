@@ -568,7 +568,13 @@ class Proyecto(db.Model):
             if not fase.tipoItemPorFase:
                 return False
         return True
-        
+    
+    def getFasePorNumero(self, numero_orden):
+        fases = self.fases
+        for fase in fases:
+            if fase.numero_fase == numero_orden:
+                return fase
+        return None    
     # ================================================================
     # Follow / Following
     followers = Column(DenormalizedText)
@@ -832,6 +838,47 @@ class Item(db.Model):
     def getSucesor(self):
         sucesor = Item.query.filter_by(id=self.sucesor_id).first()
         return sucesor
+    
+    def getSucesores(self):
+        proyecto = Proyecto.query.filter_by(id=self.proyecto_id).first_or_404()
+        fase = Fase.query.filter_by(id=self.fase_id).first_or_404()
+        lista_hijos = self.getGeneraciones(fase, self)
+        ubicacion = fase.numero_fase
+        lista=[]
+        for aux in lista_hijos:
+            fase= proyecto.getFasePorNumero(ubicacion+1)
+                # agregar funcion if tieneSucesor
+            sucesor = aux.getSucesor()
+            if (sucesor is None) == False:
+                if sucesor.getEstado() != 'eliminado' and aux.getSucesor() in fase.items:
+                    lista = lista + sucesor.getSucesores()
+            
+            lista = lista + [aux]
+        return lista
+    
+    def calcular_impacto_delante(self):
+        fase= Fase.query.filter_by(id=self.fase_id).first_or_404()
+        proyecto = Proyecto.query.filter_by(id=fase.proyecto_id).first_or_404()
+        
+        #for fase_aux in proyecto.fases:
+        #        for item_aux in fase_aux.items:
+        #                item_aux.setDesMarcar()
+        #                session.add(item_aux)
+        """
+        note: items que son sucesores, inclyendo el item
+        """
+        lista= self.getSucesores()
+        """
+        note: elimina duplicados
+        """
+        #lista= eliminar_duplicados(lista)
+        cont= 0
+        for aux in lista:
+                cont= cont + aux.getComplejidad()
+        return cont        
+
+
+
 # FUNCIONES  ====================================================================   
     def getHistorial(self):
         todosHistoriales = HistorialItem.query.all()
@@ -985,23 +1032,6 @@ class Item(db.Model):
         lista = lista + [self]
         return lista
     
-#    def getAntecesores(self, fase, item):
-#        lista = []
-#        proyecto= Proyecto.query.filter_by(id=fase.proyecto_id).first()
-#      #  proyecto.fases.sort(comparaFase)
-#        ubicacion = fase.numero_fase
-#        lista = item.getAscendientes(fase)
-#        if ubicacion > 1:
-#            listaAdd= []
-#            faseAnterior = proyecto.fases[ubicacion-1]
-#            for aux in lista:
-#                for candidato in faseAnterior.items:
-#                    for suce in candidato.getSucesores():
-#                        if suce == aux and candidato.getEstado() != 'eliminado':
-#                            listaAdd= listaAdd + item.getAntecesores(faseAnterior, candidato)
-#            lista = lista + listaAdd
-#        return lista
-#    
     def getAntecesoresParaLb(self, fase):
         proyecto= Proyecto.query.filter_by(id=fase.proyecto_id).first()
         #proyecto.fases.sort(comparaFase)

@@ -80,7 +80,7 @@
                             <ul class="dropdown-menu">
 							{% if current_user.getProyectos()|default('',false) %}
 								{% for proyecto in current_user.getProyectos() %}
-									<li><a href="{{ url_for('des.itemsxproyecto', proyecto_id=proyecto.id) }}">{{ proyecto.nombre}}</a></li>
+									<li><a href="{{ url_for('des.fasesxproyecto', proyecto_id=proyecto.id) }}">{{ proyecto.nombre}}</a></li>
 								{% endfor%}
 							{% else %}
                                     <li><a href="#">< Ninguno ></a></li>

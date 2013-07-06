@@ -63,7 +63,7 @@
 							<td>{{ item.getEstado() }} | 
 							{% if item.getEstado()=='aprobado'%}
 							<a href="{{ url_for('des.desaprobarItem', item_id=item.id) }}"><i class="icon-remove"></i>Desaprobar</a>
-							{%else%}
+							{%elif item.getEstado() == 'desaprobado'%}
 							 <a href="{{ url_for('des.aprobarItem', item_id=item.id) }}"><i class="icon-ok"></i>Aprobar</a>{%endif%}</td>
 							<td><a data-toggle="modal" href="#{{item.id}}"><i class="icon-calendar"></i>Historial</a></td>
 							<td><a data-toggle="modal" href="#sucesor{{item.id}}"><i class="icon-plus"></i> Sucesor</a> | <a data-toggle="modal" href="#padre{{item.id}}"><i class="icon-plus"></i> Padre</a> | <a data-toggle="modal" href="#antecesores{{item.id}}"><i class="icon-eye-open"></i> Antecesores</a> | <a data-toggle="modal" href="#hijos{{item.id}}"><i class="icon-eye-open"></i> Hijos</a></td>
@@ -170,7 +170,7 @@
 								<h4>Antecesores Actuales de Item:<font color="royalblue"> {{item.nombre}}</font></h4>
 							</div>
 							<div class="modal-body">
-								<p>Antecesores en la Fase Anterior</p>
+								<p>Antecesores en la Fase Anterior: }}</p>
 								    <ul class="nav nav-list">
 								    	<li class="nav-header">Antecesores la fase Anterior</li>
 			    							{% for itemAntecesor in item.getAntecesores() %}
@@ -185,7 +185,7 @@
 							</div>
 						</div>
 						
-						<!--******************** MODAL EDITAR ***************-->
+						<!--******************** MODAL EDITAR ATRIBUTOS ***************-->
 						<div id="atributos{{item.id}}" class="modal hide fade in" style="display: none;">
 							<div class="modal-header">
 								<a data-dismiss="modal" class="close">×</a>
@@ -194,7 +194,7 @@
 							<div class="modal-body">
 								<p></p>
 								    <ul class="nav nav-list">
-								    	<li class="nav-header">Hijos en fase: {{fase.nombre}}</li>
+								    	<li class="nav-header"></li>
 			    							{% for atributo in item.atributos %}
 			    								<li><a href="#">{{ atributo.nombre }} - Editar</a>
 			    									 Tipo: {{ atributo.getTipo() }}

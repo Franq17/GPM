@@ -184,8 +184,9 @@ def relacionarSucesor(itemActual_id, itemCandidato_id):
         return redirect(url_for('des.fasesxproyecto', proyecto_id=itemActual.proyecto_id ))
     
     #Borrar Sucesor
-    sucesor = Antecesores.query.filter_by(antecesor_id=itemActual.id).first_or_404()
-    db.session.delete(sucesor)
+    sucesor = Antecesores.query.filter_by(antecesor_id=itemActual.id).first()
+    if (sucesor is None) == False:
+        db.session.delete(sucesor)
     
     itemActual.sucesor_id = itemCandidato.id
     antecesor = Antecesores()

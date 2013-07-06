@@ -8,15 +8,22 @@ from ..decorators import crearUsuarios_required, modificarUsuarios_required,elim
 from ..decorators import crearComites_required,modificarProyectos_required, eliminarProyectos_required, verProyectos_required, crearComites_required, modificarComites_required, eliminarComites_required, verComites_required, verMiembrosComites_required, crearItems_required, modificarItems_required,eliminarItems_required, verFases_required
 
 from .views_gdc import desasignarMiembro
-from ..modelos import User,Rol,Permiso, Proyecto,Fase,HistorialItem,TipoItem
+from ..modelos import User,Rol,Permiso, Proyecto,Fase,HistorialItem,TipoItem, Item
 
-from ..modelos import TIPOS_ROLES, INICIADO, Atributo
+from ..modelos import Antecesores, TIPOS_ROLES, INICIADO, Atributo
 from .forms_adm import UserForm, DeleteUserForm, CreateUserForm
 from .forms_adm import ProyectoForm, BorrarProyectoForm, CrearProyectoForm
 from .forms_adm import RolForm, CrearRolForm , BorrarRolForm 
 from .forms_adm import PermisoxRolForm, RolxUsuarioForm, UserxComiteForm, UsuarioxProyectoForm, RolxProyectoForm
 from .forms_adm import CrearFaseForm,FaseForm
 from .forms_adm import TipoItemForm, CrearTipoItemForm, CrearAtributoForm
+
+import sys
+sys.path.append('..')
+sys.path.append('/usr/lib/graphviz/python/')
+sys.path.append('/usr/lib64/graphviz/python/')
+#import gv
+import pygraphviz as pgv
 
 
 admin = Blueprint('admin', __name__, url_prefix='/admin')
@@ -885,3 +892,96 @@ def tiposItemxproyecto(proyecto_id):
     proyecto = Proyecto.query.filter_by(id=proyecto_id).first_or_404()
     tiposItemExistentes = proyecto.tiposItem
     return render_template('admin/tiposItemxproyecto.html', proyecto=proyecto, tiposItem=tiposItemExistentes, active='Tipos de Item')
+
+@admin.route('/grafoProyecto/<proyecto_id>', methods=['GET', 'POST'])
+@login_required
+def grafoProyecto(proyecto_id):
+    lista= []
+    proyecto= Proyecto.query.filter_by(id=proyecto_id).first_or_404()
+    fases = Fase.query.filter_by(proyecto_id=proyecto.id).order_by("numero_fase asc")
+    ##
+    # eje x
+    desplazamiento_x = {}
+    __index = 0
+    for i in fases:
+        desplazamiento_x[i.id] = __index
+        __index+=1
+    # eje y
+    desplazamiento_y = []
+    for i in range(proyecto.numero_fases):
+        desplazamiento_y.append(0)
+    
+    #####
+    gr = pgv.AGraph(directed=True, label="Complejidad = "+str(proyecto.calcularCosto())+ " ** azul= bloqueado : verde= aprobado : amarillo= revision : rojo= desaprobado ")
+    
+    #gr.node_attr['shape']='circle'
+    nodos= []
+    id_nodos= []
+    #proyecto.fases.sort(comparaFase)
+    for fas in fases:
+        #fas.items.sort(compara)
+        for nodo in fas.items:
+            print "\n\n\n"
+            print nodo.getNombre()
+            print "\n\n\n"
+            if nodo.getEstado() != 'eliminado':
+                id_nodos.append(nodo.id)
+                nodos.append(nodo)
+    count=0
+    for nodo in nodos: 
+        count = count + 1
+        count2 = count*0.5
+        item = nodo
+        valor = str(item.id)+" : "+str(item.getComplejidad())
+        index = desplazamiento_x[item.fase_id]
+        if count % 2:
+            posicion =  str(index*3.5*count2)+','+str(90-desplazamiento_y[index]*2)
+        else:
+            posicion =  str(index*3.5)+','+str(90-desplazamiento_y[index]*2)
+        desplazamiento_y[index] = desplazamiento_y[index] + 1
+        if item.getEstado() == 'desaprobado':
+            color= '#D43D1A'
+        elif item.getEstado() == 'aprobado':
+            color= '#8dad48'
+        elif item.getEstado() == 'bloqueado':
+            color= '#008ee8'
+        elif item.getEstado() == 'revision':
+            color= '#FCD116'
+        gr.add_node(valor, label= item.getNombre()+" : "+  str(item.getComplejidad()), fillcolor=color, style="filled", pos=posicion, pin=True)
+    #relaciones son aristas
+    #relaciones antecesor-sucesor
+    #aristas = session.query(RelacionSucesor).filter(RelacionSucesor.left_id.in_(id_nodos)).filter(RelacionSucesor.right_id.in_(id_nodos)).all()
+    aristas = Antecesores.query.all()
+    # relaciones padre-hijo
+    #aristasAdd= session.query(RelacionHijo).filter(RelacionHijo.left_id.in_(id_nodos)).filter(RelacionHijo.right_id.in_(id_nodos)).all()
+    #concatena todas las relaciones
+    #aristas.extend(aristasAdd)
+    for arista in aristas:
+        aux1 = Item.query.filter_by(id=arista.antecesor_id).first()
+        aux2 = Item.query.filter_by(id=arista.item_id).first()
+        if aux1 in proyecto.items and aux2 in proyecto.items:
+            if(gr.has_edge((arista.antecesor_id,arista.item_id))==False):
+                item1 = item = Item.query.filter_by(id=arista.item_id).first()
+                item2 = item = Item.query.filter_by(id=arista.antecesor_id).first()
+                valor1 = str(item1.id)+" : "+str(item1.getComplejidad())
+                valor2 = str(item2.id)+" : "+str(item2.getComplejidad())
+                gr.add_edge((valor2, valor1), href="/")
+    
+    for fase in fases:
+        for items in fase.items:
+            if items.tienePadre(fase) and (gr.has_edge((items.padre_id,items.id))==False):
+                item1 = item = Item.query.filter_by(id=items.padre_id).first()
+                item2 = item = Item.query.filter_by(id=items.id).first()
+                valor1 = str(item1.id)+" : "+str(item1.getComplejidad())
+                valor2 = str(item2.id)+" : "+str(item2.getComplejidad())
+                gr.add_edge((valor1, valor2), href="/")
+        
+        
+    gr.layout()
+    gr.draw('webapp/static/grafos/grafo_proyecto.png')
+    archivo= open('webapp/static/grafos/grafo_proyecto.png','rb')
+    contenido= archivo.read()
+    archivo.close()
+    flash('El proyecto se ha dibujado.', 'success')    
+    return redirect(url_for('admin.proyectos',proyecto_id=proyecto.id))
+

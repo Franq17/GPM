@@ -32,6 +32,7 @@
 				    <td>{{ proyecto.numero_fases }}</td>
 				    <td>{{ proyecto.getLider() }}</td>
 				    <td>{{ proyecto.created_time|format_date }}</td>
+				    <th><a href="{{ url_for('admin.grafoProyecto', proyecto_id=proyecto.id)}}"><i class="icon-asterisk"></i>Grafo</a></th>
 				    <td><a href="{{ url_for('admin.proyecto', proyecto_id=proyecto.id) }}"><i class="icon-pencil"></i>Editar</a> | <a href="{{ url_for('admin.borrarProyecto', proyecto_id=proyecto.id) }}"><i class="icon-remove"></i>Eliminar</a></td>
 				</tr>
 		    	{% endfor %}

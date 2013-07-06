@@ -492,7 +492,12 @@ class Proyecto(db.Model):
         
 
 # FUNCIONES ===============================================================================
-
+    def calcularCosto(self):
+        cont = 0
+        for item in self.items:
+            cont = cont + item.getComplejidad()
+        return cont
+    
     def getNombre(self):
         return self.nombre
     
@@ -833,6 +838,7 @@ class Item(db.Model):
             if relacion.item_id == self.id and relacion.antecesor_id != self.id:
                 item = Item.query.filter_by(id=relacion.antecesor_id).first()
                 misAntecesores.append(item)
+        misAntecesores = self.eliminar_duplicados(misAntecesores)
         return misAntecesores
     
     def getSucesor(self):

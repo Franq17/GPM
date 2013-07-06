@@ -29,8 +29,9 @@
 				<h5>Proyecto: <font color="royalblue">{{ solicitud.getProyecto().nombre }} </font></h5>
 				<h5>Fase: <font color="royalblue">{{ current_user.getSolicitud().getItem().getFase().nombre }}</font></h5>
 				<h5>Complejidad: <font color="royalblue">{{ solicitud.getItem().getComplejidad() }}</font></h5>
-				<center><a class="btn btn-primary" href="#example"><i class="icon-eye-open"></i> Ver impacto</a></center>
-				<th>--</th>
+				__________________________________________________________________<br>
+				<center><h5> Impacto: <font color="royalblue"> {{ solicitud.getItem().calcular_impacto_total() }}</font> Complejidad Proyecto: <font color="royalblue"> {{ solicitud.getProyecto().calcularCosto() }} </font></h5> </center>
+				__________________________________________________________________<br><br>
 				<p>Favor, confirme su respuesta</p>
 			</div>
 			<div class="modal-footer">

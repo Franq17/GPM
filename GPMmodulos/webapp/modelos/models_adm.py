@@ -1055,8 +1055,32 @@ class Item(db.Model):
             nuevoAtributo.setValor(atributo.getValor())
             nuevoAtributo.descripcion = atributo.descripcion
             self.atributos.append(nuevoAtributo)
-            
- 
+    
+    def todosYaVotaron(self):
+        solicitudes = Solicitud.query.filter_by(item_id=self.id).order_by("id asc")
+        for solicitud in solicitudes:
+            if solicitud.getEstado()=='no votado':
+                return False
+        return True
+    
+    def contarVotos(self):
+        aprobado=0
+        rechazado=0
+        solicitudes = Solicitud.query.filter_by(item_id=self.id).order_by("id asc")
+        for solicitud in solicitudes:
+            if solicitud.getVoto()=='aprobado':
+                aprobado+=1
+            if solicitud.getVoto()=='rechazado':
+                rechazado+=1
+            solicitud.setEstado(2) #Estado Finalizado
+            self.solicitudes.append(solicitud)
+        
+        if aprobado > rechazado:
+            return 'aprobado'
+        else:
+            return 'rechazado'
+        
+
 class Atributo(db.Model):
     
     __tablename__ = 'atributo'
@@ -1374,6 +1398,17 @@ class Comite(db.Model):
     
     def getSolicitudes(self):
         return self.solicitudes
+    
+    def getItems(self):
+        listaItems = []
+        last_id = 0
+        solicitudes = self.solicitudes.order_by("id asc")
+        for solicitud in solicitudes:
+            if solicitud.item_id != last_id:
+                item = Item.query.filter_by(id=solicitud.item_id).first_or_404()
+                listaItems.append(item)
+                last_id = item.id
+        return listaItems
     
     # Class methods
 

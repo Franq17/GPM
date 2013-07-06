@@ -275,13 +275,22 @@ def crearSolicitud(item_id, proyecto_id):
 @login_required
 def aprobarSolicitud(solicitud_id):
     solicitud = Solicitud.query.filter_by(id=solicitud_id).first_or_404()
-    proyecto = solicitud.getProyecto()
     item = solicitud.getItem()
     
     solicitud.setVoto(1) #Voto aprobado
     solicitud.setEstado(1) #Estado votado
-    
+        
     db.session.add(solicitud)
+    db.session.commit()
+    
+    if item.todosYaVotaron():
+        estado = item.contarVotos()
+        if estado == 'aprobado':
+            flash('SOLICITUD DE CAMBIO DE ITEM {{ A-PRO-BA-DA }} !!', 'success')
+        if estado == 'rechazado':
+            flash('SOLICITUD DE CAMBIO DE ITEM {{ RE-CHA-ZA-DA }} !!', 'success')
+
+    db.session.add(item)
     db.session.commit()
     
     flash('Solicitud aprobada.', 'success')
@@ -296,13 +305,22 @@ def aprobarSolicitud(solicitud_id):
 @login_required
 def rechazarSolicitud(solicitud_id):
     solicitud = Solicitud.query.filter_by(id=solicitud_id).first_or_404()
-    proyecto = solicitud.getProyecto()
     item = solicitud.getItem()
     
     solicitud.setVoto(2) #Voto rechazado
     solicitud.setEstado(1) #Estado votado
-    
+        
     db.session.add(solicitud)
+    db.session.commit()
+    
+    if item.todosYaVotaron():
+        estado = item.contarVotos()
+        if estado == 'aprobado':
+            flash('SOLICITUD DE CAMBIO DE ITEM {{ A-PRO-BA-DA }} !!', 'success')
+        if estado == 'rechazado':
+            flash('SOLICITUD DE CAMBIO DE ITEM {{ RE-CHA-ZA-DA }} !!', 'success')
+    
+    db.session.add(item)
     db.session.commit()
     
     flash('Solicitud rechazada.', 'success')

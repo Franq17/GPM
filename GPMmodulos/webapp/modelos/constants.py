@@ -84,10 +84,12 @@ ITEM_ESTADOS = {
 #Solicitud_estados
 NO_VOTADO = 0
 VOTADO = 1
+FINALIZADO = 2
 
 SOLICITUD_ESTADOS = {
     NO_VOTADO: 'no votado',
     VOTADO: 'votado',
+    FINALIZADO: 'finalizado',
 }
 
 #Votacion_estados

@@ -89,6 +89,25 @@ def item(proyecto_id, item_id):
     return render_template('des/item.html', item=item, proyecto=proyecto, form=form)
 
 
+@des.route('/eliminarItem/<item_id>', methods=['GET', 'POST'])
+@login_required
+def eliminarItem(item_id):
+    item= Item.query.filter_by(id=item_id).first_or_404()
+    proyecto = Proyecto.query.filter_by(id=item.proyecto_id).first_or_404()
+    itemsExistentes = proyecto.items
+    fase = Fase.query.filter_by(id=item.fase_id).first_or_404()
+
+    if not item.tieneLineaBase():
+        item.setEstado(2) #Estado eliminado
+        flash('Item eliminado correctamente.', 'success')
+    
+    db.session.add(item)
+    db.session.commit()
+
+    
+    return render_template('des/itemsxproyecto.html', proyecto=proyecto, items=itemsExistentes, active='Items')
+
+
 @des.route('/AprobarItem/<item_id>', methods=['GET', 'POST'])
 @login_required
 def aprobarItem(item_id):

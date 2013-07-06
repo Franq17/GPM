@@ -23,6 +23,7 @@
         <thead>
             <tr>
                 <th>Nombre</th>
+                <th>Estado</th>
                 <th>Descripcion</th>
                 <th>Historiales</th>
                 <th>Relaciones</th>
@@ -32,26 +33,47 @@
         {% for item in items %}
         <tr>
             <td>{{ item.nombre }}</td>
+            <td>{{ item.getEstado() }}</td>
             <td>{{ item.descripcion }}</td>
             <td><a href="{{ url_for('des.historialxitem', item_id=item.id) }}"><i class="icon-calendar"></i> Ver Historial</a></td>
             <td><a href="#"><i class="icon-eye-open"></i> Padre</a> | <a href="#"><i class="icon-eye-open"></i> Sucesor</a> | <a href="#"><i class="icon-eye-open"></i> Hijos</a></td>
             <td><a href="{{ url_for('des.item', item_id=item.id, proyecto_id=proyecto.id) }}"><i class="icon-pencil"></i>Editar</a>
 	        {%if proyecto.comite is none%}
-	        <a href="#" onClick="alert('El proyecto aun no cuenta con un Comite de cambios.')"><i class="icon-remove"></i>Eliminar</a></td>
-	        {% else%}
-	        <a data-toggle="modal" href="#{{item.id}}"><i class="icon-remove"></i>Eliminar</a> </td>
+	        <a href="#" onClick="alert('El proyecto aun no cuenta con un Comite de cambios.')"><i class="icon-trash"></i>Eliminar</a></td>
+	        {% elif not item.tieneLineaBase() and item.getEstado()=='eliminado' %}
+	        <a data-toggle="modal" href="#"><i class="icon-trash"></i>Eliminar</a> </td>
+	        {% elif not item.tieneLineaBase() %}
+	        <a data-toggle="modal" href="#eliminar{{item.id}}"><i class="icon-trash"></i>Eliminar</a> </td>
+	        {% else %}
+	        <a data-toggle="modal" href="#solicitud{{item.id}}"><i class="icon-trash"></i>Eliminar</a> </td>
 	        {% endif %}  
-	            <div id="{{item.id}}" class="modal hide fade in" style="display: none;">
+           		<!--******************** MODAL ELIMINAR ***************-->	
+				<div id="eliminar{{item.id}}" class="modal hide fade in" style="display: none;">
 					<div class="modal-header">
 						<a data-dismiss="modal" class="close">×</a>
-						<h4>Solicitud de Cambio</h4>
+						<h4>Eliminar Item: <font color="royalblue">{{ item.nombre }}</font></h4>
+					</div>
+					<div class="modal-body">
+						<p>Favor, confirme su respuesta</p>
+					</div>
+					<div class="modal-footer">
+						<a href="#" data-dismiss="modal" class="btn">Cancelar</a>
+						<a href="{{ url_for('des.eliminarItem', item_id=item.id)}}" class="btn btn-primary">Eliminar</a>
+					</div>
+				</div>
+				
+				<!--******************** MODAL SOLICITUD ***************-->	
+				<div id="solicitud{{item.id}}" class="modal hide fade in" style="display: none;"> 
+						<div class="modal-header"> 
+						<a data-dismiss="modal" class="close">×</a>
+						<h4>Solicitud de Cambio</h4>	
 					</div>
 					<div class="modal-body">
 						<p>Para eliminar un item debe enviar una <font color="royalblue">Solicitud de Cambio</font> y esperar aprobacion. </p>
 					</div>
 					<div class="modal-footer">	
 						<a href="#" data-dismiss="modal" class="btn">Cancelar</a>
-						<a href="{{ url_for('des.crearSolicitud', proyecto_id=proyecto.id, item_id=item.id)  }}" class="btn btn-primary">Enviar Solicitud</a>
+						<a href="{{ url_for('des.crearSolicitud', item_id=item.id, proyecto_id=proyecto.id)  }}" class="btn btn-primary">Enviar Solicitud</a>
 					</div>
 				</div>
         </tr>

@@ -1392,11 +1392,17 @@ class Solicitud(db.Model):
     def setVoto(self, voto):
         self.voto = voto
     
+    def setSolicitante(self, solicitante):
+        self.solicitante = solicitante
+    
     def getVoto(self):
         return VOTACION_ESTADOS[self.voto]
     
     def getEstado(self):
         return SOLICITUD_ESTADOS[self.estado]
+    
+    def getSolicitante(self):
+        return self.solicitante
     
     def getItem(self):
         return Item.query.filter_by(id=self.item_id).first_or_404()

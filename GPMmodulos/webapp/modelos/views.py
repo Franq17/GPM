@@ -13,7 +13,6 @@ comite = Blueprint('comite', __name__, url_prefix='/comite')
 tipoItem = Blueprint('tipoItem', __name__, url_prefix='/tipoItem')
 
 @user.route('/')
-@user.route('/<numSolicitud>')
 @login_required
 def index(id_solicitud=None):
     if id_solicitud is not None:

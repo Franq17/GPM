@@ -3,7 +3,7 @@
 {% extends "layouts/base.html" %}
 
 {% block body %}
-<h1> BIENVENIDO <font color="royalblue"><i>{{ current_user.nombre+" "+current_user.apellido }}</font> !!</i></h1><br>
+<h1> BIENVENIDO <font color="royalblue"><i>{{ current_user.nombre }}</font> !!</i></h1><br>
 <img src="{{ url_for('user.avatar', avatar_filename=current_user.avatar) }}" alt="" />
 <br>
 <h4>Para rellenar o modificar sus datos siga los siguientes pasos:</h4>

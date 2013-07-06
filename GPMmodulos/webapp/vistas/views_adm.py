@@ -246,7 +246,7 @@ def rol(rol_id):
 
 @admin.route('/borrarRol/<rol_id>', methods=['GET', 'POST'])
 @login_required
-#@eliminarRoles_required
+@eliminarRoles_required
 def borrarRol(rol_id):
     """Funcion que permite eliminar un rol"""
     rol = Rol.query.filter_by(id=rol_id).first_or_404()
@@ -303,7 +303,7 @@ def desasignarRol(user_id, rol_id):
 
 
 @admin.route('/searchRol')
-#@verRoles_required
+@verRoles_required
 def searchRol():
     """Funcion que realiza una busqueda de roles por nombre"""
     keywords = request.args.get('keywords', '').strip()
@@ -320,7 +320,7 @@ def searchRol():
 #PROYECTO
 @admin.route('/proyectos')
 @login_required
-#@verProyectos_required
+@verProyectos_required
 def proyectos():
     """Funcion que lista los proyectos del sistema"""
     proyectos = Proyecto.query.all()
@@ -329,7 +329,7 @@ def proyectos():
 
 @admin.route('/crearProyecto', methods=['GET', 'POST'])
 @login_required
-#@crearProyectos_required
+@crearProyectos_required
 def crearProyecto():
     """Funcion que permite la creacion de un Proyecto"""
     form = CrearProyectoForm(next=request.args.get('next'))

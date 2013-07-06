@@ -426,7 +426,9 @@ class Rol(db.Model):
                 self.permisoPorRol.append(permiso)
         elif self.getTipo()=="lider de Proyecto":
             perLider = Permiso.query.filter_by(id=32).first_or_404()
+            perReporte = Permiso.query.filter_by(id=35).first_or_404()
             self.permisoPorRol.append(perLider)
+            self.permisoPorRol.append(perReporte)
             for pid in range(10,19):
                 permiso = Permiso.query.filter_by(id=pid).first_or_404()
                 self.permisoPorRol.append(permiso)

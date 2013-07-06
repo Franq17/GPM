@@ -13,7 +13,7 @@ app = create_app()
 manager = Manager(app)
 project_root_path = os.path.join(os.path.dirname(app.root_path))
 NINGUNO=0
-
+INACTIVE=0
 NO_ASIGNADO=0
 ASIGNADO=1
 
@@ -84,6 +84,7 @@ def initdb():
     permiso32 = Permiso(nombre=u'liderProyecto',descripcion=u'permite verificar si el usuario posee rol de tipo liderProyecto')
     permiso33 = Permiso(nombre=u'liderFase',descripcion=u'permite verificar si el usuario posee rol de tipo liderFase')
     permiso34 = Permiso(nombre=u'desarrollador',descripcion=u'permite verificar si el usuario posee rol de tipo desarrollador')
+    permiso35 = Permiso(nombre=u'verReportes',descripcion=u'permite visualizar reportes, solo Lider de Proyecto')
     
     db.session.add(permiso1)
     db.session.add(permiso2)
@@ -119,6 +120,7 @@ def initdb():
     db.session.add(permiso32)
     db.session.add(permiso33)
     db.session.add(permiso34)
+    db.session.add(permiso35)
     
     rol_admin = Rol(nombre=u'administrador',
                     descripcion=u'rol del administrador',
@@ -130,7 +132,7 @@ def initdb():
                                    permiso16,permiso17,permiso18,permiso19,permiso20,
                                    permiso21,permiso22,permiso23,permiso24,permiso25,
                                    permiso26,permiso27,permiso28,permiso29,permiso30,
-                                   permiso31])
+                                   permiso31,permiso35])
     
     rol_admin_usuarios = Rol(nombre=u'administrador Usuarios',
                     descripcion=u'rol que solo administra usuarios',
@@ -148,9 +150,9 @@ def initdb():
                     descripcion=u'rol con permisos de lider de Proyecto',
                     tipo=2,
                     estado_id=1,
-                    permisoPorRol=[permiso10,permiso11,permiso12,permiso13,permiso14,
+                    permisoPorRol=[permiso11,permiso12,permiso13,permiso14,
                                    permiso15,permiso16,permiso17,permiso18,permiso23,
-                                   permiso23,permiso25,permiso26,permiso32])
+                                   permiso23,permiso25,permiso26,permiso32,permiso35])
     
     rol_liderFase = Rol(nombre=u'lider de Fase',
                     descripcion=u'rol con permisos de lider de Fase',
@@ -178,7 +180,7 @@ def initdb():
             email=u'admin@example.com', 
             password=u'123456',
             rolPorUsuario=[rol_admin], 
-            status_id=ACTIVE
+            status_id=INACTIVE
             )
     
     lider = User(
@@ -188,7 +190,7 @@ def initdb():
             email=u'lider@example.com', 
             password=u'123456',
             rolPorUsuario=[rol_admin_usuarios, rol_liderProyecto], 
-            status_id=ACTIVE
+            status_id=INACTIVE
             )
             
     usuario = User(
@@ -198,7 +200,17 @@ def initdb():
             email=u'usuario@example.com', 
             password=u'123456',
             rolPorUsuario=[rol_admin_comites, rol_liderFase], 
-            status_id=ACTIVE
+            status_id=INACTIVE
+            )
+    
+    presidente = User(
+            name=u'presidente',
+            nombre=u'Horacio',
+            apellido=u'Cartes',
+            email=u'presidente@example.com', 
+            password=u'123456',
+            rolPorUsuario=[rol_admin_usuarios, rol_liderProyecto], 
+            status_id=INACTIVE
             )
     
     chino = User(
@@ -208,13 +220,14 @@ def initdb():
             email=u'chino@example.com', 
             password=u'123456',
             rolPorUsuario=[rol_desarrollador], 
-            status_id=ACTIVE
+            status_id=INACTIVE
             )
     
     
     db.session.add(admin)
-    db.session.add(lider) 
+    db.session.add(lider)
     db.session.add(usuario)
+    db.session.add(presidente) 
     db.session.add(chino)
     
     db.session.add(rol_admin)

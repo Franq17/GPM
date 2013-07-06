@@ -12,7 +12,11 @@ reportes = Blueprint('reportes', __name__, url_prefix='/reportes')
 @login_required
 def itemsxproyecto():
     """Funcion que crea un reporte PDF"""
-    proyectos = Proyecto.query.all()
+    if current_user.comprobarPermiso('administrador'):
+        proyectos = Proyecto.query.all()
+    elif current_user.comprobarPermiso('liderProyecto'):
+        proyectos = current_user.getProyectosDeLider()
+    
     form = ReporteItemsxProyectoForm(next=request.args.get('next'))
     form.proyecto_id.choices = [(h.id, h.nombre) for h in proyectos ]
     
@@ -37,7 +41,11 @@ def itemsxproyecto():
 @login_required
 def historialxitemPaso1():
     """Funcion que crea un reporte PDF del historial de un item"""
-    proyectos = Proyecto.query.all()
+    if current_user.comprobarPermiso('administrador'):
+        proyectos = Proyecto.query.all()
+    elif current_user.comprobarPermiso('liderProyecto'):
+        proyectos = current_user.getProyectosDeLider()
+
     form = ReporteHistorialxItemPaso1Form(next=request.args.get('next'))
     form.proyecto_id.choices = [(h.id, h.nombre) for h in proyectos ]
     
